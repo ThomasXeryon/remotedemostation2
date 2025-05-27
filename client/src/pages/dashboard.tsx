@@ -65,28 +65,26 @@ export default function Dashboard() {
 
   // Listen for organization changes and refresh user data
   useEffect(() => {
-    const handleStorageChange = async () => {
+    const handleOrganizationChange = async () => {
       try {
-        await refreshUserData();
-        const updatedUser = getCurrentUser();
-        if (updatedUser) {
-          setUser(updatedUser);
-        }
+        // Force refresh user data from server
+        const response = await apiRequest('/api/users/me', { method: 'GET' });
+        setUser(response);
+        
+        // Also refresh demo stations for the new organization
+        queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
       } catch (error) {
         console.error('Failed to refresh user data:', error);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for custom organization change events
-    window.addEventListener('organizationChanged', handleStorageChange);
+    // Listen for custom organization change events
+    window.addEventListener('organizationChanged', handleOrganizationChange);
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('organizationChanged', handleStorageChange);
+      window.removeEventListener('organizationChanged', handleOrganizationChange);
     };
-  }, []);
+  }, [queryClient]);
 
   // Start session mutation
   const startSessionMutation = useMutation({
