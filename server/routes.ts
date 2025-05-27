@@ -246,7 +246,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .from(userOrganizations)
           .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
-          .where(eq(userOrganizations.userId, user.id))
+          .where(
+            and(
+              eq(userOrganizations.userId, user.id),
+              eq(userOrganizations.organizationId, currentOrgId)
+            )
+          )
           .limit(1);
       }
 
