@@ -9,7 +9,7 @@ import { TelemetrySection } from '@/components/telemetry-section';
 import { ControlBuilderModal } from '@/components/control-builder-modal';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, refreshUserData } from '@/lib/auth';
 import { apiRequest } from '@/lib/queryClient';
 import type { DemoStation, Session, TelemetryData, ControlConfiguration, ControlWidget } from '@shared/schema';
 
@@ -35,11 +35,10 @@ export default function Dashboard() {
   const [telemetryHistory, setTelemetryHistory] = useState<TelemetryData[]>([]);
   const [isControlBuilderOpen, setIsControlBuilderOpen] = useState(false);
   const [controlConfig, setControlConfig] = useState<ControlConfiguration | null>(null);
+  const [user, setUser] = useState<User | null>(getCurrentUser() as User | null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  const user = getCurrentUser() as User | null;
   
   // WebSocket connection
   const { isConnected, connectionStats, sendCommand } = useWebSocket(
@@ -47,6 +46,12 @@ export default function Dashboard() {
     user?.id || 0,
     currentSession?.id
   );
+
+  // Fetch user organizations
+  const { data: userOrganizations = [] } = useQuery({
+    queryKey: ['/api/users/me/organizations'],
+    enabled: !!user
+  });
 
   // Fetch demo stations
   const { data: demoStations = [] } = useQuery({
@@ -189,6 +194,34 @@ export default function Dashboard() {
     saveControlsMutation.mutate(controls);
     setIsControlBuilderOpen(false);
   };
+
+  // Auto-select organization if there's only one
+  useEffect(() => {
+    const autoSelectOrganization = async () => {
+      if (userOrganizations && userOrganizations.length === 1 && user && !user.organization) {
+        try {
+          await apiRequest('/api/users/me/switch-organization', {
+            method: 'POST',
+            body: JSON.stringify({ organizationId: userOrganizations[0].organization.id })
+          });
+          
+          // Refresh user data
+          const response = await apiRequest('/api/users/me');
+          setUser(response);
+          
+          toast({
+            title: "Organization Selected",
+            description: `Switched to ${userOrganizations[0].organization.name}`,
+            duration: 3000
+          });
+        } catch (error) {
+          console.error('Failed to auto-select organization:', error);
+        }
+      }
+    };
+
+    autoSelectOrganization();
+  }, [userOrganizations, user]);
 
   // Auto-select first station if none selected
   useEffect(() => {

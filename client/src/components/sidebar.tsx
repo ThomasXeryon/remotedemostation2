@@ -95,7 +95,9 @@ export function Sidebar({
             <h1 className="text-lg font-semibold text-slate-900">
               {user.organization?.name || 'Demo Platform'}
             </h1>
-            <p className="text-xs text-slate-500">Remote Demo Platform</p>
+            <p className="text-xs text-slate-500">
+              {user.organization?.name ? 'Remote Demo Station' : 'No Organization Selected'}
+            </p>
           </div>
         </div>
       </div>

@@ -58,3 +58,15 @@ export function isAuthenticated(): boolean {
 export function getCurrentUser() {
   return authStorage.getUser();
 }
+
+export async function refreshUserData() {
+  try {
+    const response = await apiRequest('/api/users/me');
+    const userData = response;
+    authStorage.setUser(userData);
+    return userData;
+  } catch (error) {
+    console.error('Failed to refresh user data:', error);
+    return null;
+  }
+}
