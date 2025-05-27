@@ -6,7 +6,7 @@ import { db } from "./db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { insertUserSchema, insertOrganizationSchema, insertDemoStationSchema, insertControlConfigurationSchema, userOrganizations, organizations } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -229,20 +229,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      // Get user's primary organization from user_organizations table
-      const userOrg = await db
-        .select({
-          organizationId: userOrganizations.organizationId,
-          role: userOrganizations.role,
-          orgName: organizations.name,
-          orgSlug: organizations.slug,
-          orgPrimaryColor: organizations.primaryColor,
-          orgSecondaryColor: organizations.secondaryColor,
-        })
-        .from(userOrganizations)
-        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
-        .where(eq(userOrganizations.userId, user.id))
-        .limit(1);
+      // Get user's current active organization from user_organizations table
+      // Use the organization from the JWT token (set during organization switching)
+      const currentOrgId = req.user!.organizationId;
+      
+      let userOrg: any[] = [];
+      if (currentOrgId) {
+        userOrg = await db
+          .select({
+            organizationId: userOrganizations.organizationId,
+            role: userOrganizations.role,
+            orgName: organizations.name,
+            orgSlug: organizations.slug,
+            orgPrimaryColor: organizations.primaryColor,
+            orgSecondaryColor: organizations.secondaryColor,
+          })
+          .from(userOrganizations)
+          .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+          .where(eq(userOrganizations.userId, user.id))
+          .where(eq(userOrganizations.organizationId, currentOrgId))
+          .limit(1);
+      }
 
       const organization = userOrg.length ? {
         id: userOrg[0].organizationId,
