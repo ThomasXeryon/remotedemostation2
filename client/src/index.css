@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light theme colors matching the design */
+  --background: 210 11% 98%; /* #F5F7FA */
+  --foreground: 224 14% 16%; /* #1E293B */
+  --muted: 210 6% 96%; /* #F1F5F9 */
+  --muted-foreground: 215 16% 47%; /* #64748B */
+  --popover: 0 0% 100%; /* #FFFFFF */
+  --popover-foreground: 224 14% 16%; /* #1E293B */
+  --card: 0 0% 100%; /* #FFFFFF */
+  --card-foreground: 224 14% 16%; /* #1E293B */
+  --border: 214 13% 91%; /* #E2E8F0 */
+  --input: 214 13% 91%; /* #E2E8F0 */
+  --primary: 217 91% 60%; /* #3B82F6 */
+  --primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --secondary: 210 6% 96%; /* #F1F5F9 */
+  --secondary-foreground: 215 25% 27%; /* #334155 */
+  --accent: 210 6% 96%; /* #F1F5F9 */
+  --accent-foreground: 215 25% 27%; /* #334155 */
+  --destructive: 0 84% 60%; /* #EF4444 */
+  --destructive-foreground: 0 0% 100%; /* #FFFFFF */
+  --ring: 217 91% 60%; /* #3B82F6 */
+  --radius: 0.5rem;
+
+  /* Brand colors from design */
+  --brand-primary: 217 91% 60%; /* #3B82F6 */
+  --brand-secondary: 224 14% 16%; /* #1E293B */
+  --success: 142 76% 36%; /* #10B981 */
+  --warning: 43 96% 56%; /* #F59E0B */
+  --danger: 0 84% 60%; /* #EF4444 */
+
+  /* Sidebar specific colors */
+  --sidebar-background: 0 0% 100%; /* #FFFFFF */
+  --sidebar-foreground: 224 14% 16%; /* #1E293B */
+  --sidebar-primary: 217 91% 60%; /* #3B82F6 */
+  --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --sidebar-accent: 210 6% 96%; /* #F1F5F9 */
+  --sidebar-accent-foreground: 215 25% 27%; /* #334155 */
+  --sidebar-border: 214 13% 91%; /* #E2E8F0 */
+  --sidebar-ring: 217 91% 60%; /* #3B82F6 */
+}
+
+.dark {
+  --background: 224 14% 11%; /* #0F172A */
+  --foreground: 210 11% 98%; /* #F8FAFC */
+  --muted: 215 25% 16%; /* #1E293B */
+  --muted-foreground: 215 16% 57%; /* #94A3B8 */
+  --popover: 224 14% 11%; /* #0F172A */
+  --popover-foreground: 210 11% 98%; /* #F8FAFC */
+  --card: 224 14% 11%; /* #0F172A */
+  --card-foreground: 210 11% 98%; /* #F8FAFC */
+  --border: 215 25% 16%; /* #1E293B */
+  --input: 215 25% 16%; /* #1E293B */
+  --primary: 217 91% 60%; /* #3B82F6 */
+  --primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --secondary: 215 25% 16%; /* #1E293B */
+  --secondary-foreground: 210 11% 98%; /* #F8FAFC */
+  --accent: 215 25% 16%; /* #1E293B */
+  --accent-foreground: 210 11% 98%; /* #F8FAFC */
+  --destructive: 0 84% 60%; /* #EF4444 */
+  --destructive-foreground: 0 0% 100%; /* #FFFFFF */
+  --ring: 217 91% 60%; /* #3B82F6 */
+
+  --sidebar-background: 224 14% 11%; /* #0F172A */
+  --sidebar-foreground: 210 11% 98%; /* #F8FAFC */
+  --sidebar-primary: 217 91% 60%; /* #3B82F6 */
+  --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --sidebar-accent: 215 25% 16%; /* #1E293B */
+  --sidebar-accent-foreground: 210 11% 98%; /* #F8FAFC */
+  --sidebar-border: 215 25% 16%; /* #1E293B */
+  --sidebar-ring: 217 91% 60%; /* #3B82F6 */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .control-widget {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .control-widget:hover {
+    @apply transform -translate-y-0.5 shadow-lg;
+  }
+
+  .video-container {
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--muted-foreground) / 0.1) 100%);
+  }
+
+  .joystick-base {
+    background: hsl(var(--muted));
+    border: 2px solid hsl(var(--border));
+  }
+
+  .joystick-handle {
+    background: hsl(var(--primary));
+    box-shadow: 0 2px 4px hsl(var(--foreground) / 0.1);
+  }
+
+  .telemetry-graph {
+    background: linear-gradient(to right, 
+      transparent 0%, 
+      hsl(var(--primary) / 0.1) 50%, 
+      transparent 100%
+    );
+  }
+}
