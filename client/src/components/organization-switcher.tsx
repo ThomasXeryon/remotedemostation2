@@ -59,13 +59,30 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
   // Organization switch mutation
   const switchOrganizationMutation = useMutation({
     mutationFn: async (organizationId: number) => {
-      const response = await apiRequest('/api/users/me/switch-organization', {
-        method: 'POST',
-        body: JSON.stringify({ organizationId }),
-      });
-      return response;
+      try {
+        const response = await fetch('/api/users/me/switch-organization', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          },
+          body: JSON.stringify({ organizationId }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Organization switch error:', error);
+        throw error;
+      }
     },
     onSuccess: (data: any, organizationId: number) => {
+      console.log('Organization switch successful:', data);
+      
       // Save the new JWT token if provided
       if (data.token) {
         localStorage.setItem('auth_token', data.token);
@@ -83,13 +100,12 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
       
       // Clear all queries and refetch with new token
       queryClient.clear();
-      queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
       
-      // Force immediate refetch
+      // Force immediate refetch with new token
       setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['/api/users/me'] });
-        queryClient.refetchQueries({ queryKey: ['/api/demo-stations'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/me/organizations'] });
       }, 100);
       
       // Dispatch custom event to notify other components
@@ -97,9 +113,11 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
       
       toast({ title: 'Organization switched successfully' });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Organization switch failed:', error);
       toast({ 
         title: 'Failed to switch organization',
+        description: error.message || 'Please try again',
         variant: 'destructive'
       });
     },

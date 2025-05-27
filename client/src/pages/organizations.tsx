@@ -87,20 +87,29 @@ export default function Organizations() {
 
   const handleSwitchOrganization = async (org: Organization) => {
     try {
-      // Create a switching mutation to update the user's current organization
-      const response = await apiRequest('/api/users/me/switch-organization', {
+      const response = await fetch('/api/users/me/switch-organization', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
         body: JSON.stringify({ organizationId: org.id }),
       });
       
-      // Save the new JWT token if provided
-      if (response.token) {
-        localStorage.setItem('auth_token', response.token);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
       
-      // Invalidate all queries to refresh data with new organization context
+      const data = await response.json();
+      
+      // Save the new JWT token if provided
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
+      
+      // Clear all queries and refetch with new token
       queryClient.clear();
-      queryClient.invalidateQueries();
       
       // Dispatch event to notify other components
       window.dispatchEvent(new CustomEvent('organizationChanged'));
@@ -115,9 +124,10 @@ export default function Organizations() {
         setLocation('/dashboard');
       }, 1500);
     } catch (error) {
+      console.error('Organization switch error:', error);
       toast({
         title: "Failed to switch organization",
-        description: "Please try again",
+        description: error.message || "Please try again",
         variant: "destructive",
       });
     }
