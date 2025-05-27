@@ -88,27 +88,32 @@ export default function Organizations() {
   const handleSwitchOrganization = async (org: Organization) => {
     try {
       // Create a switching mutation to update the user's current organization
-      const response = await apiRequest('POST', `/api/users/me/switch-organization`, {
-        organizationId: org.id
+      const response = await apiRequest('/api/users/me/switch-organization', {
+        method: 'POST',
+        body: JSON.stringify({ organizationId: org.id }),
       });
       
-      if (response.ok) {
-        // Update local storage or context with new organization
-        localStorage.setItem('currentOrganization', JSON.stringify(org));
-        
-        // Invalidate all queries to refresh data with new organization context
-        queryClient.invalidateQueries();
-        
-        toast({
-          title: "Organization switched successfully!",
-          description: `You are now working in ${org.name}. Redirecting to dashboard...`,
-        });
-        
-        // Navigate to dashboard to see the organization's demo stations
-        setTimeout(() => {
-          setLocation('/dashboard');
-        }, 1500);
+      // Save the new JWT token if provided
+      if (response.token) {
+        localStorage.setItem('auth_token', response.token);
       }
+      
+      // Invalidate all queries to refresh data with new organization context
+      queryClient.clear();
+      queryClient.invalidateQueries();
+      
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('organizationChanged'));
+      
+      toast({
+        title: "Organization switched successfully!",
+        description: `You are now working in ${org.name}. Redirecting to dashboard...`,
+      });
+      
+      // Navigate to dashboard to see the organization's demo stations
+      setTimeout(() => {
+        setLocation('/dashboard');
+      }, 1500);
     } catch (error) {
       toast({
         title: "Failed to switch organization",

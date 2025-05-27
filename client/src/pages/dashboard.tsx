@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,9 +11,10 @@ import { ControlPanel } from '@/components/control-panel';
 import { TelemetrySection } from '@/components/telemetry-section';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { useToast } from '@/hooks/use-toast';
-import { getCurrentUser, refreshUserData } from '@/lib/auth';
+import { getCurrentUser, logout, refreshUserData } from '@/lib/auth';
 import { apiRequest } from '@/lib/queryClient';
 import type { DemoStation, Session, TelemetryData, ControlConfiguration } from '@shared/schema';
+import { useLocation } from 'wouter';
 
 interface User {
   id: number;
@@ -42,7 +43,9 @@ interface TelemetryData {
 }
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null);
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const [currentUser, setCurrentUser] = useState<User | null>(getCurrentUser());
   const [selectedStation, setSelectedStation] = useState<DemoStation | null>(null);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [controlConfig, setControlConfig] = useState<ControlConfiguration | null>(null);
@@ -53,44 +56,56 @@ export default function Dashboard() {
   const [safetyLimits] = useState({ min: -100, max: 100 });
 
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Get current user and demo stations
-  useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
-  }, []);
-
-  // User data query
+  // Query for user data that gets refreshed when organization changes
   const { data: userData } = useQuery({
     queryKey: ['/api/users/me'],
-    enabled: !!user,
+    enabled: !!currentUser,
   });
 
-  // Update user state when userData changes
+  // Demo stations query
+  const { data: demoStations = [], isLoading: isDemoStationsLoading } = useQuery({
+    queryKey: ['/api/demo-stations'],
+    enabled: !!currentUser,
+  });
+
+  // Update current user when userData changes
   useEffect(() => {
     if (userData) {
-      setUser(userData);
+      setCurrentUser(userData as User);
     }
   }, [userData]);
 
-  // Listen for organization changes and refresh user data
+  // Listen for organization changes
   useEffect(() => {
-    const handleOrganizationChange = () => {
-      // Invalidate user data query to force refresh
-      queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
+    const handleOrganizationChanged = async () => {
+      // Refresh user data from localStorage and API
+      const updatedUser = await refreshUserData();
+      if (updatedUser) {
+        setCurrentUser(updatedUser);
+      }
+      // Clear and refetch all queries
+      queryClient.clear();
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/users/me'] });
+        queryClient.refetchQueries({ queryKey: ['/api/demo-stations'] });
+      }, 100);
     };
 
-    // Listen for custom organization change events
-    window.addEventListener('organizationChanged', handleOrganizationChange);
-    
+    window.addEventListener('organizationChanged', handleOrganizationChanged);
     return () => {
-      window.removeEventListener('organizationChanged', handleOrganizationChange);
+      window.removeEventListener('organizationChanged', handleOrganizationChanged);
     };
   }, [queryClient]);
+
+  // Load user data
+  useEffect(() => {
+    if (currentUser && demoStations.length > 0) {
+      if (!selectedStation) {
+        setSelectedStation(demoStations[0]);
+      }
+    }
+  }, [currentUser, demoStations, selectedStation]);
 
   // Start session mutation
   const startSessionMutation = useMutation({
@@ -158,7 +173,7 @@ export default function Dashboard() {
   // WebSocket connection
   const { isConnected, connectionStats } = useWebSocket(
     selectedStation?.id || 0,
-    user?.id || 0,
+    currentUser?.id || 0,
     currentSession?.id
   );
 
@@ -179,27 +194,12 @@ export default function Dashboard() {
           stationId: selectedStation.id,
         }),
       });
-      
+
       toast({ title: `Command sent: ${command}` });
     } catch (error) {
       toast({ title: 'Failed to send command', variant: 'destructive' });
     }
   };
-
-  // Demo stations query
-  const { data: demoStations = [], isLoading: isDemoStationsLoading } = useQuery({
-    queryKey: ['/api/demo-stations'],
-    enabled: !!user,
-  });
-
-  // Load user data
-  useEffect(() => {
-    if (user && demoStations.length > 0) {
-      if (!selectedStation) {
-        setSelectedStation(demoStations[0]);
-      }
-    }
-  }, [user, demoStations, selectedStation]);
 
   // Save controls function
   const handleSaveControls = async (controls: any[]) => {
@@ -210,7 +210,7 @@ export default function Dashboard() {
         method: 'POST',
         body: JSON.stringify({ controls }),
       });
-      
+
       setControlConfig({ controls } as any);
       setIsControlBuilderOpen(false);
       toast({ title: 'Controls saved successfully' });
@@ -227,8 +227,9 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      await refreshUserData();
-      setUser(null);
+      await logout();
+      setLocation('/login');
+      setCurrentUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -249,15 +250,16 @@ export default function Dashboard() {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  if (!user) {
-    return <div>Loading...</div>;
+  if (!currentUser) {
+    setLocation('/login');
+    return null;
   }
 
   return (
     <div className="flex h-screen bg-slate-50">
       {/* Sidebar */}
       <Sidebar
-        user={user as any}
+        user={currentUser as any}
         demoStations={demoStations as any}
         activeDemoStation={selectedStation as any}
         onLogout={handleLogout}
@@ -286,7 +288,7 @@ export default function Dashboard() {
                 </span>
               </p>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {/* Session Timer */}
               <div className="text-sm text-slate-600">
@@ -306,7 +308,7 @@ export default function Dashboard() {
               </Button>
 
               {/* Control Builder Toggle */}
-              {user.role !== 'viewer' && (
+              {(currentUser as any)?.role !== 'viewer' && (
                 <Button 
                   onClick={() => setIsControlBuilderOpen(true)}
                   disabled={!selectedStation}
