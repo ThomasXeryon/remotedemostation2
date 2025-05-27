@@ -257,26 +257,11 @@ export default function Dashboard() {
         {/* Top Bar */}
         <header className="bg-white border-b border-slate-200 px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              {/* Current Organization Indicator */}
-              <div className="flex items-center space-x-3 px-4 py-2 bg-slate-50 rounded-lg border">
-                <div 
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: user?.organization?.primaryColor || '#3b82f6' }}
-                />
-                <div>
-                  <p className="text-sm font-medium text-slate-900">
-                    {user?.organization?.name || 'No Organization'}
-                  </p>
-                  <p className="text-xs text-slate-500">Current Context</p>
-                </div>
-              </div>
-              
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">
-                  {selectedStation?.name || 'Select a Demo Station'}
-                </h1>
-                <p className="text-sm text-slate-600 mt-1 flex items-center space-x-2">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">
+                {selectedStation?.name || 'Select a Demo Station'}
+              </h1>
+              <p className="text-sm text-slate-600 mt-1 flex items-center space-x-2">
                   <Circle 
                     className={`w-2 h-2 ${isConnected ? 'text-green-500 animate-pulse' : 'text-red-500'}`} 
                     fill="currentColor" 
