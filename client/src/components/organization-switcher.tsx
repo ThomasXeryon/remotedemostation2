@@ -58,9 +58,16 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
         localStorage.setItem('token', data.token);
       }
       
-      // Invalidate queries to refresh data
+      // Clear all queries and refetch with new token
+      queryClient.clear();
       queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
       queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
+      
+      // Force immediate refetch
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/users/me'] });
+        queryClient.refetchQueries({ queryKey: ['/api/demo-stations'] });
+      }, 100);
       
       // Dispatch custom event to notify other components
       window.dispatchEvent(new CustomEvent('organizationChanged'));
