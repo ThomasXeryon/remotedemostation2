@@ -1,10 +1,11 @@
 import { 
   users, organizations, demoStations, controlConfigurations, sessions, 
-  telemetryData, commands,
+  telemetryData, commands, userOrganizations,
   type User, type InsertUser, type Organization, type InsertOrganization,
   type DemoStation, type InsertDemoStation, type ControlConfiguration, 
   type InsertControlConfiguration, type Session, type InsertSession,
-  type TelemetryData, type InsertTelemetryData, type Command, type InsertCommand
+  type TelemetryData, type InsertTelemetryData, type Command, type InsertCommand,
+  type UserOrganization, type InsertUserOrganization
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
@@ -17,6 +18,11 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
   getUsersByOrganization(organizationId: number): Promise<User[]>;
+  
+  // User-Organization Relationships
+  getUserOrganizations(userId: number): Promise<(UserOrganization & { organization: Organization })[]>;
+  addUserToOrganization(userOrg: InsertUserOrganization): Promise<UserOrganization>;
+  getUserRole(userId: number, organizationId: number): Promise<string | undefined>;
 
   // Organizations
   getOrganization(id: number): Promise<Organization | undefined>;
