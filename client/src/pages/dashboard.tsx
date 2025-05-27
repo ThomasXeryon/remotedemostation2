@@ -11,7 +11,7 @@ import { useWebSocket } from '@/hooks/use-websocket';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, refreshUserData } from '@/lib/auth';
 import { apiRequest } from '@/lib/queryClient';
-import type { DemoStation, Session, TelemetryData, ControlConfiguration, ControlWidget } from '@shared/schema';
+import type { DemoStation, Session, TelemetryData, ControlConfiguration } from '@shared/schema';
 
 interface User {
   id: number;
@@ -262,19 +262,18 @@ export default function Dashboard() {
                 {selectedStation?.name || 'Select a Demo Station'}
               </h1>
               <p className="text-sm text-slate-600 mt-1 flex items-center space-x-2">
-                  <Circle 
-                    className={`w-2 h-2 ${isConnected ? 'text-green-500 animate-pulse' : 'text-red-500'}`} 
-                    fill="currentColor" 
-                  />
-                  <span>
-                    {isConnected ? 'Connected' : 'Disconnected'} • 
-                    Last update: {connectionStats.lastHeartbeat 
-                      ? `${Math.floor((Date.now() - connectionStats.lastHeartbeat.getTime()) / 1000)}s ago`
-                      : 'Never'
-                    }
-                  </span>
-                </p>
-              </div>
+                <Circle 
+                  className={`w-2 h-2 ${isConnected ? 'text-green-500 animate-pulse' : 'text-red-500'}`} 
+                  fill="currentColor" 
+                />
+                <span>
+                  {isConnected ? 'Connected' : 'Disconnected'} • 
+                  Last update: {connectionStats.lastHeartbeat 
+                    ? `${Math.floor((Date.now() - connectionStats.lastHeartbeat.getTime()) / 1000)}s ago`
+                    : 'Never'
+                  }
+                </span>
+              </p>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -354,12 +353,12 @@ export default function Dashboard() {
       </div>
 
       {/* Control Builder Modal */}
-      <ControlBuilderModal
+      {/* <ControlBuilderModal
         isOpen={isControlBuilderOpen}
         onClose={() => setIsControlBuilderOpen(false)}
         controls={controlConfig?.controls || []}
         onSaveControls={handleSaveControls}
-      />
+      /> */}
     </div>
   );
 }
