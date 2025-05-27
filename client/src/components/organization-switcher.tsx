@@ -11,7 +11,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Check, ChevronDown, Building2, Plus } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
+import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
+import { useToast } from '@/hooks/use-toast';
 
 interface Organization {
   id: number;
@@ -33,6 +35,7 @@ interface OrganizationSwitcherProps {
 export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitcherProps) {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const user = getCurrentUser();
 
   // Fetch user's organizations
@@ -41,10 +44,36 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
     enabled: !!user,
   });
 
+  // Organization switch mutation
+  const switchOrganizationMutation = useMutation({
+    mutationFn: async (organizationId: number) => {
+      return apiRequest('/api/users/me/switch-organization', {
+        method: 'POST',
+        body: JSON.stringify({ organizationId }),
+      });
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('organizationChanged'));
+      
+      toast({ title: 'Organization switched successfully' });
+    },
+    onError: () => {
+      toast({ 
+        title: 'Failed to switch organization',
+        variant: 'destructive'
+      });
+    },
+  });
+
   const handleSwitchOrganization = (org: Organization) => {
-    // TODO: Implement organization switching logic
-    // This would update the user's current organization context
-    console.log('Switching to organization:', org.name);
+    if (org.id !== currentOrganization?.id) {
+      switchOrganizationMutation.mutate(org.id);
+    }
   };
 
   const handleCreateOrganization = () => {

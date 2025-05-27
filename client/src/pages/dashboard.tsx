@@ -63,6 +63,31 @@ export default function Dashboard() {
     }
   }, []);
 
+  // Listen for organization changes and refresh user data
+  useEffect(() => {
+    const handleStorageChange = async () => {
+      try {
+        await refreshUserData();
+        const updatedUser = getCurrentUser();
+        if (updatedUser) {
+          setUser(updatedUser);
+        }
+      } catch (error) {
+        console.error('Failed to refresh user data:', error);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom organization change events
+    window.addEventListener('organizationChanged', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('organizationChanged', handleStorageChange);
+    };
+  }, []);
+
   // Start session mutation
   const startSessionMutation = useMutation({
     mutationFn: async () => {
