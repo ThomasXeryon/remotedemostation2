@@ -117,7 +117,7 @@ export function Sidebar({
       <nav className="flex-1 p-4">
         <div className="space-y-2">
           {navItems.map((item) => (
-            <Link key={item.path} href={item.path}>
+            <Link key={item.path} href={item.path} className="contents">
               <div
                 className={`flex items-center space-x-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
                   item.active
