@@ -63,19 +63,25 @@ export default function Dashboard() {
     }
   }, []);
 
+  // User data query
+  const { data: userData } = useQuery({
+    queryKey: ['/api/users/me'],
+    enabled: !!user,
+  });
+
+  // Update user state when userData changes
+  useEffect(() => {
+    if (userData) {
+      setUser(userData);
+    }
+  }, [userData]);
+
   // Listen for organization changes and refresh user data
   useEffect(() => {
-    const handleOrganizationChange = async () => {
-      try {
-        // Force refresh user data from server
-        const response = await apiRequest('/api/users/me', { method: 'GET' });
-        setUser(response);
-        
-        // Also refresh demo stations for the new organization
-        queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
-      } catch (error) {
-        console.error('Failed to refresh user data:', error);
-      }
+    const handleOrganizationChange = () => {
+      // Invalidate user data query to force refresh
+      queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
     };
 
     // Listen for custom organization change events
