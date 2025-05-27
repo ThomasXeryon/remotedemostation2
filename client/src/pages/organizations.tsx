@@ -10,6 +10,7 @@ import { Plus, Building2, Users, Settings, Trash2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser } from '@/lib/auth';
+import { useLocation } from 'wouter';
 
 interface Organization {
   id: number;
@@ -25,6 +26,7 @@ export default function Organizations() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const user = getCurrentUser();
+  const [, setLocation] = useLocation();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newOrg, setNewOrg] = useState({
     name: '',
@@ -83,13 +85,37 @@ export default function Organizations() {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   };
 
-  const handleSwitchOrganization = (org: Organization) => {
-    toast({
-      title: "Organization switched!",
-      description: `You are now working in ${org.name}`,
-    });
-    // For now, just show a success message - full switching logic would require
-    // updating the user's current organization context and refreshing the UI
+  const handleSwitchOrganization = async (org: Organization) => {
+    try {
+      // Create a switching mutation to update the user's current organization
+      const response = await apiRequest('POST', `/api/users/me/switch-organization`, {
+        organizationId: org.id
+      });
+      
+      if (response.ok) {
+        // Update local storage or context with new organization
+        localStorage.setItem('currentOrganization', JSON.stringify(org));
+        
+        // Invalidate all queries to refresh data with new organization context
+        queryClient.invalidateQueries();
+        
+        toast({
+          title: "Organization switched successfully!",
+          description: `You are now working in ${org.name}. Redirecting to dashboard...`,
+        });
+        
+        // Navigate to dashboard to see the organization's demo stations
+        setTimeout(() => {
+          setLocation('/dashboard');
+        }, 1500);
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to switch organization",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

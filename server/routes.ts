@@ -310,6 +310,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Switch organization context
+  app.post('/api/users/me/switch-organization', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { organizationId } = req.body;
+      
+      // Verify user has access to this organization
+      const userRole = await storage.getUserRole(req.user!.id, organizationId);
+      if (!userRole) {
+        return res.status(403).json({ message: 'Access denied to this organization' });
+      }
+
+      // Get organization details
+      const organization = await storage.getOrganization(organizationId);
+      if (!organization) {
+        return res.status(404).json({ message: 'Organization not found' });
+      }
+
+      res.json({ 
+        message: 'Organization switched successfully',
+        organization,
+        role: userRole
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to switch organization' });
+    }
+  });
+
   // Demo stations routes
   app.get('/api/demo-stations', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
