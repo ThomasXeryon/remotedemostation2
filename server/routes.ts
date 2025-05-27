@@ -64,16 +64,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.on('message', async (message) => {
       try {
         const data = JSON.parse(message.toString());
-        
+
         if (data.type === 'join') {
           stationId = data.stationId;
           userId = data.userId;
-          
+
           if (!wsConnections.has(stationId)) {
             wsConnections.set(stationId, new Set());
           }
           wsConnections.get(stationId)!.add(ws);
-          
+
           ws.send(JSON.stringify({ type: 'joined', stationId }));
         } else if (data.type === 'command' && stationId && userId) {
           // Handle hardware commands
@@ -103,7 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               load: Math.random() * 50,
               timestamp: new Date()
             };
-            
+
             storage.createTelemetryData({
               demoStationId: stationId!,
               sessionId: data.sessionId,
@@ -135,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/login', async (req, res) => {
     try {
       const { username, password } = req.body;
-      
+
       const user = await storage.getUserByUsername(username);
       if (!user || !await bcrypt.compare(password, user.password)) {
         return res.status(401).json({ message: 'Invalid credentials' });
@@ -167,7 +167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         primaryColor: userOrg[0].orgPrimaryColor,
         secondaryColor: userOrg[0].orgSecondaryColor,
       };
-      
+
       const token = jwt.sign(
         { 
           id: user.id, 
@@ -199,7 +199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = insertUserSchema.parse(req.body);
       const hashedPassword = await bcrypt.hash(userData.password, 10);
-      
+
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword
@@ -232,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user's current active organization from user_organizations table
       // Use the organization from the JWT token (set during organization switching)
       const currentOrgId = req.user!.organizationId;
-      
+
       let userOrg: any[] = [];
       if (currentOrgId) {
         userOrg = await db
@@ -303,10 +303,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/organizations', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const orgData = insertOrganizationSchema.parse(req.body);
-      
+
       // Create the organization
       const organization = await storage.createOrganization(orgData);
-      
+
       // Add the creating user as an admin of this organization
       await storage.addUserToOrganization({
         userId: req.user!.id,
@@ -325,7 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/users/me/switch-organization', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const { organizationId } = req.body;
-      
+
       // Verify user has access to this organization
       const userRole = await storage.getUserRole(req.user!.id, organizationId);
       if (!userRole) {
@@ -374,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = parseInt(req.params.id);
       const station = await storage.getDemoStation(stationId);
-      
+
       if (!station || station.organizationId !== req.user!.organizationId) {
         return res.status(404).json({ message: 'Demo station not found' });
       }
@@ -387,15 +387,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/demo-stations', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      if (req.user!.role !== 'admin' && req.user!.role !== 'operator') {
-        return res.status(403).json({ message: 'Admin or operator access required' });
+      if (req.user!.role === 'viewer') {
+        return res.status(403).json({ message: 'Insufficient permissions' });
       }
 
       const stationData = insertDemoStationSchema.parse({
-        ...req.body,
-        organizationId: req.user!.organizationId
+        name: req.body.name,
+        description: req.body.description || null,
+        organizationId: req.user!.organizationId,
+        cameraCount: req.body.cameraCount || 1,
+        sessionTimeLimit: req.body.sessionTimeLimit || 30,
+        requiresLogin: req.body.requiresLogin || false,
+        configuration: {},
+        safetyLimits: {}
       });
-      
+
       const station = await storage.createDemoStation(stationData);
       res.status(201).json(station);
     } catch (error) {
@@ -407,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = parseInt(req.params.id);
       const station = await storage.getDemoStation(stationId);
-      
+
       if (!station || station.organizationId !== req.user!.organizationId) {
         return res.status(404).json({ message: 'Demo station not found' });
       }
@@ -427,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = parseInt(req.params.id);
       const station = await storage.getDemoStation(stationId);
-      
+
       if (!station || station.organizationId !== req.user!.organizationId) {
         return res.status(404).json({ message: 'Demo station not found' });
       }
@@ -448,7 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = parseInt(req.params.id);
       const station = await storage.getDemoStation(stationId);
-      
+
       if (!station || station.organizationId !== req.user!.organizationId) {
         return res.status(404).json({ message: 'Demo station not found' });
       }
@@ -464,7 +470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = parseInt(req.params.id);
       const station = await storage.getDemoStation(stationId);
-      
+
       if (!station || station.organizationId !== req.user!.organizationId) {
         return res.status(404).json({ message: 'Demo station not found' });
       }
@@ -491,7 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = parseInt(req.params.id);
       const station = await storage.getDemoStation(stationId);
-      
+
       if (!station || station.organizationId !== req.user!.organizationId) {
         return res.status(404).json({ message: 'Demo station not found' });
       }
@@ -518,7 +524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const sessionId = parseInt(req.params.id);
       const session = await storage.getSession(sessionId);
-      
+
       if (!session || session.userId !== req.user!.id) {
         return res.status(404).json({ message: 'Session not found' });
       }
@@ -535,7 +541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = parseInt(req.params.id);
       const station = await storage.getDemoStation(stationId);
-      
+
       if (!station || station.organizationId !== req.user!.organizationId) {
         return res.status(404).json({ message: 'Demo station not found' });
       }

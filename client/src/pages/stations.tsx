@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Cpu, Circle, Settings, Trash2, Edit, Power, PowerOff } from 'lucide-react';
@@ -14,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { getCurrentUser } from '@/lib/auth';
 import type { DemoStation } from '@shared/schema';
+import { AlertTriangle } from 'lucide-react';
 
 interface CreateStationForm {
   name: string;
@@ -38,6 +38,7 @@ export default function StationsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedStation, setSelectedStation] = useState<DemoStation | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const [createForm, setCreateForm] = useState<CreateStationForm>({
     name: '',
@@ -398,7 +399,7 @@ export default function StationsPage() {
                         </Badge>
                       </div>
                     </div>
-                    
+
                     {(currentUser.role === 'admin' || currentUser.role === 'operator') && (
                       <div className="flex space-x-1">
                         <Button
@@ -437,12 +438,12 @@ export default function StationsPage() {
                     )}
                   </div>
                 </CardHeader>
-                
+
                 <CardContent>
                   <p className="text-sm text-slate-600 mb-4">
                     {station.description || 'No description available'}
                   </p>
-                  
+
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500">Last Heartbeat:</span>
@@ -453,7 +454,7 @@ export default function StationsPage() {
                         }
                       </span>
                     </div>
-                    
+
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500">Safety Limits:</span>
                       <span className="text-slate-700">
@@ -464,8 +465,121 @@ export default function StationsPage() {
                 </CardContent>
               </Card>
             ))}
+             <Button onClick={() => { setSelectedStation(demoStations[0]); setIsDetailModalOpen(true);}} >Open Modal</Button>
           </div>
         )}
+        
+
+        {/* Station Details/Configuration Modal */}
+        <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center space-x-2">
+                <Settings className="w-5 h-5" />
+                <span>Configure: {selectedStation?.name}</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            {selectedStation && (
+              <div className="space-y-6">
+                {/* Basic Info */}
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3">Basic Information</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Station Name</Label>
+                      <p className="text-sm text-slate-600">{selectedStation.name}</p>
+                    </div>
+                    <div>
+                      <Label>Status</Label>
+                      <div className="flex items-center space-x-2">
+                        <Circle 
+                          className={`w-3 h-3 ${getStatusColor(selectedStation)}`} 
+                          fill="currentColor" 
+                        />
+                        <span className="text-sm">{getStatusText(selectedStation)}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Cameras</Label>
+                      <p className="text-sm text-slate-600">{selectedStation.cameraCount || 1}</p>
+                    </div>
+                    <div>
+                      <Label>Session Time Limit</Label>
+                      <p className="text-sm text-slate-600">{selectedStation.sessionTimeLimit || 30} minutes</p>
+                    </div>
+                    <div>
+                      <Label>Access</Label>
+                      <p className="text-sm text-slate-600">
+                        {selectedStation.requiresLogin ? 'Login Required' : 'Public Access'}
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Created</Label>
+                      <p className="text-sm text-slate-600">
+                        {new Date(selectedStation.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  {selectedStation.description && (
+                    <div className="mt-4">
+                      <Label>Description</Label>
+                      <p className="text-sm text-slate-600">{selectedStation.description}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Control Configuration */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3">Control Configuration</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Configure buttons, joysticks, and control layout for this station.
+                  </p>
+                  <Button variant="outline" className="w-full">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Open Control Builder
+                  </Button>
+                </div>
+
+                {/* Camera Configuration */}
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3">Camera Configuration</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Configure camera feeds, switching, and display options.
+                  </p>
+                  <Button variant="outline" className="w-full">
+                    <Cpu className="w-4 h-4 mr-2" />
+                    Configure Cameras
+                  </Button>
+                </div>
+
+                {/* Safety & Limits */}
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3">Safety & Limits</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Set hardware safety limits, emergency stop behavior, and operational boundaries.
+                  </p>
+                  <Button variant="outline" className="w-full">
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Configure Safety Settings
+                  </Button>
+                </div>
+
+                {/* Advanced Settings */}
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3">Advanced Settings</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Network settings, telemetry configuration, and custom commands.
+                  </p>
+                  <Button variant="outline" className="w-full">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Advanced Configuration
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

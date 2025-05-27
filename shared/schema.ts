@@ -39,10 +39,12 @@ export const demoStations = pgTable("demo_stations", {
   description: text("description"),
   organizationId: integer("organization_id").notNull(),
   isOnline: boolean("is_online").default(false).notNull(),
-  hardwareType: text("hardware_type").notNull(), // actuator, motor, etc
+  cameraCount: integer("camera_count").default(1).notNull(),
+  sessionTimeLimit: integer("session_time_limit").default(30).notNull(), // minutes
+  requiresLogin: boolean("requires_login").default(false).notNull(),
   lastHeartbeat: timestamp("last_heartbeat"),
-  configuration: jsonb("configuration").notNull(),
-  safetyLimits: jsonb("safety_limits").notNull(),
+  configuration: jsonb("configuration").default('{}').notNull(),
+  safetyLimits: jsonb("safety_limits").default('{}').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
