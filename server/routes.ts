@@ -305,7 +305,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(organization);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to create organization' });
+      console.error('Organization creation error:', error);
+      res.status(500).json({ message: 'Failed to create organization', error: error.message });
     }
   });
 

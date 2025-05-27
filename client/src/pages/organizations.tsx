@@ -43,6 +43,9 @@ export default function Organizations() {
   const createOrgMutation = useMutation({
     mutationFn: async (orgData: typeof newOrg) => {
       const response = await apiRequest('POST', '/api/organizations', orgData);
+      if (!response.ok) {
+        throw new Error('Failed to create organization');
+      }
       return response.json();
     },
     onSuccess: () => {
