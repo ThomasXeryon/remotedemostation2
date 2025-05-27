@@ -2,9 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { db } from "./db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { insertUserSchema, insertOrganizationSchema, insertDemoStationSchema, insertControlConfigurationSchema } from "@shared/schema";
+import { insertUserSchema, insertOrganizationSchema, insertDemoStationSchema, insertControlConfigurationSchema, userOrganizations, organizations } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -139,13 +141,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
-      const organization = await storage.getOrganization(user.organizationId);
+      // Get user's organization from the user_organizations table
+      const userOrg = await db
+        .select({
+          organizationId: userOrganizations.organizationId,
+          role: userOrganizations.role,
+          orgName: organizations.name,
+          orgSlug: organizations.slug,
+          orgPrimaryColor: organizations.primaryColor,
+          orgSecondaryColor: organizations.secondaryColor,
+        })
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(eq(userOrganizations.userId, user.id))
+        .limit(1);
+
+      if (!userOrg.length) {
+        return res.status(401).json({ message: 'No organization access' });
+      }
+
+      const organization = {
+        id: userOrg[0].organizationId,
+        name: userOrg[0].orgName,
+        slug: userOrg[0].orgSlug,
+        primaryColor: userOrg[0].orgPrimaryColor,
+        secondaryColor: userOrg[0].orgSecondaryColor,
+      };
       
       const token = jwt.sign(
         { 
           id: user.id, 
-          organizationId: user.organizationId,
-          role: user.role 
+          organizationId: userOrg[0].organizationId,
+          role: userOrg[0].role 
         },
         JWT_SECRET,
         { expiresIn: '24h' }
@@ -159,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role,
+          role: userOrg[0].role,
           organization
         }
       });
