@@ -1,0 +1,90 @@
+🔧 Remote Demo Station (RDS) – SaaS-Ready Hardware Control Platform
+Overview
+Remote Demo Station (RDS) is a real-time web-based platform that allows users to interact with physical hardware — such as precision actuators, motors, or mechatronic devices — from anywhere, directly via a browser. Originally designed for internal demonstrations, RDS is now a fully productized, multi-tenant SaaS solution, enabling companies to showcase, test, and operate their devices remotely through an intuitive control interface and a low-latency WebRTC video feed, similar to how Bambu Lab streams live prints from its 3D printers.
+
+🧱 What Is a Demo Station?
+Each demo station is a compact, networked hardware module built for remote access and visibility. It includes:
+
+A microcontroller or motion controller (e.g., USB/RS485/ETH interface)
+
+One or more precision actuators or devices under test
+
+A Raspberry Pi client running the control agent
+
+A camera module (e.g., Pi Camera v3) for real-time visual feedback
+
+Optional: limit switches, sensors, lighting, or add-on peripherals
+
+Configurable safety boundaries (software-defined travel limits)
+
+Power and network interface (LAN or Wi-Fi)
+
+Optional: enclosure, mounting, or ruggedization for industrial or tradeshow use
+
+Each demo station runs a lightweight Python client that communicates with the central SaaS backend using WebSocket + HTTPS, handles automatic reconnects, and streams telemetry and video in real time.
+
+💡 Core Features (SaaS-Optimized)
+Multi-Tenant Architecture
+Isolated Organizations: Each customer (tenant) manages its own users, demo stations, and logs
+
+Role-Based Access: Admin, Operator, Viewer permissions within each tenant
+
+Super Admin Panel: Full visibility and override control across tenants for system operators
+
+Custom Branding: Logos, color themes, and vanity domains per tenant
+
+Real-Time Hardware Control
+Precise movement control: position, speed (e.g. 1–500 mm/s), acceleration
+
+Control primitives: stepping, scanning, homing, range limits
+
+WebSocket-based live command stream to the Pi station
+
+Feedback every 0.1 seconds from device position, with timestamped logs
+
+Safety: software range limits, session timeout, emergency stop
+
+Ultra-Low Latency Video via WebRTC
+H.264 encoded video streamed via WebRTC using Raspberry Pi’s hardware encoder
+
+Fully browser-compatible (<video> element with autoplay support)
+
+STUN/TURN traversal to ensure it works behind firewalls, hotel Wi-Fi, and corporate NAT
+
+Optional SFU integration (Janus, mediasoup) for public/live multi-user demos
+
+This architecture mirrors proven consumer-grade systems like Bambu Lab, ensuring professional performance with industrial flexibility.
+
+🌐 Infrastructure & Deployment
+Replit-Compatible: Runs in Replit with SQLite or external Postgres
+
+Database Advice: ⚠️ Avoid Neon DB — it’s costly for high-write applications like streaming telemetry. Use Supabase, Railway, or self-hosted PostgreSQL.
+
+Dockerized Setup: Containers for backend, frontend, and WebRTC signaling services
+
+Client OTA-Ready: Update Raspberry Pi software remotely via Git pull or SSH
+
+TURN Server Included: Coturn for network traversal in SaaS deployments
+
+On-Premise Option: Deploy entire stack locally for sensitive enterprise/lab use
+
+🔧 Tech Stack Overview
+Layer	Tech
+Frontend	React + TypeScript + Tailwind UI
+Backend	Express.js (Node.js), REST + WebSocket
+Auth	JWT (tenant-scoped)
+Database	PostgreSQL (multi-tenant schema)
+Video	WebRTC + H.264 (hardware-encoded)
+Client Agent	Raspberry Pi (Python with aiortc)
+
+🎯 Use Cases
+Remote Product Demonstrations – let potential customers test hardware without shipping
+
+Customer Training & Support – simulate use cases live without in-person visits
+
+Distributed Hardware Evaluation – engineers run trials from anywhere
+
+Live Trade Show Booths – interactive devices users can control from kiosks or phones
+
+Educational Labs – students interact with real equipment remotely
+
