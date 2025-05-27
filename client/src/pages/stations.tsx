@@ -72,24 +72,7 @@ export default function StationsPage() {
     },
   });
 
-  // Edit station mutation
-  const editStationMutation = useMutation({
-    mutationFn: async (stationData: CreateStationForm & { id: number }) => {
-      return apiRequest(`/api/demo-stations/${stationData.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(stationData),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
-      setIsEditModalOpen(false);
-      setEditingStation(null);
-      toast({ title: 'Demo station updated successfully' });
-    },
-    onError: () => {
-      toast({ title: 'Failed to update demo station', variant: 'destructive' });
-    },
-  });
+
 
   // Delete station mutation
   const deleteStationMutation = useMutation({

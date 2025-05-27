@@ -395,6 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: req.body.name,
         description: req.body.description || null,
         organizationId: req.user!.organizationId,
+        hardwareType: "universal",
         cameraCount: req.body.cameraCount || 1,
         sessionTimeLimit: req.body.sessionTimeLimit || 30,
         requiresLogin: req.body.requiresLogin || false,

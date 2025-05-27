@@ -38,6 +38,7 @@ export const demoStations = pgTable("demo_stations", {
   name: text("name").notNull(),
   description: text("description"),
   organizationId: integer("organization_id").notNull(),
+  hardwareType: text("hardware_type").default("universal").notNull(),
   isOnline: boolean("is_online").default(false).notNull(),
   cameraCount: integer("camera_count").default(1).notNull(),
   sessionTimeLimit: integer("session_time_limit").default(30).notNull(), // minutes
