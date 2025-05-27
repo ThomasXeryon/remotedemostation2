@@ -117,23 +117,25 @@ export function Sidebar({
       <nav className="flex-1 p-4">
         <div className="space-y-2">
           {navItems.map((item) => (
-            <Link key={item.path} href={item.path} className="contents">
-              <div
-                className={`flex items-center space-x-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
-                  item.active
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
-                {item.badge && (
-                  <Badge variant="secondary" className="ml-auto">
-                    {item.badge}
-                  </Badge>
-                )}
-              </div>
-            </Link>
+            <div key={item.path}>
+              <Link href={item.path}>
+                <div
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
+                    item.active
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="ml-auto">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
 
