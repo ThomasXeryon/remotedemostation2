@@ -7,7 +7,8 @@ import {
   Cpu, 
   Gauge,
   LogOut,
-  Building2
+  Building2,
+  Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,6 +22,7 @@ interface SidebarProps {
   activeDemoStation?: DemoStation;
   onLogout: () => void;
   onStationSelect: (station: DemoStation) => void;
+  onCreateStation: () => void;
 }
 
 export function Sidebar({ 
@@ -28,7 +30,8 @@ export function Sidebar({
   demoStations, 
   activeDemoStation, 
   onLogout, 
-  onStationSelect 
+  onStationSelect,
+  onCreateStation
 }: SidebarProps) {
   const [location] = useLocation();
   const [currentOrganization, setCurrentOrganization] = useState(user.organization);
@@ -139,9 +142,21 @@ export function Sidebar({
 
         {/* Demo Station Selector */}
         <div className="mt-8">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-            Active Stations
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Active Stations
+            </h3>
+            {(user.role === 'admin' || user.role === 'operator') && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={onCreateStation}
+                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-600"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           <div className="space-y-2">
             {demoStations.map((station) => (
               <button

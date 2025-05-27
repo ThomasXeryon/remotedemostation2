@@ -266,6 +266,7 @@ export default function Dashboard() {
         activeDemoStation={selectedStation as any}
         onLogout={handleLogout}
         onStationSelect={handleStationSelect}
+        onCreateStation={() => setIsCreateStationOpen(true)}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -400,6 +401,12 @@ export default function Dashboard() {
           )}
         </main>
       </div>
+
+      {/* Create Station Modal */}
+      <CreateStationModal
+        isOpen={isCreateStationOpen}
+        onClose={() => setIsCreateStationOpen(false)}
+      />
     </div>
   );
 }
