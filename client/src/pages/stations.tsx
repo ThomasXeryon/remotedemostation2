@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Plus, Cpu, Circle, Settings, Trash2, Edit, Power, PowerOff, Camera, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,9 +28,8 @@ export default function StationsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const currentUser = getCurrentUser();
+  const [, setLocation] = useLocation();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingStation, setEditingStation] = useState<DemoStation | null>(null);
 
   const [createForm, setCreateForm] = useState<CreateStationForm>({
     name: '',
@@ -39,13 +39,7 @@ export default function StationsPage() {
     requiresLogin: true,
   });
 
-  const [editForm, setEditForm] = useState<CreateStationForm>({
-    name: '',
-    description: '',
-    cameraCount: 1,
-    sessionTimeLimit: 30,
-    requiresLogin: true,
-  });
+
 
   // Fetch demo stations
   const { data: demoStations = [], isLoading } = useQuery({
@@ -159,23 +153,7 @@ export default function StationsPage() {
   };
 
   const handleEditStation = (station: DemoStation) => {
-    setEditingStation(station);
-    setEditForm({
-      name: station.name,
-      description: station.description || '',
-      cameraCount: station.cameraCount || 1,
-      sessionTimeLimit: station.sessionTimeLimit || 30,
-      requiresLogin: station.requiresLogin ?? true,
-    });
-    setIsEditModalOpen(true);
-  };
-
-  const handleUpdateStation = () => {
-    if (!editingStation || !editForm.name.trim()) {
-      toast({ title: 'Station name is required', variant: 'destructive' });
-      return;
-    }
-    editStationMutation.mutate({ ...editForm, id: editingStation.id });
+    setLocation(`/stations/${station.id}/edit`);
   };
 
   const handleDeleteStation = (station: DemoStation) => {

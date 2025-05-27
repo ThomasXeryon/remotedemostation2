@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import Organizations from "@/pages/organizations";
 import NotFound from "@/pages/not-found";
 import Stations from "./pages/stations";
+import StationEditor from "./pages/station-editor";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated()) {
@@ -35,6 +36,11 @@ function Router() {
       <Route path="/stations">
         <ProtectedRoute>
           <Stations />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/stations/:id/edit">
+        <ProtectedRoute>
+          <StationEditor />
         </ProtectedRoute>
       </Route>
       <Route path="/">
