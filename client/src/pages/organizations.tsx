@@ -83,6 +83,15 @@ export default function Organizations() {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   };
 
+  const handleSwitchOrganization = (org: Organization) => {
+    toast({
+      title: "Organization switched!",
+      description: `You are now working in ${org.name}`,
+    });
+    // For now, just show a success message - full switching logic would require
+    // updating the user's current organization context and refreshing the UI
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="flex justify-between items-center mb-8">
@@ -256,7 +265,11 @@ export default function Organizations() {
                     />
                   </div>
                   
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleSwitchOrganization(org)}
+                  >
                     Switch To
                   </Button>
                 </div>
