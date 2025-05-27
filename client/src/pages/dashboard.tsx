@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Circle, AlertTriangle, Edit, Play, Square, Plus } from 'lucide-react';
-import { Sidebar } from '@/components/sidebar';
+
 import { VideoFeed } from '@/components/video-feed';
 import { ControlPanel } from '@/components/control-panel';
 import { TelemetrySection } from '@/components/telemetry-section';
@@ -258,18 +258,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      {/* Sidebar */}
-      <Sidebar
-        user={currentUser as any}
-        demoStations={demoStations as any}
-        activeDemoStation={selectedStation as any}
-        onLogout={handleLogout}
-        onStationSelect={handleStationSelect}
-        onCreateStation={() => setIsCreateStationOpen(true)}
-      />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
         <header className="bg-white border-b border-slate-200 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -400,13 +389,12 @@ export default function Dashboard() {
             </div>
           )}
         </main>
-      </div>
 
-      {/* Create Station Modal */}
-      <CreateStationModal
-        isOpen={isCreateStationOpen}
-        onClose={() => setIsCreateStationOpen(false)}
-      />
-    </div>
+        {/* Create Station Modal */}
+        <CreateStationModal
+          isOpen={isCreateStationOpen}
+          onClose={() => setIsCreateStationOpen(false)}
+        />
+      </div>
   );
 }
