@@ -406,7 +406,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const station = await storage.createDemoStation(stationData);
       res.status(201).json(station);
     } catch (error) {
-      res.status(400).json({ message: 'Failed to create demo station' });
+      console.error('Station creation error:', error);
+      res.status(400).json({ message: 'Failed to create demo station', error: error.message });
     }
   });
 
