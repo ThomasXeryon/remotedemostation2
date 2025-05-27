@@ -25,9 +25,15 @@ export interface AuthResponse {
 }
 
 export const authStorage = {
-  getToken: () => localStorage.getItem('auth_token'),
-  setToken: (token: string) => localStorage.setItem('auth_token', token),
-  removeToken: () => localStorage.removeItem('auth_token'),
+  getToken: () => localStorage.getItem('auth_token') || localStorage.getItem('token'),
+  setToken: (token: string) => {
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('token', token); // Keep both for compatibility
+  },
+  removeToken: () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('token');
+  },
   getUser: () => {
     const user = localStorage.getItem('auth_user');
     return user ? JSON.parse(user) : null;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { 
@@ -37,6 +37,12 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const user = getCurrentUser();
+  const [selectedOrg, setSelectedOrg] = useState(currentOrganization);
+
+  // Update selected org when current organization prop changes
+  useEffect(() => {
+    setSelectedOrg(currentOrganization);
+  }, [currentOrganization]);
 
   // Fetch user's organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
@@ -44,18 +50,35 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
     enabled: !!user,
   });
 
+  // Fetch current user data to get organization info
+  const { data: userData } = useQuery({
+    queryKey: ['/api/users/me'],
+    enabled: !!user,
+  });
+
   // Organization switch mutation
   const switchOrganizationMutation = useMutation({
     mutationFn: async (organizationId: number) => {
-      return apiRequest('/api/users/me/switch-organization', {
+      const response = await apiRequest('/api/users/me/switch-organization', {
         method: 'POST',
         body: JSON.stringify({ organizationId }),
       });
+      return response;
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: any, organizationId: number) => {
       // Save the new JWT token if provided
       if (data.token) {
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('auth_token', data.token);
+      }
+      
+      // Find the organization that was switched to
+      const newOrg = organizations.find(org => org.id === organizationId);
+      if (newOrg) {
+        setSelectedOrg({
+          id: newOrg.id,
+          name: newOrg.name,
+          primaryColor: newOrg.primaryColor
+        });
       }
       
       // Clear all queries and refetch with new token
@@ -83,10 +106,13 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
   });
 
   const handleSwitchOrganization = (org: Organization) => {
-    if (org.id !== currentOrganization?.id) {
+    if (org.id !== selectedOrg?.id) {
       switchOrganizationMutation.mutate(org.id);
     }
   };
+
+  // Determine current organization to display
+  const displayOrg = selectedOrg || userData?.organization || currentOrganization;
 
   const handleCreateOrganization = () => {
     setLocation('/organizations');
@@ -102,13 +128,13 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
           <div className="flex items-center space-x-3">
             <div 
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: currentOrganization?.primaryColor || '#3b82f6' }}
+              style={{ backgroundColor: displayOrg?.primaryColor || '#3b82f6' }}
             >
               <Building2 className="h-4 w-4 text-white" />
             </div>
             <div className="text-left min-w-0 flex-1">
               <p className="text-sm font-medium text-slate-900 truncate">
-                {currentOrganization?.name || 'Select Organization'}
+                {displayOrg?.name || 'No Organization Selected'}
               </p>
               <p className="text-xs text-slate-500">
                 {organizations.length} organization{organizations.length !== 1 ? 's' : ''}
@@ -143,7 +169,7 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
                 {org.role}
               </p>
             </div>
-            {currentOrganization?.id === org.id && (
+            {displayOrg?.id === org.id && (
               <Check className="h-4 w-4 text-blue-600" />
             )}
           </DropdownMenuItem>
