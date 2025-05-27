@@ -140,44 +140,7 @@ export function Sidebar({
           ))}
         </div>
 
-        {/* Demo Station Selector */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Active Stations
-            </h3>
-            {(user.role === 'admin' || user.role === 'operator') && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={onCreateStation}
-                className="h-6 w-6 p-0 text-slate-400 hover:text-slate-600"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-          <div className="space-y-2">
-            {demoStations.map((station) => (
-              <button
-                key={station.id}
-                onClick={() => onStationSelect(station)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                  activeDemoStation?.id === station.id
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <div 
-                  className={`w-2 h-2 rounded-full ${getStatusColor(station)}`}
-                />
-                <span className="text-sm font-medium truncate">
-                  {station.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+
       </nav>
 
       {/* User Profile */}

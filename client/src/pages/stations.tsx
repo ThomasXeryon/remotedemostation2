@@ -18,17 +18,9 @@ import { AlertTriangle } from 'lucide-react';
 interface CreateStationForm {
   name: string;
   description: string;
-  hardwareType: string;
-  configuration: {
-    maxSpeed: number;
-    maxPosition: number;
-    minPosition: number;
-  };
-  safetyLimits: {
-    maxLoad: number;
-    maxTemperature: number;
-    emergencyStopEnabled: boolean;
-  };
+  cameraCount: number;
+  sessionTimeLimit: number;
+  requiresLogin: boolean;
 }
 
 export default function StationsPage() {
@@ -43,17 +35,9 @@ export default function StationsPage() {
   const [createForm, setCreateForm] = useState<CreateStationForm>({
     name: '',
     description: '',
-    hardwareType: 'actuator',
-    configuration: {
-      maxSpeed: 100,
-      maxPosition: 500,
-      minPosition: -500,
-    },
-    safetyLimits: {
-      maxLoad: 50,
-      maxTemperature: 80,
-      emergencyStopEnabled: true,
-    },
+    cameraCount: 1,
+    sessionTimeLimit: 30,
+    requiresLogin: true,
   });
 
   // Fetch demo stations
