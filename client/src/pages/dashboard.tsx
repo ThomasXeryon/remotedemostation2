@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Circle, AlertTriangle, Edit } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Circle, AlertTriangle, Edit, Play, Square } from 'lucide-react';
 import { Sidebar } from '@/components/sidebar';
 import { VideoFeed } from '@/components/video-feed';
 import { ControlPanel } from '@/components/control-panel';
 import { TelemetrySection } from '@/components/telemetry-section';
-import { ControlBuilderModal } from '@/components/control-builder-modal';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, refreshUserData } from '@/lib/auth';
@@ -19,7 +21,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
+  role: 'admin' | 'operator' | 'viewer';
   organization: {
     id: number;
     name: string;
@@ -29,226 +31,206 @@ interface User {
   };
 }
 
+interface TelemetryData {
+  id: number;
+  timestamp: Date;
+  position?: number;
+  velocity?: number;
+  load?: number;
+  temperature?: number;
+  data?: Record<string, any>;
+}
+
 export default function Dashboard() {
+  const [user, setUser] = useState<User | null>(null);
   const [selectedStation, setSelectedStation] = useState<DemoStation | null>(null);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
-  const [telemetryHistory, setTelemetryHistory] = useState<TelemetryData[]>([]);
-  const [isControlBuilderOpen, setIsControlBuilderOpen] = useState(false);
   const [controlConfig, setControlConfig] = useState<ControlConfiguration | null>(null);
-  const [user, setUser] = useState<User | null>(getCurrentUser() as User | null);
-  
+  const [telemetryData, setTelemetryData] = useState<TelemetryData[]>([]);
+  const [isControlBuilderOpen, setIsControlBuilderOpen] = useState(false);
+  const [speed, setSpeed] = useState(50);
+  const [targetPosition, setTargetPosition] = useState(0);
+  const [safetyLimits] = useState({ min: -100, max: 100 });
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
+  // Get current user and demo stations
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+  }, []);
+
+  // Start session mutation
+  const startSessionMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedStation) throw new Error('No station selected');
+      return apiRequest(`/api/demo-stations/${selectedStation.id}/sessions`, {
+        method: 'POST',
+      });
+    },
+    onSuccess: (session) => {
+      setCurrentSession(session);
+      toast({ title: 'Session started successfully' });
+    },
+  });
+
+  // End session mutation
+  const endSessionMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentSession) throw new Error('No active session');
+      return apiRequest(`/api/sessions/${currentSession.id}/end`, {
+        method: 'POST',
+      });
+    },
+    onSuccess: () => {
+      setCurrentSession(null);
+      toast({ title: 'Session ended successfully' });
+    },
+  });
+
+  // Control configuration query
+  useEffect(() => {
+    if (selectedStation) {
+      apiRequest(`/api/demo-stations/${selectedStation.id}/controls`, {
+        method: 'GET',
+      })
+        .then((config) => setControlConfig(config))
+        .catch(() => setControlConfig({}));
+    }
+  }, [selectedStation]);
+
+  // Generate mock telemetry data
+  useEffect(() => {
+    if (selectedStation && currentSession) {
+      const interval = setInterval(() => {
+        const newTelemetryData: TelemetryData = {
+          id: Date.now(),
+          timestamp: new Date(),
+          position: Math.random() * 100 - 50,
+          velocity: Math.random() * 20 - 10,
+          load: Math.random() * 100,
+          temperature: 20 + Math.random() * 10,
+          data: {
+            voltage: 12 + Math.random() * 2,
+            current: Math.random() * 5,
+          }
+        };
+
+        setTelemetryData(prev => [...prev.slice(-99), newTelemetryData]);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [selectedStation, currentSession]);
+
   // WebSocket connection
-  const { isConnected, connectionStats, sendCommand } = useWebSocket(
+  const { isConnected, connectionStats } = useWebSocket(
     selectedStation?.id || 0,
     user?.id || 0,
     currentSession?.id
   );
 
-  // Fetch user organizations
-  const { data: userOrganizations = [] } = useQuery({
-    queryKey: ['/api/users/me/organizations'],
-    enabled: !!user
-  });
-
-  // Fetch demo stations
-  const { data: demoStations = [] } = useQuery({
-    queryKey: ['/api/demo-stations'],
-    enabled: !!user
-  });
-
-  // Fetch control configuration for selected station
-  const { data: stationControls } = useQuery({
-    queryKey: ['/api/demo-stations', selectedStation?.id, 'controls'],
-    enabled: !!selectedStation
-  });
-
-  // Create session mutation
-  const createSessionMutation = useMutation({
-    mutationFn: async (stationId: number) => {
-      return apiRequest(`/api/demo-stations/${stationId}/sessions`, {
-        method: 'POST'
-      });
-    },
-    onSuccess: (session) => {
-      setCurrentSession(session);
-      toast({
-        title: "Session Started",
-        description: "Control session has been initiated successfully."
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Session Error",
-        description: "Failed to start control session.",
-        variant: "destructive"
-      });
+  // Send command function
+  const sendCommand = async (command: string, parameters?: Record<string, any>) => {
+    if (!currentSession || !selectedStation) {
+      toast({ title: 'No active session', variant: 'destructive' });
+      return;
     }
-  });
 
-  // End session mutation
-  const endSessionMutation = useMutation({
-    mutationFn: async (sessionId: number) => {
-      return apiRequest(`/api/sessions/${sessionId}/end`, {
-        method: 'POST'
-      });
-    },
-    onSuccess: () => {
-      setCurrentSession(null);
-      toast({
-        title: "Session Ended",
-        description: "Control session has been terminated."
-      });
-    }
-  });
-
-  // Save controls mutation
-  const saveControlsMutation = useMutation({
-    mutationFn: async (controls: ControlWidget[]) => {
-      if (!selectedStation) throw new Error('No station selected');
-      return apiRequest(`/api/demo-stations/${selectedStation.id}/controls`, {
+    try {
+      await apiRequest('/api/commands', {
         method: 'POST',
-        body: JSON.stringify({ controls })
+        body: JSON.stringify({
+          command,
+          parameters,
+          sessionId: currentSession.id,
+          stationId: selectedStation.id,
+        }),
       });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/demo-stations', selectedStation?.id, 'controls'] });
-      toast({
-        title: "Controls Saved",
-        description: "Control configuration has been updated successfully."
-      });
+      
+      toast({ title: `Command sent: ${command}` });
+    } catch (error) {
+      toast({ title: 'Failed to send command', variant: 'destructive' });
     }
+  };
+
+  // Demo stations query
+  const { data: demoStations = [], isLoading: isDemoStationsLoading } = useQuery({
+    queryKey: ['/api/demo-stations'],
+    enabled: !!user,
   });
 
+  // Load user data
   useEffect(() => {
-    if (stationControls) {
-      setControlConfig(stationControls);
+    if (user && demoStations.length > 0) {
+      if (!selectedStation) {
+        setSelectedStation(demoStations[0]);
+      }
     }
-  }, [stationControls]);
+  }, [user, demoStations, selectedStation]);
 
-  const handleLogout = () => {
-    // Logout handled by auth system
-    window.location.href = '/login';
+  // Save controls function
+  const handleSaveControls = async (controls: any[]) => {
+    if (!selectedStation) return;
+
+    try {
+      await apiRequest(`/api/demo-stations/${selectedStation.id}/controls`, {
+        method: 'POST',
+        body: JSON.stringify({ controls }),
+      });
+      
+      setControlConfig({ controls } as any);
+      setIsControlBuilderOpen(false);
+      toast({ title: 'Controls saved successfully' });
+    } catch (error) {
+      toast({ title: 'Failed to save controls', variant: 'destructive' });
+    }
   };
 
   const handleStationSelect = (station: DemoStation) => {
     setSelectedStation(station);
     setCurrentSession(null);
-    setTelemetryHistory([]);
-    
-    // Start session automatically
-    createSessionMutation.mutate(station.id);
-    
-    // Simulate telemetry data
-    const interval = setInterval(() => {
-      const newTelemetryData: TelemetryData = {
-        id: Date.now(),
-        demoStationId: station.id,
-        timestamp: new Date(),
-        data: {
-          temperature: 20 + Math.random() * 10,
-          humidity: 40 + Math.random() * 20,
-          pressure: 1000 + Math.random() * 50,
-          vibration: Math.random() * 5,
-          position: {
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            z: Math.random() * 100
-          }
-        }
-      };
-      
-      setTelemetryHistory(prev => [newTelemetryData, ...prev.slice(0, 99)]);
-    }, 1000);
-
-    return () => clearInterval(interval);
+    setTelemetryData([]);
   };
 
-  const handleCommand = (command: string, parameters?: Record<string, any>) => {
-    if (!selectedStation || !currentSession) return;
-    
-    sendCommand({
-      command,
-      parameters: parameters || {},
-      sessionId: currentSession.id,
-      stationId: selectedStation.id
-    });
-    
-    toast({
-      title: "Command Sent",
-      description: `Executed: ${command}`,
-      duration: 2000
-    });
+  const handleLogout = async () => {
+    try {
+      await refreshUserData();
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const handleEmergencyStop = () => {
-    handleCommand('EMERGENCY_STOP');
-    if (currentSession) {
-      endSessionMutation.mutate(currentSession.id);
-    }
+    sendCommand('EMERGENCY_STOP');
   };
-
-  const handleSaveControls = (controls: ControlWidget[]) => {
-    saveControlsMutation.mutate(controls);
-    setIsControlBuilderOpen(false);
-  };
-
-  // Auto-select organization if there's only one
-  useEffect(() => {
-    const autoSelectOrganization = async () => {
-      if (userOrganizations && userOrganizations.length === 1 && user && !user.organization) {
-        try {
-          await apiRequest('/api/users/me/switch-organization', {
-            method: 'POST',
-            body: JSON.stringify({ organizationId: userOrganizations[0].organization.id })
-          });
-          
-          // Refresh user data
-          const response = await apiRequest('/api/users/me');
-          setUser(response);
-          
-          toast({
-            title: "Organization Selected",
-            description: `Switched to ${userOrganizations[0].organization.name}`,
-            duration: 3000
-          });
-        } catch (error) {
-          console.error('Failed to auto-select organization:', error);
-        }
-      }
-    };
-
-    autoSelectOrganization();
-  }, [userOrganizations, user]);
-
-  // Auto-select first station if none selected
-  useEffect(() => {
-    if (demoStations.length > 0 && !selectedStation) {
-      handleStationSelect(demoStations[0]);
-    }
-  }, [demoStations, selectedStation]);
-
-  if (!user) {
-    return null; // Will redirect to login via auth check
-  }
 
   const formatSessionTime = (session: Session | null) => {
-    if (!session || !session.startTime) return '0:00';
-    
-    const elapsed = Math.floor((Date.now() - new Date(session.startTime).getTime()) / 1000);
-    const minutes = Math.floor(elapsed / 60);
-    const seconds = elapsed % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    if (!session || !session.startTime) return '00:00:00';
+    const start = new Date(session.startTime);
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - start.getTime()) / 1000);
+    const hours = Math.floor(diff / 3600);
+    const minutes = Math.floor((diff % 3600) / 60);
+    const seconds = diff % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <div className="flex h-screen bg-slate-50">
+      {/* Sidebar */}
       <Sidebar
-        user={user}
-        demoStations={demoStations}
-        activeDemoStation={selectedStation}
+        user={user as any}
+        demoStations={demoStations as any}
+        activeDemoStation={selectedStation as any}
         onLogout={handleLogout}
         onStationSelect={handleStationSelect}
       />
@@ -312,28 +294,64 @@ export default function Dashboard() {
         <main className="flex-1 overflow-auto p-6">
           {selectedStation ? (
             <div className="grid grid-cols-12 gap-6 h-full">
-              {/* Video Feed Section */}
-              <div className="col-span-8">
-                <VideoFeed
+              {/* Video Feed */}
+              <div className="col-span-8 space-y-6">
+                <VideoFeed 
                   stationName={selectedStation.name}
-                  telemetry={telemetryHistory[0] || null}
-                  isRecording={isConnected}
+                  telemetry={telemetryData[telemetryData.length - 1] || null}
+                  isRecording={!!currentSession}
+                />
+
+                {/* Control Panel */}
+                <ControlPanel
+                  onCommand={sendCommand}
+                  speed={speed}
+                  targetPosition={targetPosition}
+                  safetyLimits={safetyLimits}
+                  onSpeedChange={setSpeed}
+                  onTargetPositionChange={setTargetPosition}
                 />
               </div>
 
-              {/* Control Panel */}
+              {/* Telemetry & Session Controls */}
               <div className="col-span-4 space-y-6">
-                <ControlPanel
-                  onCommand={handleCommand}
-                  speed={50}
-                  targetPosition={0}
-                  safetyLimits={{ min: -100, max: 100 }}
-                  onSpeedChange={(speed) => handleCommand('SET_SPEED', { speed })}
-                  onTargetPositionChange={(position) => handleCommand('MOVE_TO', { position })}
-                />
+                {/* Session Controls */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <span>Session Control</span>
+                      <Badge variant={currentSession ? 'default' : 'secondary'}>
+                        {currentSession ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {!currentSession ? (
+                      <Button 
+                        onClick={() => startSessionMutation.mutate()}
+                        disabled={startSessionMutation.isPending || !selectedStation}
+                        className="w-full"
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Start Session
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="destructive"
+                        onClick={() => endSessionMutation.mutate()}
+                        disabled={endSessionMutation.isPending}
+                        className="w-full"
+                      >
+                        <Square className="w-4 h-4 mr-2" />
+                        End Session
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
 
+                {/* Telemetry */}
                 <TelemetrySection
-                  telemetryData={telemetryHistory}
+                  telemetryData={telemetryData}
                   connectionStats={connectionStats}
                   isConnected={isConnected}
                 />
@@ -342,23 +360,13 @@ export default function Dashboard() {
           ) : (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4">No Demo Station Selected</h2>
-                <p className="text-slate-600">
-                  Please select a demo station from the sidebar to begin your control session.
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">No Demo Station Selected</h2>
+                <p className="text-slate-600">Select a demo station from the sidebar to begin.</p>
               </div>
             </div>
           )}
         </main>
       </div>
-
-      {/* Control Builder Modal */}
-      {/* <ControlBuilderModal
-        isOpen={isControlBuilderOpen}
-        onClose={() => setIsControlBuilderOpen(false)}
-        controls={controlConfig?.controls || []}
-        onSaveControls={handleSaveControls}
-      /> */}
     </div>
   );
 }
