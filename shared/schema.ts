@@ -21,10 +21,16 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  role: text("role").notNull().default("viewer"), // admin, operator, viewer
-  organizationId: integer("organization_id").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const userOrganizations = pgTable("user_organizations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  organizationId: integer("organization_id").notNull(),
+  role: text("role").notNull().default("viewer"), // admin, operator, viewer
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
 });
 
 export const demoStations = pgTable("demo_stations", {
@@ -87,18 +93,26 @@ export const commands = pgTable("commands", {
 
 // Relations
 export const organizationsRelations = relations(organizations, ({ many }) => ({
-  users: many(users),
+  userOrganizations: many(userOrganizations),
   demoStations: many(demoStations),
 }));
 
-export const usersRelations = relations(users, ({ one, many }) => ({
-  organization: one(organizations, {
-    fields: [users.organizationId],
-    references: [organizations.id],
-  }),
+export const usersRelations = relations(users, ({ many }) => ({
+  userOrganizations: many(userOrganizations),
   sessions: many(sessions),
   commands: many(commands),
   controlConfigurations: many(controlConfigurations),
+}));
+
+export const userOrganizationsRelations = relations(userOrganizations, ({ one }) => ({
+  user: one(users, {
+    fields: [userOrganizations.userId],
+    references: [users.id],
+  }),
+  organization: one(organizations, {
+    fields: [userOrganizations.organizationId],
+    references: [organizations.id],
+  }),
 }));
 
 export const demoStationsRelations = relations(demoStations, ({ one, many }) => ({
@@ -173,6 +187,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
 });
 
+export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({
+  id: true,
+  joinedAt: true,
+});
+
 export const insertDemoStationSchema = createInsertSchema(demoStations).omit({
   id: true,
   createdAt: true,
@@ -206,6 +225,9 @@ export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type UserOrganization = typeof userOrganizations.$inferSelect;
+export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
 
 export type DemoStation = typeof demoStations.$inferSelect;
 export type InsertDemoStation = z.infer<typeof insertDemoStationSchema>;
