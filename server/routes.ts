@@ -387,8 +387,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/demo-stations', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      if (req.user!.role !== 'admin') {
-        return res.status(403).json({ message: 'Admin access required' });
+      if (req.user!.role !== 'admin' && req.user!.role !== 'operator') {
+        return res.status(403).json({ message: 'Admin or operator access required' });
       }
 
       const stationData = insertDemoStationSchema.parse({
@@ -400,6 +400,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(station);
     } catch (error) {
       res.status(400).json({ message: 'Failed to create demo station' });
+    }
+  });
+
+  app.patch('/api/demo-stations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const stationId = parseInt(req.params.id);
+      const station = await storage.getDemoStation(stationId);
+      
+      if (!station || station.organizationId !== req.user!.organizationId) {
+        return res.status(404).json({ message: 'Demo station not found' });
+      }
+
+      if (req.user!.role !== 'admin' && req.user!.role !== 'operator') {
+        return res.status(403).json({ message: 'Admin or operator access required' });
+      }
+
+      const updatedStation = await storage.updateDemoStation(stationId, req.body);
+      res.json(updatedStation);
+    } catch (error) {
+      res.status(400).json({ message: 'Failed to update demo station' });
+    }
+  });
+
+  app.delete('/api/demo-stations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const stationId = parseInt(req.params.id);
+      const station = await storage.getDemoStation(stationId);
+      
+      if (!station || station.organizationId !== req.user!.organizationId) {
+        return res.status(404).json({ message: 'Demo station not found' });
+      }
+
+      if (req.user!.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      await storage.deleteDemoStation(stationId);
+      res.json({ message: 'Demo station deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to delete demo station' });
     }
   });
 

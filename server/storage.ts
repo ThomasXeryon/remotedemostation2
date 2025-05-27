@@ -36,6 +36,7 @@ export interface IStorage {
   createDemoStation(station: InsertDemoStation): Promise<DemoStation>;
   updateDemoStation(id: number, updates: Partial<InsertDemoStation>): Promise<DemoStation | undefined>;
   updateDemoStationHeartbeat(id: number): Promise<void>;
+  deleteDemoStation(id: number): Promise<void>;
 
   // Control Configurations
   getControlConfiguration(demoStationId: number): Promise<ControlConfiguration | undefined>;
@@ -165,6 +166,10 @@ export class DatabaseStorage implements IStorage {
         isOnline: true 
       })
       .where(eq(demoStations.id, id));
+  }
+
+  async deleteDemoStation(id: number): Promise<void> {
+    await db.delete(demoStations).where(eq(demoStations.id, id));
   }
 
   // Control Configurations
