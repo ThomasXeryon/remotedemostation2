@@ -34,7 +34,7 @@ export default function Organizations() {
   });
 
   // Fetch user's organizations
-  const { data: organizations = [] } = useQuery({
+  const { data: organizations = [] } = useQuery<Organization[]>({
     queryKey: ['/api/users/me/organizations'],
     enabled: !!user,
   });
@@ -50,11 +50,12 @@ export default function Organizations() {
       setIsCreateModalOpen(false);
       setNewOrg({ name: '', slug: '', primaryColor: '#3b82f6', secondaryColor: '#1e293b' });
       toast({
-        title: "Organization created",
-        description: "Your new organization has been created successfully",
+        title: "Organization created successfully!",
+        description: "Your new organization has been created and you've been added as an admin.",
       });
     },
     onError: (error: any) => {
+      console.error('Organization creation error:', error);
       toast({
         title: "Failed to create organization",
         description: error.message || "Something went wrong",

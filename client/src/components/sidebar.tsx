@@ -38,6 +38,12 @@ export function Sidebar({
       active: location === '/dashboard'
     },
     { 
+      path: '/organizations', 
+      icon: Building2, 
+      label: 'Organizations',
+      active: location === '/organizations'
+    },
+    { 
       path: '/stations', 
       icon: Cpu, 
       label: 'Demo Stations',
