@@ -93,10 +93,10 @@ export function Sidebar({
           </div>
           <div className="flex-1">
             <h1 className="text-lg font-semibold text-slate-900">
-              {user.organization?.name || 'Demo Platform'}
+              Demo Platform
             </h1>
             <p className="text-xs text-slate-500">
-              {user.organization?.name ? 'Remote Demo Station' : 'No Organization Selected'}
+              {user.organization?.name || 'No Organization Selected'}
             </p>
           </div>
         </div>
