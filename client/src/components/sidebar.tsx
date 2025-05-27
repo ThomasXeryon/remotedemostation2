@@ -81,13 +81,13 @@ export function Sidebar({
         <div className="flex items-center space-x-3">
           <div 
             className="w-10 h-10 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: user.organization.primaryColor }}
+            style={{ backgroundColor: user.organization?.primaryColor || '#3b82f6' }}
           >
             <Building2 className="h-6 w-6 text-white" />
           </div>
           <div>
             <h1 className="text-lg font-semibold text-slate-900">
-              {user.organization.name}
+              {user.organization?.name || 'Demo Platform'}
             </h1>
             <p className="text-xs text-slate-500">Remote Demo Platform</p>
           </div>
