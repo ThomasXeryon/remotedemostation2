@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'wouter';
+import { useState, useEffect } from 'react';
 import { 
   Settings, 
   Users, 
@@ -11,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { OrganizationSwitcher } from '@/components/organization-switcher';
 import { User, DemoStation } from '@/types';
 
 interface SidebarProps {
@@ -29,6 +31,25 @@ export function Sidebar({
   onStationSelect 
 }: SidebarProps) {
   const [location] = useLocation();
+  const [currentOrganization, setCurrentOrganization] = useState(user.organization);
+
+  // Listen for organization changes
+  useEffect(() => {
+    const handleOrganizationChanged = () => {
+      // Organization has changed, component will re-render with new user data
+      setCurrentOrganization(user.organization);
+    };
+
+    window.addEventListener('organizationChanged', handleOrganizationChanged);
+    return () => {
+      window.removeEventListener('organizationChanged', handleOrganizationChanged);
+    };
+  }, [user.organization]);
+
+  // Update current organization when user prop changes
+  useEffect(() => {
+    setCurrentOrganization(user.organization);
+  }, [user.organization]);
 
   const navItems = [
     { 
@@ -82,25 +103,14 @@ export function Sidebar({
 
   return (
     <div className="w-64 bg-white border-r border-slate-200 flex flex-col h-full">
-      {/* Tenant Branding Header */}
-      <div className="p-6 border-b border-slate-200">
-        <div className="flex items-center space-x-3">
-          <div 
-            className="w-10 h-10 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: user.organization?.primaryColor || '#3b82f6' }}
-          >
-            <Building2 className="h-6 w-6 text-white" />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold text-slate-900">
-              Demo Platform
-            </h1>
-            <p className="text-xs text-slate-500">
-              {user.organization?.name || 'No Organization Selected'}
-            </p>
-          </div>
+      {/* Organization Switcher Header */}
+      <div className="p-4 border-b border-slate-200">
+        <div className="mb-4">
+          <h1 className="text-lg font-semibold text-slate-900">
+            Demo Platform
+          </h1>
         </div>
-
+        <OrganizationSwitcher currentOrganization={currentOrganization} />
       </div>
 
       {/* Navigation */}
