@@ -337,7 +337,6 @@ export default function StationsPage() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleEditStation(station)}
-                          disabled={editStationMutation.isPending}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           <Edit className="w-4 h-4" />
@@ -394,89 +393,7 @@ export default function StationsPage() {
           </div>
         )}
 
-        {/* Edit Station Modal */}
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Edit Demo Station</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="edit-name">Station Name</Label>
-                <Input
-                  id="edit-name"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder="e.g., Linear Actuator Station"
-                />
-              </div>
 
-              <div>
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  placeholder="Brief description of the demo station..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="edit-cameraCount">Camera Count</Label>
-                  <Select
-                    value={editForm.cameraCount.toString()}
-                    onValueChange={(value) => setEditForm({ ...editForm, cameraCount: parseInt(value) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 Camera</SelectItem>
-                      <SelectItem value="2">2 Cameras</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="edit-sessionTime">Session Time (minutes)</Label>
-                  <Input
-                    id="edit-sessionTime"
-                    type="number"
-                    value={editForm.sessionTimeLimit}
-                    onChange={(e) => setEditForm({
-                      ...editForm,
-                      sessionTimeLimit: parseInt(e.target.value) || 30
-                    })}
-                    min="1"
-                    max="120"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="edit-requiresLogin"
-                  checked={editForm.requiresLogin}
-                  onCheckedChange={(checked) => setEditForm({ ...editForm, requiresLogin: checked })}
-                />
-                <Label htmlFor="edit-requiresLogin">Require user login to access</Label>
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleUpdateStation}
-                  disabled={editStationMutation.isPending}
-                >
-                  {editStationMutation.isPending ? 'Updating...' : 'Update Station'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
