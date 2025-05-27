@@ -292,6 +292,41 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return command || undefined;
   }
+
+  // User-Organization methods
+  async getUserOrganizations(userId: number): Promise<(UserOrganization & { organization: Organization })[]> {
+    const result = await db
+      .select()
+      .from(userOrganizations)
+      .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+      .where(eq(userOrganizations.userId, userId));
+    
+    return result.map(row => ({
+      ...row.user_organizations,
+      organization: row.organizations
+    }));
+  }
+
+  async addUserToOrganization(userOrg: InsertUserOrganization): Promise<UserOrganization> {
+    const [result] = await db
+      .insert(userOrganizations)
+      .values(userOrg)
+      .returning();
+    return result;
+  }
+
+  async getUserRole(userId: number, organizationId: number): Promise<string | undefined> {
+    const [result] = await db
+      .select({ role: userOrganizations.role })
+      .from(userOrganizations)
+      .where(
+        and(
+          eq(userOrganizations.userId, userId),
+          eq(userOrganizations.organizationId, organizationId)
+        )
+      );
+    return result?.role;
+  }
 }
 
 export const storage = new DatabaseStorage();

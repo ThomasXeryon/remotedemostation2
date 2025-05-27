@@ -225,15 +225,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/users/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const user = await storage.getUser(req.user!.id);
-      const organization = await storage.getOrganization(req.user!.organizationId);
-      
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      res.json({ ...user, organization });
+      // Get user's primary organization from user_organizations table
+      const userOrg = await db
+        .select({
+          organizationId: userOrganizations.organizationId,
+          role: userOrganizations.role,
+          orgName: organizations.name,
+          orgSlug: organizations.slug,
+          orgPrimaryColor: organizations.primaryColor,
+          orgSecondaryColor: organizations.secondaryColor,
+        })
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(eq(userOrganizations.userId, user.id))
+        .limit(1);
+
+      const organization = userOrg.length ? {
+        id: userOrg[0].organizationId,
+        name: userOrg[0].orgName,
+        slug: userOrg[0].orgSlug,
+        primaryColor: userOrg[0].orgPrimaryColor,
+        secondaryColor: userOrg[0].orgSecondaryColor,
+      } : null;
+
+      res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: userOrg.length ? userOrg[0].role : 'viewer',
+        organization
+      });
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch user' });
+    }
+  });
+
+  // Get user's organizations
+  app.get('/api/users/me/organizations', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userOrgs = await db
+        .select({
+          id: organizations.id,
+          name: organizations.name,
+          slug: organizations.slug,
+          primaryColor: organizations.primaryColor,
+          secondaryColor: organizations.secondaryColor,
+          role: userOrganizations.role,
+        })
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(eq(userOrganizations.userId, req.user!.id));
+
+      res.json(userOrgs);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to get organizations' });
+    }
+  });
+
+  // Create organization
+  app.post('/api/organizations', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgData = insertOrganizationSchema.parse(req.body);
+      
+      // Create the organization
+      const organization = await storage.createOrganization(orgData);
+      
+      // Add the creating user as an admin of this organization
+      await storage.addUserToOrganization({
+        userId: req.user!.id,
+        organizationId: organization.id,
+        role: 'admin'
+      });
+
+      res.status(201).json(organization);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to create organization' });
     }
   });
 
