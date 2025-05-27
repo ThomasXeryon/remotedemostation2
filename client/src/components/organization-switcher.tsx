@@ -52,7 +52,12 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
         body: JSON.stringify({ organizationId }),
       });
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
+      // Save the new JWT token if provided
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+      
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
       queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });

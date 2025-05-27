@@ -333,8 +333,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Organization not found' });
       }
 
+      // Generate new JWT token with updated organization
+      const newToken = jwt.sign(
+        { 
+          id: req.user!.id, 
+          organizationId: organizationId,
+          role: userRole 
+        },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
       res.json({ 
         message: 'Organization switched successfully',
+        token: newToken,
         organization,
         role: userRole
       });
