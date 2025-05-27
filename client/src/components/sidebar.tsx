@@ -100,24 +100,7 @@ export function Sidebar({
             </p>
           </div>
         </div>
-        
-        {/* Organization Status */}
-        {user.organization && (
-          <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center space-x-2">
-              <div 
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: user.organization.primaryColor || '#3b82f6' }}
-              />
-              <p className="text-xs font-medium text-blue-700">
-                Active Organization
-              </p>
-            </div>
-            <p className="text-sm font-semibold text-blue-900 mt-1">
-              {user.organization.name}
-            </p>
-          </div>
-        )}
+
       </div>
 
       {/* Navigation */}
