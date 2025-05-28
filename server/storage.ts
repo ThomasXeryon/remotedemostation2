@@ -11,7 +11,7 @@ import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
 
 // Generate unique UUID for demo stations
-function generateStationId(): string {
+export function generateStationId(): string {
   const chars = '0123456789abcdef';
   const sections = [8, 4, 4, 4, 12];
   let uuid = '';
