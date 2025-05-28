@@ -33,6 +33,18 @@ export const userOrganizations = pgTable("user_organizations", {
   joinedAt: timestamp("joined_at").defaultNow().notNull(),
 });
 
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  email: text("email").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  company: text("company"),
+  phone: text("phone"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const demoStations = pgTable("demo_stations", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -61,7 +73,8 @@ export const controlConfigurations = pgTable("control_configurations", {
 
 export const sessions = pgTable("sessions", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: integer("user_id"), // organization member (optional)
+  customerId: integer("customer_id"), // organization's customer (optional)
   demoStationId: text("demo_station_id").notNull(),
   startTime: timestamp("start_time").defaultNow().notNull(),
   endTime: timestamp("end_time"),
@@ -98,6 +111,7 @@ export const commands = pgTable("commands", {
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   userOrganizations: many(userOrganizations),
   demoStations: many(demoStations),
+  customers: many(customers),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -140,10 +154,22 @@ export const controlConfigurationsRelations = relations(controlConfigurations, (
   }),
 }));
 
+export const customersRelations = relations(customers, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [customers.organizationId],
+    references: [organizations.id],
+  }),
+  sessions: many(sessions),
+}));
+
 export const sessionsRelations = relations(sessions, ({ one, many }) => ({
   user: one(users, {
     fields: [sessions.userId],
     references: [users.id],
+  }),
+  customer: one(customers, {
+    fields: [sessions.customerId],
+    references: [customers.id],
   }),
   demoStation: one(demoStations, {
     fields: [sessions.demoStationId],
@@ -195,6 +221,11 @@ export const insertUserOrganizationSchema = createInsertSchema(userOrganizations
   joinedAt: true,
 });
 
+export const insertCustomerSchema = createInsertSchema(customers).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertDemoStationSchema = createInsertSchema(demoStations).omit({
   id: true,
   createdAt: true,
@@ -231,6 +262,9 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type UserOrganization = typeof userOrganizations.$inferSelect;
 export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
+
+export type Customer = typeof customers.$inferSelect;
+export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 
 export type DemoStation = typeof demoStations.$inferSelect;
 export type InsertDemoStation = z.infer<typeof insertDemoStationSchema>;
