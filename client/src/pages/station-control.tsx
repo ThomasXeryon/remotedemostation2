@@ -178,12 +178,12 @@ export function StationControl() {
           </div>
         </div>
 
-        {/* Right Side - Controls */}
+        {/* Right Side - Real Hardware Controls */}
         <div className="w-80 p-4 bg-gray-900 space-y-4 overflow-y-auto">
-          {/* Custom Controls */}
-          {controlWidgets.length > 0 && (
+          {/* Real Custom Controls - only shows when configured */}
+          {controlWidgets.length > 0 ? (
             <div>
-              <h3 className="text-white font-semibold mb-3">Custom Controls</h3>
+              <h3 className="text-white font-semibold mb-3">Hardware Controls</h3>
               <div className="grid grid-cols-2 gap-2">
                 {controlWidgets.map((widget) => (
                   <Button
@@ -199,30 +199,50 @@ export function StationControl() {
                 ))}
               </div>
             </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <div className="text-sm">No Controls Configured</div>
+              <div className="text-xs mt-1">Configure controls in Station Editor</div>
+            </div>
           )}
 
-          {/* Movement Controls */}
-          <div>
-            <h3 className="text-white font-semibold mb-3">Movement Controls</h3>
-            <ControlPanel
-              onCommand={handleCommand}
-              speed={speed}
-              targetPosition={targetPosition}
-              safetyLimits={{ min: -100, max: 100 }}
-              onSpeedChange={setSpeed}
-              onTargetPositionChange={setTargetPosition}
-            />
-          </div>
-
-          {/* Telemetry */}
-          <div>
-            <h3 className="text-white font-semibold mb-3">Status</h3>
-            <TelemetrySection
-              telemetryData={telemetryData || []}
-              connectionStats={connectionStats}
-              isConnected={isConnected}
-            />
-          </div>
+          {/* Real Hardware Status - only shows when connected */}
+          {isConnected && telemetryData && telemetryData.length > 0 ? (
+            <div>
+              <h3 className="text-white font-semibold mb-3">Hardware Status</h3>
+              <div className="space-y-2 text-sm">
+                {telemetryData[0].position && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Position:</span>
+                    <span className="text-green-400 font-mono">{telemetryData[0].position}mm</span>
+                  </div>
+                )}
+                {telemetryData[0].velocity && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Velocity:</span>
+                    <span className="text-blue-400 font-mono">{telemetryData[0].velocity}mm/s</span>
+                  </div>
+                )}
+                {telemetryData[0].load && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Load:</span>
+                    <span className="text-yellow-400 font-mono">{telemetryData[0].load}%</span>
+                  </div>
+                )}
+                {telemetryData[0].temperature && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Temperature:</span>
+                    <span className="text-orange-400 font-mono">{telemetryData[0].temperature}°C</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <div className="text-sm">No Hardware Connected</div>
+              <div className="text-xs mt-1">Connect demo station to view status</div>
+            </div>
+          )}
         </div>
       </div>
     </div>
