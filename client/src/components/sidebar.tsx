@@ -82,10 +82,10 @@ export function Sidebar({
       active: location === '/analytics'
     },
     { 
-      path: '/settings', 
+      path: '/organizations', 
       icon: Settings, 
       label: 'Settings',
-      active: location === '/settings'
+      active: location === '/organizations'
     },
   ];
 
