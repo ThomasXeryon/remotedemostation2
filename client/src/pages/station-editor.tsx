@@ -66,7 +66,7 @@ export default function StationEditor() {
 
   // Fetch control configuration
   const { data: controlConfig } = useQuery({
-    queryKey: ['/api/demo-stations', id, 'controls'],
+    queryKey: [`/api/demo-stations/${id}/controls`],
     enabled: !!id,
   });
 
@@ -160,7 +160,7 @@ export default function StationEditor() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/demo-stations', id, 'controls'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/demo-stations/${id}/controls`] });
       toast({ title: 'Controls saved successfully' });
     },
     onError: (error) => {
