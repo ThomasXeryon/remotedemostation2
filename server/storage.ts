@@ -12,7 +12,18 @@ import { eq, and, desc, asc } from "drizzle-orm";
 
 // Generate unique UUID for demo stations
 function generateStationId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}-${Math.random().toString(36).substr(2, 9)}-${Math.random().toString(36).substr(2, 9)}`;
+  const chars = '0123456789abcdef';
+  const sections = [8, 4, 4, 4, 12];
+  let uuid = '';
+  
+  for (let i = 0; i < sections.length; i++) {
+    if (i > 0) uuid += '-';
+    for (let j = 0; j < sections[i]; j++) {
+      uuid += chars[Math.floor(Math.random() * 16)];
+    }
+  }
+  
+  return uuid;
 }
 
 export interface IStorage {
