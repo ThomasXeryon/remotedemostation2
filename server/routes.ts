@@ -280,6 +280,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's organizations
   app.get('/api/users/me/organizations', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
+      const userId = req.user!.id;
+
       const userOrgs = await db
         .select({
           id: organizations.id,
@@ -287,15 +289,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           slug: organizations.slug,
           primaryColor: organizations.primaryColor,
           secondaryColor: organizations.secondaryColor,
-          role: userOrganizations.role,
         })
         .from(userOrganizations)
         .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
-        .where(eq(userOrganizations.userId, req.user!.id));
+        .where(eq(userOrganizations.userId, userId));
 
-      res.json(userOrgs);
+      // Get counts for each organization
+      const orgsWithCounts = await Promise.all(
+        userOrgs.map(async (org) => {
+          // Count users in this organization
+          const userCountResult = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(userOrganizations)
+            .where(eq(userOrganizations.organizationId, org.id));
+
+          // Count demo stations in this organization
+          const stationCountResult = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(demoStations)
+            .where(eq(demoStations.organizationId, org.id));
+
+          return {
+            ...org,
+            userCount: Number(userCountResult[0]?.count || 0),
+            stationCount: Number(stationCountResult[0]?.count || 0),
+          };
+        })
+      );
+
+      res.json(orgsWithCounts);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to get organizations' });
+      console.error('Error fetching user organizations:', error);
+      res.status(500).json({ message: 'Failed to fetch organizations' });
     }
   });
 
@@ -306,21 +331,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('Method:', req.method);
     console.log('URL:', req.url);
     console.log('Params:', req.params);
-    
+
     try {
       const orgId = parseInt(req.params.id);
       console.log(`Attempting to delete organization ${orgId}`);
-      
+
       if (isNaN(orgId)) {
         console.error('Invalid organization ID');
         return res.status(400).json({ message: 'Invalid organization ID' });
       }
-      
+
       // Direct database deletion
       console.log(`Deleting organization ${orgId} from database`);
       await db.delete(organizations).where(eq(organizations.id, orgId));
       console.log(`Organization ${orgId} deleted successfully`);
-      
+
       res.status(200).json({ message: 'Organization deleted successfully' });
     } catch (error) {
       console.error('Organization deletion failed:', error);
@@ -354,19 +379,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/organizations/:id/stats', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const orgId = parseInt(req.params.id);
-      
+
       // Get user count
       const userCount = await db
         .select({ count: sql<number>`count(*)` })
         .from(userOrganizations)
         .where(eq(userOrganizations.organizationId, orgId));
-      
+
       // Get station count
       const stationCount = await db
         .select({ count: sql<number>`count(*)` })
         .from(demoStations)
         .where(eq(demoStations.organizationId, orgId));
-      
+
       res.json({
         userCount: userCount[0]?.count || 0,
         stationCount: stationCount[0]?.count || 0
@@ -430,7 +455,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = req.params.id;
       console.log('Fetching station with ID:', stationId);
-      
+
       const station = await storage.getDemoStation(stationId);
       console.log('Found station:', station);
 
@@ -479,12 +504,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const station = await storage.createDemoStation(validatedData);
       console.log('Created station:', station);
-      
+
       res.status(201).json(station);
     } catch (error) {
       console.error('Station creation detailed error:', error);
       console.error('Request body:', req.body);
-      
+
       if (error instanceof Error && error.message.includes('validation')) {
         res.status(400).json({ message: 'Invalid station data', details: error.message });
       } else {
@@ -498,7 +523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stationId = req.params.id;
       console.log('Updating station with ID:', stationId);
       console.log('Update data:', req.body);
-      
+
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
@@ -522,7 +547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const stationId = req.params.id;
       console.log('Deleting station with ID:', stationId);
-      
+
       const station = await storage.getDemoStation(stationId);
       console.log('Station to delete:', station);
 
@@ -645,9 +670,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const limit = parseInt(req.query.limit as string) || 100;
       let telemetry = await storage.getTelemetryData(stationId, limit);
-      
+
       // Only return actual telemetry data from connected hardware
-      
+
       res.json(telemetry);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch telemetry data' });
@@ -657,12 +682,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Camera feed routes
   app.get('/api/camera-feed/:stationName/stream', (req, res) => {
     const stationName = req.params.stationName;
-    
+
     // Set headers for video streaming
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    
+
     // For real hardware, this would connect to the actual camera stream
     // For now, return a 404 since real camera hardware isn't connected
     res.status(404).json({ message: 'Camera feed not available - connect hardware first' });
