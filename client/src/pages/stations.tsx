@@ -158,7 +158,7 @@ export default function StationsPage() {
   }
 
   return (
-    <div className="py-3 space-y-4">
+    <div className="px-2 py-3 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
