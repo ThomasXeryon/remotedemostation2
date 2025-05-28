@@ -15,17 +15,8 @@ import { ArrowLeft, Save, Plus, Trash2, Settings, Gamepad2, Sliders, RotateCcw }
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { getCurrentUser } from '@/lib/auth';
+import { ControlBuilderModal, type ControlWidget } from '@/components/control-builder-modal';
 import type { DemoStation } from '@shared/schema';
-
-interface ControlWidget {
-  id: string;
-  name: string;
-  type: 'button' | 'slider' | 'toggle';
-  command: string;
-  parameters?: Record<string, any>;
-  position: { x: number; y: number };
-  size: { width: number; height: number };
-}
 
 
 
@@ -58,6 +49,7 @@ export default function StationEditor() {
   const currentUser = getCurrentUser();
   const [activeTab, setActiveTab] = useState('basic');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isControlBuilderOpen, setIsControlBuilderOpen] = useState(false);
 
   // Fetch station data
   const { data: station, isLoading, refetch: refetchStation } = useQuery<DemoStation>({
@@ -205,6 +197,11 @@ export default function StationEditor() {
       networkSettings: { ...prev.networkSettings, ...updates }
     }));
     setHasUnsavedChanges(true);
+  };
+
+  const handleSaveControls = (newControls: ControlWidget[]) => {
+    setControls(newControls);
+    saveControlsMutation.mutate();
   };
 
   const addControl = (type: ControlWidget['type']) => {
@@ -380,70 +377,59 @@ export default function StationEditor() {
                     <Gamepad2 className="w-5 h-5" />
                     <span>UI Controls Builder</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm" onClick={() => addControl('button')}>
-                      <Plus className="w-4 h-4 mr-1" />
-                      Button
-                    </Button>
-                    <Button size="sm" onClick={() => addControl('slider')}>
-                      <Plus className="w-4 h-4 mr-1" />
-                      Slider
-                    </Button>
-                    <Button size="sm" onClick={() => addControl('toggle')}>
-                      <Plus className="w-4 h-4 mr-1" />
-                      Toggle
-                    </Button>
-                  </div>
+                  <Button onClick={() => setIsControlBuilderOpen(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Open Control Builder
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {controls.length === 0 ? (
-                    <div className="text-center py-8 text-slate-500">
+                    <div className="text-center py-12 text-gray-500">
                       <Gamepad2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>No controls configured yet</p>
-                      <p className="text-sm">Add buttons, sliders, or joysticks to build your interface</p>
+                      <p className="text-lg font-medium">No controls configured yet</p>
+                      <p className="text-sm mb-4">Use the drag-and-drop control builder to create custom UI controls</p>
+                      <Button onClick={() => setIsControlBuilderOpen(true)} variant="outline">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Start Building Controls
+                      </Button>
                     </div>
                   ) : (
-                    controls.map((control) => (
-                      <Card key={control.id} className="border-slate-200">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <Badge variant="outline">{control.type}</Badge>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              onClick={() => removeControl(control.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label>Control Name</Label>
-                              <Input
-                                value={control.name}
-                                onChange={(e) => updateControl(control.id, { name: e.target.value })}
-                                placeholder="e.g., Move Forward"
-                              />
-                            </div>
-                            <div>
-                              <Label>Command</Label>
-                              <Input
-                                value={control.command}
-                                onChange={(e) => updateControl(control.id, { command: e.target.value })}
-                                placeholder="e.g., MOVE_FORWARD"
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-600">
+                          {controls.length} control{controls.length !== 1 ? 's' : ''} configured
+                        </p>
+                        <Button onClick={() => setIsControlBuilderOpen(true)} variant="outline" size="sm">
+                          Edit Layout
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {controls.map((control) => (
+                          <Card key={control.id} className="border-gray-200">
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between mb-2">
+                                <Badge variant="outline" className="capitalize">{control.type}</Badge>
+                                <div className="w-4 h-4 rounded" style={{ backgroundColor: control.style?.backgroundColor || '#3b82f6' }} />
+                              </div>
+                              <h4 className="font-medium text-sm mb-1">{control.name}</h4>
+                              <p className="text-xs text-gray-500 mb-2">{control.command || 'No command set'}</p>
+                              <div className="flex justify-between text-xs text-gray-400">
+                                <span>{control.size?.width || 120}×{control.size?.height || 40}px</span>
+                                <span>({control.position?.x || 0}, {control.position?.y || 0})</span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
-                {controls.length > 0 && (
-                  <div className="flex justify-between items-center pt-4 border-t">
+              </CardContent>
+            </Card>
+          </TabsContent>
                     <Button 
                       variant="outline"
                       onClick={() => setShowPreview(!showPreview)}
