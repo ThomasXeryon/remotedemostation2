@@ -184,46 +184,38 @@ export function StationControl() {
         </div>
       </div>
 
-      {/* Main Control Interface */}
-      <div className="flex-1 relative">
-        {/* Video Feed - Custom Layout Position */}
+      {/* Main Control Interface - Proper Flex Layout */}
+      <div className="flex-1 flex gap-4 p-4 h-full">
+        {/* Video Feed */}
         <div 
-          className="absolute p-4"
+          className="border rounded-lg flex items-center justify-center relative"
           style={{
-            left: `${layout.camera.position.x}%`,
-            top: `${layout.camera.position.y}%`,
             width: `${layout.camera.width}%`,
-            height: `${layout.camera.height}%`,
           }}
         >
-          <div className="h-full border rounded-lg flex items-center justify-center relative">
-            <VideoFeed
-              stationName={demoStation.name}
-              telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
-              isRecording={isSessionActive}
-            />
+          <VideoFeed
+            stationName={demoStation.name}
+            telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
+            isRecording={isSessionActive}
+          />
 
-            {/* Camera count indicator */}
-            {demoStation.cameraCount > 1 && (
-              <div className="absolute top-4 left-4 flex space-x-2">
-                {Array.from({ length: demoStation.cameraCount }, (_, i) => (
-                  <Button key={i} size="sm" variant={i === 0 ? "default" : "outline"} className="text-xs">
-                    Cam {i + 1}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Camera count indicator */}
+          {demoStation.cameraCount > 1 && (
+            <div className="absolute top-4 left-4 flex space-x-2">
+              {Array.from({ length: demoStation.cameraCount }, (_, i) => (
+                <Button key={i} size="sm" variant={i === 0 ? "default" : "outline"} className="text-xs">
+                  Cam {i + 1}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Control Panel - Custom Layout Position */}
+        {/* Control Panel */}
         <div 
-          className="absolute p-4 space-y-4 overflow-y-auto border border-gray-200 bg-white rounded-lg"
+          className="space-y-4 overflow-y-auto border border-gray-200 bg-white rounded-lg p-4"
           style={{
-            left: `${layout.controlPanel.position.x}%`,
-            top: `${layout.controlPanel.position.y}%`,
             width: `${layout.controlPanel.width}%`,
-            height: `${layout.controlPanel.height}%`,
           }}
         >
           {/* Custom Control Layout - exactly as designed */}
