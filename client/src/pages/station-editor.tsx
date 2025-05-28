@@ -92,6 +92,7 @@ export default function StationEditor() {
     cameraCount: 1,
     sessionTimeLimit: 30,
     requiresLogin: true,
+    requireApproval: false,
     safetyLimits: {
       maxSpeed: 100,
       maxPosition: 500,
@@ -118,6 +119,7 @@ export default function StationEditor() {
         cameraCount: station.cameraCount || 1,
         sessionTimeLimit: station.sessionTimeLimit || 30,
         requiresLogin: station.requiresLogin ?? true,
+        requireApproval: station.requireApproval ?? false,
         safetyLimits: {
           maxSpeed: 100,
           maxPosition: 500,
