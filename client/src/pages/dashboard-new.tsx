@@ -29,19 +29,16 @@ export function Dashboard() {
 
   if (isLoading) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div>Loading demo stations...</div>
-        </div>
-      </Layout>
+      <div className="flex items-center justify-center h-64">
+        <div>Loading demo stations...</div>
+      </div>
     );
   }
 
   const stations = (demoStations as DemoStation[]) || [];
 
   return (
-    <Layout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -128,6 +125,6 @@ export function Dashboard() {
           </div>
         )}
       </div>
-    </Layout>
+    </div>
   );
 }
