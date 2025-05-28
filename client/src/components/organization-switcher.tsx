@@ -109,13 +109,20 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
       
       toast({ title: 'Organization switched successfully' });
       
-      // Clear queries and force immediate refresh without page reload
+      // Clear ALL queries and force immediate refresh of everything
       queryClient.clear();
       
-      // Immediately invalidate specific queries that depend on organization
+      // Invalidate all organization-dependent queries
       queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
       queryClient.invalidateQueries({ queryKey: ['/api/users/me/organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/telemetry'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/commands'] });
+      
+      // Invalidate any queries that might contain organization-specific data
+      queryClient.invalidateQueries();
       
       // Dispatch event to update other components immediately
       window.dispatchEvent(new CustomEvent('organizationChanged', { 
