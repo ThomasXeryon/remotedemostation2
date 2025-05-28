@@ -6,11 +6,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
 import { isAuthenticated } from "@/lib/auth";
 import Login from "@/pages/login";
-import Dashboard from "@/pages/dashboard";
+import { Dashboard } from "@/pages/dashboard-new";
 import Organizations from "@/pages/organizations";
 import NotFound from "@/pages/not-found";
 import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
+import { StationControl } from "./pages/station-control";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated()) {
@@ -41,6 +42,11 @@ function Router() {
       <Route path="/stations/:id/edit">
         <ProtectedRoute>
           <StationEditor />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/stations/:id/control">
+        <ProtectedRoute>
+          <StationControl />
         </ProtectedRoute>
       </Route>
       <Route path="/">
