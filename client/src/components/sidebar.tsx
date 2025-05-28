@@ -61,12 +61,7 @@ export function Sidebar({
       label: 'Control Dashboard',
       active: location === '/dashboard'
     },
-    { 
-      path: '/organizations', 
-      icon: Building2, 
-      label: 'Organizations',
-      active: location === '/organizations'
-    },
+
     { 
       path: '/stations', 
       icon: Cpu, 
