@@ -114,7 +114,7 @@ export function LayoutEditorModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[85vh] overflow-hidden">
+      <DialogContent className="max-w-[95vw] h-[95vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Layout className="w-5 h-5" />
@@ -122,9 +122,9 @@ export function LayoutEditorModal({
           </DialogTitle>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 h-full">
           {/* Layout Controls */}
-          <div className="space-y-4">
+          <div className="lg:col-span-1 space-y-4 max-h-full overflow-y-auto">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -261,7 +261,7 @@ export function LayoutEditorModal({
           </div>
 
           {/* Visual Layout Canvas */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4">
             <Card className="h-full">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -280,11 +280,11 @@ export function LayoutEditorModal({
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-4">
                 <div 
                   ref={canvasRef}
-                  className="relative w-full h-[500px] bg-gray-100 border-2 border-dashed border-gray-300 overflow-hidden"
-                  style={{ minHeight: '500px' }}
+                  className="relative w-full bg-gray-100 border-2 border-dashed border-gray-300 overflow-hidden rounded-lg"
+                  style={{ height: 'calc(100vh - 220px)', minHeight: '600px' }}
                 >
                   {/* Camera Preview */}
                   <div
