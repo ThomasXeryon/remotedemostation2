@@ -148,14 +148,20 @@ export default function StationEditor() {
     mutationFn: async () => {
       return apiRequest(`/api/demo-stations/${id}/controls`, {
         method: 'POST',
-        body: JSON.stringify({ controls }),
+        body: JSON.stringify({ 
+          controls: controls,
+          layout: {},
+          demoStationId: id,
+          createdBy: currentUser?.id
+        }),
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/demo-stations', id, 'controls'] });
       toast({ title: 'Controls saved successfully' });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Save error:', error);
       toast({ title: 'Failed to save controls', variant: 'destructive' });
     },
   });
@@ -185,7 +191,7 @@ export default function StationEditor() {
     const newControl: ControlWidget = {
       id: `control_${Date.now()}`,
       type,
-      label: `New ${type}`,
+      name: `New ${type}`,
       command: '',
       position: { x: 50, y: 50 },
       size: { width: 100, height: 40 },
