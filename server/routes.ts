@@ -587,26 +587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = parseInt(req.query.limit as string) || 100;
       let telemetry = await storage.getTelemetryData(stationId, limit);
       
-      // If no telemetry data exists, create some real-time data
-      if (telemetry.length === 0 && station.isOnline) {
-        const realTimeData = {
-          demoStationId: stationId,
-          sessionId: null,
-          position: (Math.sin(Date.now() / 1000) * 50).toFixed(2), // Oscillating position as string
-          velocity: (Math.cos(Date.now() / 1000) * 25).toFixed(2), // Velocity as string
-          load: (15 + Math.random() * 10).toFixed(1), // Load between 15-25% as string
-          temperature: (22 + Math.random() * 3).toFixed(1), // Temperature 22-25°C as string
-          rawData: {
-            voltage: 12.0 + Math.random() * 0.5,
-            current: 1.2 + Math.random() * 0.3,
-            acceleration: 0.5,
-            errorCode: null
-          },
-          timestamp: new Date()
-        };
-        await storage.createTelemetryData(realTimeData);
-        telemetry = [realTimeData];
-      }
+      // Only return actual telemetry data from connected hardware
       
       res.json(telemetry);
     } catch (error) {

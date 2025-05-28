@@ -26,47 +26,55 @@ export function VideoFeed({ stationName, telemetry, isRecording = true }: VideoF
       </CardHeader>
       
       <CardContent className="flex-1 p-4">
-        <div className="relative h-full bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden">
-          {/* Real camera feed */}
+        <div className="relative h-full bg-black rounded-lg overflow-hidden flex items-center justify-center">
+          {/* Real camera feed - only shows when hardware is connected */}
           <video 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover hidden"
             autoPlay
             muted
             playsInline
-            poster=""
+            onLoadStart={(e) => e.currentTarget.classList.remove('hidden')}
+            onError={(e) => e.currentTarget.classList.add('hidden')}
           >
             <source src={`/api/camera-feed/${stationName}/stream`} type="video/webm" />
             <source src={`/api/camera-feed/${stationName}/stream`} type="video/mp4" />
-            {/* Fallback for when camera is not available */}
-            <div className="flex items-center justify-center h-full text-white">
-              <div className="text-center">
-                <Video className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>Camera feed unavailable</p>
-                <p className="text-sm opacity-75">Check camera connection</p>
-              </div>
-            </div>
           </video>
           
-          {/* Video Overlay Controls */}
-          <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg p-3 text-white">
-            <div className="text-xs space-y-1">
-              <div>
-                Position: <span className="font-mono">
-                  {telemetry?.position?.toFixed(1) || '0.0'}mm
-                </span>
-              </div>
-              <div>
-                Speed: <span className="font-mono">
-                  {telemetry?.velocity?.toFixed(1) || '0.0'}mm/s
-                </span>
-              </div>
-              <div>
-                Load: <span className="font-mono">
-                  {telemetry?.load?.toFixed(1) || '0.0'}%
-                </span>
+          {/* Real hardware connection status */}
+          <div className="text-center text-white">
+            <Video className="w-16 h-16 mx-auto mb-4 opacity-30" />
+            <p className="text-lg font-medium">No Camera Connected</p>
+            <p className="text-sm opacity-75">Connect hardware to view live feed</p>
+          </div>
+          
+          {/* Real telemetry overlay - only shows when hardware sends data */}
+          {telemetry && (
+            <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg p-3 text-white">
+              <div className="text-xs space-y-1">
+                {telemetry.position && (
+                  <div>
+                    Position: <span className="font-mono text-green-400">
+                      {telemetry.position}mm
+                    </span>
+                  </div>
+                )}
+                {telemetry.velocity && (
+                  <div>
+                    Speed: <span className="font-mono text-blue-400">
+                      {telemetry.velocity}mm/s
+                    </span>
+                  </div>
+                )}
+                {telemetry.load && (
+                  <div>
+                    Load: <span className="font-mono text-yellow-400">
+                      {telemetry.load}%
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
 
           {/* Recording Indicator */}
           {isRecording && (
