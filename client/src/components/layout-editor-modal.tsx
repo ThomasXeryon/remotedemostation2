@@ -285,7 +285,7 @@ export function LayoutEditorModal({
                 <div 
                   ref={canvasRef}
                   className="relative w-full bg-gray-100 border-2 border-dashed border-gray-300 overflow-hidden rounded-lg"
-                  style={{ height: 'calc(100vh - 220px)', minHeight: '600px' }}
+                  style={{ height: '500px', minHeight: '500px' }}
                 >
                   {/* Camera Preview */}
                   <div
