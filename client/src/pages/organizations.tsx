@@ -1,32 +1,22 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, Building2, Users, Cpu, Trash2, Settings, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Building2, Users, Settings, Trash2 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser } from '@/lib/auth';
-import { useLocation } from 'wouter';
-
-interface Organization {
-  id: number;
-  name: string;
-  slug: string;
-  primaryColor: string;
-  secondaryColor: string;
-  userCount?: number;
-  stationCount?: number;
-}
+import { PageLayout } from '@/components/page-layout';
+import type { Organization } from '@shared/schema';
 
 export default function Organizations() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const user = getCurrentUser();
-  const [, setLocation] = useLocation();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newOrg, setNewOrg] = useState({
     name: '',
@@ -120,7 +110,7 @@ export default function Organizations() {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   };
 
-  const handleSwitchOrganization = async (org: Organization) => {
+  const handleSwitchOrganization = async (orgId: number) => {
     try {
       const response = await fetch('/api/users/me/switch-organization', {
         method: 'POST',
@@ -128,7 +118,7 @@ export default function Organizations() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         },
-        body: JSON.stringify({ organizationId: org.id }),
+        body: JSON.stringify({ organizationId: orgId }),
       });
 
       if (!response.ok) {
@@ -155,9 +145,7 @@ export default function Organizations() {
       });
 
       // Navigate to dashboard to see the organization's demo stations
-      setTimeout(() => {
-        setLocation('/dashboard');
-      }, 1500);
+      // setLocation('/dashboard');
     } catch (error) {
       console.error('Organization switch error:', error);
       toast({
@@ -168,202 +156,120 @@ export default function Organizations() {
     }
   };
 
-  return (
-    <div className="px-6 py-3 space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Organizations</h1>
-          <p className="text-muted-foreground">Manage your organizations and create new ones</p>
-        </div>
+  const handleEditOrganization = async (org: Organization) => {
+    // Placeholder for edit organization logic
+    console.log("Edit organization:", org);
+    toast({
+      title: "Edit Organization",
+      description: "This feature is under development.",
+    });
+  };
 
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogTrigger asChild>
-            <Button>
+  const handleDeleteOrganization = async (orgId: number) => {
+    if (window.confirm("Are you sure you want to delete this organization?")) {
+      try {
+        await deleteOrgMutation.mutateAsync(orgId);
+        toast({
+          title: "Organization Deleted",
+          description: "The organization has been successfully deleted.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete the organization.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const currentUser = getCurrentUser();
+
+  return (
+    <PageLayout
+      title="Organizations"
+      subtitle="Manage your organizations and switch between them"
+      action={{
+        label: "Create Organization",
+        onClick: () => setIsCreateModalOpen(true)
+      }}
+    >
+      {organizations.length === 0 ? (
+        <div className="content-card">
+          <div className="empty-state">
+            <Building2 className="empty-state-icon" />
+            <h3 className="empty-state-title">No organizations found</h3>
+            <p className="empty-state-description mb-6">Create your first organization to get started</p>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Create Organization
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create New Organization</DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={handleCreateOrg} className="space-y-4">
-              <div>
-                <Label htmlFor="org-name">Organization Name</Label>
-                <Input
-                  id="org-name"
-                  value={newOrg.name}
-                  onChange={(e) => {
-                    const name = e.target.value;
-                    setNewOrg(prev => ({ 
-                      ...prev, 
-                      name,
-                      slug: prev.slug === generateSlug(prev.name) ? generateSlug(name) : prev.slug
-                    }));
-                  }}
-                  placeholder="Acme Corporation"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="org-slug">URL Slug</Label>
-                <Input
-                  id="org-slug"
-                  value={newOrg.slug}
-                  onChange={(e) => setNewOrg(prev => ({ ...prev, slug: e.target.value }))}
-                  placeholder="acme-corp"
-                  pattern="[a-z0-9\-]+"
-                  title="Only lowercase letters, numbers, and hyphens allowed"
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  This will be used in URLs: /org/{newOrg.slug || 'your-slug'}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="primary-color">Primary Color</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="primary-color"
-                      type="color"
-                      value={newOrg.primaryColor}
-                      onChange={(e) => setNewOrg(prev => ({ ...prev, primaryColor: e.target.value }))}
-                      className="w-12 h-8 p-1 border rounded"
-                    />
-                    <Input
-                      value={newOrg.primaryColor}
-                      onChange={(e) => setNewOrg(prev => ({ ...prev, primaryColor: e.target.value }))}
-                      placeholder="#3b82f6"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="secondary-color">Secondary Color</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="secondary-color"
-                      type="color"
-                      value={newOrg.secondaryColor}
-                      onChange={(e) => setNewOrg(prev => ({ ...prev, secondaryColor: e.target.value }))}
-                      className="w-12 h-8 p-1 border rounded"
-                    />
-                    <Input
-                      value={newOrg.secondaryColor}
-                      onChange={(e) => setNewOrg(prev => ({ ...prev, secondaryColor: e.target.value }))}
-                      placeholder="#1e293b"
-                      className="flex-1"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={createOrgMutation.isPending}>
-                  {createOrgMutation.isPending ? 'Creating...' : 'Create Organization'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {organizations.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Building2 className="w-16 h-16 mx-auto text-slate-400 mb-4" />
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">No Organizations Yet</h3>
-            <p className="text-slate-600 mb-6">
-              Create your first organization to get started with remote hardware control
-            </p>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Organization
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {organizations.map((org: Organization) => (
-            <Card key={org.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="w-10 h-10 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: org.primaryColor }}
-                    >
-                      <Building2 className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{org.name}</CardTitle>
-                      <p className="text-sm text-slate-500">/{org.slug}</p>
-                    </div>
-                  </div>
-                  <div className="flex space-x-1">
-                    <Button variant="ghost" size="sm">
-                      <Settings className="w-4 h-4" />
-                    </Button>
+        <div className="grid-3-cols">
+          {organizations.map((org) => (
+            <Card key={org.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center space-x-2">
+                  <CardTitle className="text-lg font-medium">{org.name}</CardTitle>
+                  {org.id === currentUser?.organizationId && (
+                    <Crown className="w-4 h-4 text-yellow-500" />
+                  )}
+                </div>
+                <div className="flex space-x-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleEditOrganization(org)}
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                  {org.id !== currentUser?.organizationId && (
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => handleDeleteOrg(org.id, org.name)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleDeleteOrganization(org.id)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
-                  </div>
+                  )}
                 </div>
               </CardHeader>
-
               <CardContent>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex space-x-4 text-sm text-slate-600">
-                    <span className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {org.userCount || 0} users
-                    </span>
-                    <span className="flex items-center">
-                      <Building2 className="w-4 h-4 mr-1" />
-                      {org.stationCount || 0} stations
-                    </span>
+                {org.description && (
+                  <p className="text-sm text-gray-600 mb-4">{org.description}</p>
+                )}
+                <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+                  <div className="flex items-center">
+                    <Users className="w-4 h-4 mr-1" />
+                    {org.userCount || 0} users
+                  </div>
+                  <div className="flex items-center">
+                    <Cpu className="w-4 h-4 mr-1" />
+                    {org.stationCount || 0} stations
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex space-x-2">
-                    <div 
-                      className="w-4 h-4 rounded border"
-                      style={{ backgroundColor: org.primaryColor }}
-                      title="Primary Color"
-                    />
-                    <div 
-                      className="w-4 h-4 rounded border"
-                      style={{ backgroundColor: org.secondaryColor }}
-                      title="Secondary Color"
-                    />
-                  </div>
-
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleSwitchOrganization(org)}
-                  >
-                    Switch To
-                  </Button>
+                <div className="flex space-x-2">
+                  {org.id === currentUser?.organizationId ? (
+                    <Badge variant="default" className="flex-1 justify-center">
+                      Current Organization
+                    </Badge>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => handleSwitchOrganization(org.id)}
+                    >
+                      Switch to this org
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

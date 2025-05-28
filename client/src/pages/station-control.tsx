@@ -102,7 +102,7 @@ export function StationControl() {
         },
         body: JSON.stringify({})
       });
-      
+
       if (response.ok) {
         setIsSessionActive(true);
       }
@@ -181,7 +181,7 @@ export function StationControl() {
               telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
               isRecording={isSessionActive}
             />
-            
+
             {/* Camera count indicator */}
             {demoStation.cameraCount > 1 && (
               <div className="absolute top-4 left-4 flex space-x-2">

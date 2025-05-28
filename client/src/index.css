@@ -86,6 +86,107 @@
 }
 
 @layer components {
+  /* Layout Components */
+  .app-container {
+    @apply min-h-screen bg-slate-50;
+  }
+
+  .page-container {
+    @apply flex-1 overflow-auto;
+  }
+
+  .page-content {
+    @apply p-6 max-w-7xl mx-auto;
+  }
+
+  .page-header {
+    @apply mb-8;
+  }
+
+  .page-title {
+    @apply text-3xl font-bold text-slate-900 mb-2;
+  }
+
+  .page-subtitle {
+    @apply text-lg text-slate-600;
+  }
+
+  /* Card Components */
+  .content-card {
+    @apply bg-white rounded-lg shadow-sm border border-slate-200 p-6;
+  }
+
+  .stat-card {
+    @apply bg-white rounded-lg shadow-sm border border-slate-200 p-4;
+  }
+
+  /* Grid Layouts */
+  .grid-auto-fit {
+    @apply grid gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .grid-2-cols {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+  }
+
+  .grid-3-cols {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  .grid-4-cols {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6;
+  }
+
+  /* Section Spacing */
+  .section-spacing {
+    @apply space-y-6;
+  }
+
+  .section-spacing-sm {
+    @apply space-y-4;
+  }
+
+  .section-spacing-lg {
+    @apply space-y-8;
+  }
+
+  /* Form Components */
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  }
+
+  .form-actions {
+    @apply flex justify-end space-x-3 pt-4 border-t border-slate-200;
+  }
+
+  /* List Components */
+  .list-item {
+    @apply p-4 border-b border-slate-200 last:border-b-0;
+  }
+
+  .list-item-hover {
+    @apply p-4 border-b border-slate-200 last:border-b-0 hover:bg-slate-50 transition-colors;
+  }
+
+  /* Status Indicators */
+  .status-online {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  }
+
+  .status-offline {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
+  }
+
+  .status-warning {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800;
+  }
+
+  /* Control Widget Components */
   .control-widget {
     @apply transition-all duration-200 ease-in-out;
   }
@@ -115,5 +216,22 @@
       hsl(var(--primary) / 0.1) 50%, 
       transparent 100%
     );
+  }
+
+  /* Empty State Components */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-12 text-center;
+  }
+
+  .empty-state-icon {
+    @apply w-12 h-12 mx-auto mb-4 text-slate-400;
+  }
+
+  .empty-state-title {
+    @apply text-lg font-medium text-slate-900 mb-2;
+  }
+
+  .empty-state-description {
+    @apply text-sm text-slate-500 max-w-sm;
   }
 }

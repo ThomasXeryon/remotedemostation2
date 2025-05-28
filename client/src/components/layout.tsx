@@ -20,7 +20,7 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="app-container flex h-screen">
       <Sidebar
         user={currentUser}
         demoStations={demoStations}
@@ -34,7 +34,7 @@ export function Layout({ children }: LayoutProps) {
           // Station creation is handled by stations page
         }}
       />
-      <main className="flex-1 overflow-auto">
+      <main className="page-container">
         {children}
       </main>
     </div>
