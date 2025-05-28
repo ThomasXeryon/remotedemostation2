@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,11 @@ export function LayoutEditorModal({
   onSaveLayout
 }: LayoutEditorModalProps) {
   const [localLayout, setLocalLayout] = useState<LayoutConfig>(layout);
+
+  // Update local layout when the prop changes (when saved layout is loaded)
+  useEffect(() => {
+    setLocalLayout(layout);
+  }, [layout]);
   const [draggedElement, setDraggedElement] = useState<'camera' | 'controlPanel' | null>(null);
   const [resizingElement, setResizingElement] = useState<'camera' | 'controlPanel' | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
