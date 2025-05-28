@@ -55,7 +55,6 @@ export function StationControl() {
   });
 
   const { 
-    telemetryData, 
     connectionStats, 
     isConnected, 
     sendCommand 
@@ -63,11 +62,11 @@ export function StationControl() {
 
   const handleCommand = (command: string, parameters?: Record<string, any>) => {
     console.log('Sending command:', command, parameters);
-    sendCommand({
+    sendCommand(JSON.stringify({
       type: 'command',
       command,
       parameters: parameters || {}
-    });
+    }));
   };
 
   const handleStartSession = async () => {
@@ -114,7 +113,7 @@ export function StationControl() {
   }
 
   const demoStation = station as DemoStation;
-  const controlWidgets = (controls?.controls || []) as ControlWidget[];
+  const controlWidgets = (Array.isArray(controls) ? controls : []) as ControlWidget[];
 
   return (
     <Layout>
@@ -174,7 +173,7 @@ export function StationControl() {
           <div className="space-y-4">
             <VideoFeed
               stationName={demoStation.name}
-              telemetry={telemetryData[0] || null}
+              telemetry={null}
               isRecording={isSessionActive}
             />
             
@@ -214,7 +213,7 @@ export function StationControl() {
             />
             
             <TelemetrySection
-              telemetryData={telemetryData}
+              telemetryData={[]}
               connectionStats={connectionStats}
               isConnected={isConnected}
             />
