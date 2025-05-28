@@ -73,6 +73,8 @@ export function StationControl() {
     controlPanel: { width: 25, height: 80, position: { x: 72, y: 10 } }
   };
 
+  console.log('Current layout being used:', layout);
+
   // Listen for organization changes and refetch data
   useEffect(() => {
     const handleOrganizationChanged = () => {
