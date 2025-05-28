@@ -8,6 +8,7 @@ import { isAuthenticated } from "@/lib/auth";
 import Login from "@/pages/login";
 import { Dashboard } from "@/pages/dashboard-new";
 import Organizations from "@/pages/organizations";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
@@ -52,6 +53,11 @@ function Router() {
       <Route path="/organizations">
         <ProtectedRoute>
           <Organizations />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/settings">
+        <ProtectedRoute>
+          <Settings />
         </ProtectedRoute>
       </Route>
       <Route path="/">
