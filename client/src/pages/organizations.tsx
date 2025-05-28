@@ -76,11 +76,18 @@ export default function Organizations() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users/me/organizations'] });
       toast({
         title: "Organization deleted successfully!",
         description: "The organization and all its data have been permanently removed.",
       });
+
+      // Clear all organization-related queries and force refetch
+      queryClient.removeQueries({ queryKey: ['/api/users/me/organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/me/organizations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/users/me/organizations'] });
+
+      // Also clear user data to ensure organization context is updated
+      queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
     },
     onError: (error: any) => {
       toast({
@@ -99,10 +106,10 @@ export default function Organizations() {
 
   const handleCreateOrg = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Auto-generate slug from name if not provided
     const slug = newOrg.slug || newOrg.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    
+
     createOrgMutation.mutate({
       ...newOrg,
       slug
@@ -123,30 +130,30 @@ export default function Organizations() {
         },
         body: JSON.stringify({ organizationId: org.id }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Save the new JWT token if provided
       if (data.token) {
         localStorage.setItem('auth_token', data.token);
       }
-      
+
       // Clear all queries and refetch with new token
       queryClient.clear();
-      
+
       // Dispatch event to notify other components
       window.dispatchEvent(new CustomEvent('organizationChanged'));
-      
+
       toast({
         title: "Organization switched successfully!",
         description: `You are now working in ${org.name}. Redirecting to dashboard...`,
       });
-      
+
       // Navigate to dashboard to see the organization's demo stations
       setTimeout(() => {
         setLocation('/dashboard');
@@ -168,7 +175,7 @@ export default function Organizations() {
           <h1 className="text-3xl font-bold">Organizations</h1>
           <p className="text-muted-foreground">Manage your organizations and create new ones</p>
         </div>
-        
+
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -180,7 +187,7 @@ export default function Organizations() {
             <DialogHeader>
               <DialogTitle>Create New Organization</DialogTitle>
             </DialogHeader>
-            
+
             <form onSubmit={handleCreateOrg} className="space-y-4">
               <div>
                 <Label htmlFor="org-name">Organization Name</Label>
@@ -199,7 +206,7 @@ export default function Organizations() {
                   required
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="org-slug">URL Slug</Label>
                 <Input
@@ -214,7 +221,7 @@ export default function Organizations() {
                   This will be used in URLs: /org/{newOrg.slug || 'your-slug'}
                 </p>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="primary-color">Primary Color</Label>
@@ -234,7 +241,7 @@ export default function Organizations() {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="secondary-color">Secondary Color</Label>
                   <div className="flex items-center space-x-2">
@@ -254,7 +261,7 @@ export default function Organizations() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end space-x-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
                   Cancel
@@ -315,7 +322,7 @@ export default function Organizations() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex space-x-4 text-sm text-slate-600">
@@ -329,7 +336,7 @@ export default function Organizations() {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex space-x-2">
                     <div 
@@ -343,7 +350,7 @@ export default function Organizations() {
                       title="Secondary Color"
                     />
                   </div>
-                  
+
                   <Button 
                     variant="outline" 
                     size="sm"
