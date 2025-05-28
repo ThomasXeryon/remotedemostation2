@@ -378,6 +378,6 @@ export default function StationsPage() {
           ))}
         </div>
       )}
-    </PageLayout>
+    </div>
   );
 }

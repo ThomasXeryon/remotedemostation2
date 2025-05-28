@@ -38,52 +38,72 @@ export default function TeamMembers() {
     }
   ];
 
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'Admin': return 'bg-red-100 text-red-800';
+      case 'Operator': return 'bg-blue-100 text-blue-800';
+      case 'Viewer': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
-    <PageLayout
-      title="Team Members"
-      subtitle="Manage your organization's team members and permissions"
-      action={{
-        label: "Invite Member",
-        onClick: () => setInviteModalOpen(true)
-      }}
-    >
-      <div className="content-card">
-        <div className="section-spacing-sm">
-          {mockMembers.map((member) => (
-            <div key={member.id} className="list-item-hover">
-              <div className="flex items-center justify-between">
+    <div className="flex-1 space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Team Members</h1>
+          <p className="text-muted-foreground">Manage your organization's team members and their permissions</p>
+        </div>
+        <Button onClick={() => setInviteModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Invite Member
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Members</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {mockMembers.map((member) => (
+              <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-4">
                   <Avatar>
                     <AvatarImage src={member.avatar || undefined} />
                     <AvatarFallback>
-                      <User className="w-4 h-4" />
+                      <User className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-medium text-gray-900">{member.name}</h3>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
-                      <Mail className="w-3 h-3" />
+                    <h4 className="font-medium">{member.name}</h4>
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <Mail className="h-3 w-3" />
                       <span>{member.email}</span>
                     </div>
                   </div>
                 </div>
+                
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Shield className="w-3 h-3 text-gray-400" />
-                      <span className="text-sm font-medium">{member.role}</span>
-                    </div>
-                    <p className="text-xs text-gray-500">Last active {member.lastActive}</p>
+                    <Badge className={getRoleColor(member.role)}>
+                      <Shield className="h-3 w-3 mr-1" />
+                      {member.role}
+                    </Badge>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Last active {member.lastActive}
+                    </p>
                   </div>
-                  <Badge variant={member.status === "Active" ? "default" : "secondary"}>
+                  
+                  <Badge variant={member.status === 'Active' ? 'default' : 'secondary'}>
                     {member.status}
                   </Badge>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </PageLayout>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
