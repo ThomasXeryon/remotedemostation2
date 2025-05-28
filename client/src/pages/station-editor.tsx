@@ -59,16 +59,30 @@ export default function StationEditor() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Fetch station data
-  const { data: station, isLoading } = useQuery<DemoStation>({
+  const { data: station, isLoading, refetch: refetchStation } = useQuery<DemoStation>({
     queryKey: [`/api/demo-stations/${id}`],
     enabled: !!id,
   });
 
   // Fetch control configuration
-  const { data: controlConfig } = useQuery({
+  const { data: controlConfig, refetch: refetchControls } = useQuery({
     queryKey: [`/api/demo-stations/${id}/controls`],
     enabled: !!id,
   });
+
+  // Listen for organization changes and refetch data
+  useEffect(() => {
+    const handleOrganizationChanged = () => {
+      console.log('Station Editor: Organization changed, refetching station data');
+      refetchStation();
+      refetchControls();
+    };
+
+    window.addEventListener('organizationChanged', handleOrganizationChanged);
+    return () => {
+      window.removeEventListener('organizationChanged', handleOrganizationChanged);
+    };
+  }, [refetchStation, refetchControls]);
 
   console.log('Control config from API:', controlConfig);
 

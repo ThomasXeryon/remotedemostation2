@@ -44,21 +44,38 @@ export function StationControl() {
   const [targetPosition, setTargetPosition] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
 
-  const { data: station, isLoading: stationLoading } = useQuery({
+  const { data: station, isLoading: stationLoading, refetch: refetchStation } = useQuery({
     queryKey: ['/api/demo-stations', id],
     enabled: !!id,
   });
 
-  const { data: controlConfig } = useQuery({
+  const { data: controlConfig, refetch: refetchControls } = useQuery({
     queryKey: [`/api/demo-stations/${id}/controls`],
     enabled: !!id,
   });
 
-  const { data: telemetryData } = useQuery({
+  const { data: telemetryData, refetch: refetchTelemetry } = useQuery({
     queryKey: ['/api/demo-stations', id, 'telemetry'],
     enabled: !!id && isSessionActive,
     refetchInterval: 1000, // Refresh every second when session is active
   });
+
+  // Listen for organization changes and refetch data
+  useEffect(() => {
+    const handleOrganizationChanged = () => {
+      console.log('Station Control: Organization changed, refetching station data');
+      refetchStation();
+      refetchControls();
+      if (isSessionActive) {
+        refetchTelemetry();
+      }
+    };
+
+    window.addEventListener('organizationChanged', handleOrganizationChanged);
+    return () => {
+      window.removeEventListener('organizationChanged', handleOrganizationChanged);
+    };
+  }, [refetchStation, refetchControls, refetchTelemetry, isSessionActive]);
 
   const { 
     connectionStats, 
