@@ -67,13 +67,16 @@ export function StationControl() {
     refetchInterval: 1000, // Refresh every second when session is active
   });
 
+  // Debug the station data
+  console.log('Full station data:', station);
+  console.log('Station configuration:', station?.configuration);
+  
   // Get saved layout or use default
   const layout = station?.configuration?.interfaceLayout || {
-    camera: { width: 65, height: 80, position: { x: 5, y: 10 } },
-    controlPanel: { width: 25, height: 80, position: { x: 72, y: 10 } }
+    camera: { width: 37, height: 90, position: { x: 5, y: 5 } },
+    controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
   };
 
-  console.log('Station configuration:', station?.configuration);
   console.log('Current layout being used:', layout);
 
   // Listen for organization changes and refetch data
@@ -187,10 +190,17 @@ export function StationControl() {
         </div>
       </div>
 
-      {/* Main Control Interface - Simple Two Column Layout */}
+      {/* Main Control Interface - Use Saved Layout */}
       <div className="flex-1 flex gap-4 p-4">
-        {/* Video Feed - 60% width */}
-        <div className="flex-[3] bg-white border border-gray-200 rounded-lg p-4">
+        {/* Video Feed - Dynamic width based on saved layout */}
+        <div 
+          className="bg-white border border-gray-200 rounded-lg p-4"
+          style={{ 
+            width: station?.configuration?.interfaceLayout?.camera?.width 
+              ? `${station.configuration.interfaceLayout.camera.width}%` 
+              : '60%' 
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Live Camera Feed</h3>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -218,8 +228,15 @@ export function StationControl() {
           </div>
         </div>
 
-        {/* Control Panel - 40% width */}
-        <div className="flex-[2] bg-white border border-gray-200 rounded-lg p-4">
+        {/* Control Panel - Dynamic width based on saved layout */}
+        <div 
+          className="bg-white border border-gray-200 rounded-lg p-4"
+          style={{ 
+            width: station?.configuration?.interfaceLayout?.controlPanel?.width 
+              ? `${station.configuration.interfaceLayout.controlPanel.width}%` 
+              : '40%' 
+          }}
+        >
           {/* Custom Control Layout - exactly as designed */}
           {controlConfig?.controls && controlConfig.controls.length > 0 ? (
             <div>
