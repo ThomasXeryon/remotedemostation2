@@ -604,6 +604,14 @@ export default function StationEditor() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Control Builder Modal */}
+      <ControlBuilderModal
+        isOpen={isControlBuilderOpen}
+        onClose={() => setIsControlBuilderOpen(false)}
+        controls={controls}
+        onSaveControls={handleSaveControls}
+      />
     </div>
   );
 }
