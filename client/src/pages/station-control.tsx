@@ -120,17 +120,17 @@ export function StationControl() {
   return (
     <div className="h-screen flex flex-col">
       {/* Top Control Bar */}
-      <div className="flex items-center justify-between p-4 bg-gray-900 text-white">
+      <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-4">
           <Link href="/dashboard">
-            <Button variant="outline" size="sm" className="text-white border-gray-600 hover:bg-gray-700">
+            <Button variant="outline" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Exit Control
             </Button>
           </Link>
           <div>
             <h1 className="text-xl font-bold">{demoStation.name}</h1>
-            <p className="text-sm text-gray-300">{demoStation.description}</p>
+            <p className="text-sm text-gray-600">{demoStation.description}</p>
           </div>
         </div>
         <div className="flex items-center space-x-4">
@@ -158,7 +158,7 @@ export function StationControl() {
       <div className="flex-1 flex">
         {/* Left Side - Video Feed (takes most space) */}
         <div className="flex-1 p-4">
-          <div className="h-full bg-gray-800 rounded-lg flex items-center justify-center relative">
+          <div className="h-full border rounded-lg flex items-center justify-center relative">
             <VideoFeed
               stationName={demoStation.name}
               telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
