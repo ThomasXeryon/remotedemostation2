@@ -49,6 +49,11 @@ function Router() {
           <StationControl />
         </ProtectedRoute>
       </Route>
+      <Route path="/organizations">
+        <ProtectedRoute>
+          <Organizations />
+        </ProtectedRoute>
+      </Route>
       <Route path="/">
         {isAuthenticated() ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
       </Route>
