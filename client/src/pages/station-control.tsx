@@ -54,6 +54,12 @@ export function StationControl() {
     enabled: !!id,
   });
 
+  const { data: telemetryData } = useQuery({
+    queryKey: ['/api/demo-stations', id, 'telemetry'],
+    enabled: !!id && isSessionActive,
+    refetchInterval: 1000, // Refresh every second when session is active
+  });
+
   const { 
     connectionStats, 
     isConnected, 
@@ -155,7 +161,7 @@ export function StationControl() {
           <div className="h-full bg-gray-800 rounded-lg flex items-center justify-center relative">
             <VideoFeed
               stationName={demoStation.name}
-              telemetry={null}
+              telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
               isRecording={isSessionActive}
             />
             
@@ -212,7 +218,7 @@ export function StationControl() {
           <div>
             <h3 className="text-white font-semibold mb-3">Status</h3>
             <TelemetrySection
-              telemetryData={[]}
+              telemetryData={telemetryData || []}
               connectionStats={connectionStats}
               isConnected={isConnected}
             />

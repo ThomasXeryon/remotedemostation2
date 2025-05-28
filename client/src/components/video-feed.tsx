@@ -27,14 +27,25 @@ export function VideoFeed({ stationName, telemetry, isRecording = true }: VideoF
       
       <CardContent className="flex-1 p-4">
         <div className="relative h-full bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg overflow-hidden">
-          {/* Mock video feed - in production this would be a WebRTC video element */}
-          <div className="absolute inset-0 bg-black/20">
-            <img 
-              src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=675" 
-              alt={`Live feed from ${stationName}`}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          {/* Real camera feed */}
+          <video 
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            playsInline
+            poster=""
+          >
+            <source src={`/api/camera-feed/${stationName}/stream`} type="video/webm" />
+            <source src={`/api/camera-feed/${stationName}/stream`} type="video/mp4" />
+            {/* Fallback for when camera is not available */}
+            <div className="flex items-center justify-center h-full text-white">
+              <div className="text-center">
+                <Video className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p>Camera feed unavailable</p>
+                <p className="text-sm opacity-75">Check camera connection</p>
+              </div>
+            </div>
+          </video>
           
           {/* Video Overlay Controls */}
           <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg p-3 text-white">
