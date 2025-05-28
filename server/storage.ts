@@ -50,13 +50,13 @@ export interface IStorage {
 
   // Sessions
   getSession(id: number): Promise<Session | undefined>;
-  getActiveSession(demoStationId: number): Promise<Session | undefined>;
+  getActiveSession(demoStationId: string): Promise<Session | undefined>;
   createSession(session: InsertSession): Promise<Session>;
   updateSession(id: number, updates: Partial<InsertSession>): Promise<Session | undefined>;
   endSession(id: number): Promise<void>;
 
   // Telemetry
-  getTelemetryData(demoStationId: number, limit?: number): Promise<TelemetryData[]>;
+  getTelemetryData(demoStationId: string, limit?: number): Promise<TelemetryData[]>;
   createTelemetryData(data: InsertTelemetryData): Promise<TelemetryData>;
 
   // Commands
@@ -211,7 +211,7 @@ export class DatabaseStorage implements IStorage {
     return session || undefined;
   }
 
-  async getActiveSession(demoStationId: number): Promise<Session | undefined> {
+  async getActiveSession(demoStationId: string): Promise<Session | undefined> {
     const [session] = await db
       .select()
       .from(sessions)
@@ -256,7 +256,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Telemetry
-  async getTelemetryData(demoStationId: number, limit: number = 100): Promise<TelemetryData[]> {
+  async getTelemetryData(demoStationId: string, limit: number = 100): Promise<TelemetryData[]> {
     return await db
       .select()
       .from(telemetryData)
