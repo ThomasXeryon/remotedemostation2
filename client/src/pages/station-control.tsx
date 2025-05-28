@@ -115,7 +115,7 @@ export function StationControl() {
   }
 
   const demoStation = station as DemoStation;
-  const controlWidgets = (Array.isArray(controls) ? controls : []) as ControlWidget[];
+  const controlWidgets = (controlConfig?.controls && Array.isArray(controlConfig.controls) ? controlConfig.controls : []) as ControlWidget[];
 
   return (
     <div className="h-screen flex flex-col">
