@@ -134,7 +134,7 @@ export default function Organizations() {
   };
 
   return (
-    <div className="px-2 py-3 space-y-4">
+    <div className="px-6 py-3 space-y-4">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Organizations</h1>
