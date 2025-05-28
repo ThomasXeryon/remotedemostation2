@@ -184,36 +184,45 @@ export function StationControl() {
         </div>
       </div>
 
-      {/* Main Control Interface - Proper Flex Layout */}
-      <div className="flex-1 flex gap-4 p-4 h-full">
-        {/* Video Feed */}
+      {/* Main Control Interface - Match Layout Editor Exactly */}
+      <div className="flex-1 flex p-4 h-full" style={{ gap: '16px' }}>
+        {/* Video Feed - Exact Width from Layout */}
         <div 
-          className="border rounded-lg flex items-center justify-center relative"
+          className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
           style={{
             width: `${layout.camera.width}%`,
           }}
         >
-          <VideoFeed
-            stationName={demoStation.name}
-            telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
-            isRecording={isSessionActive}
-          />
-
-          {/* Camera count indicator */}
-          {demoStation.cameraCount > 1 && (
-            <div className="absolute top-4 left-4 flex space-x-2">
-              {Array.from({ length: demoStation.cameraCount }, (_, i) => (
-                <Button key={i} size="sm" variant={i === 0 ? "default" : "outline"} className="text-xs">
-                  Cam {i + 1}
-                </Button>
-              ))}
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Live Camera Feed</h3>
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <span>WebRTC</span>
+              <span>1080p</span>
             </div>
-          )}
+          </div>
+          <div className="flex-1 border rounded-lg flex items-center justify-center relative bg-black">
+            <VideoFeed
+              stationName={demoStation.name}
+              telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
+              isRecording={isSessionActive}
+            />
+
+            {/* Camera count indicator */}
+            {demoStation.cameraCount > 1 && (
+              <div className="absolute top-4 left-4 flex space-x-2">
+                {Array.from({ length: demoStation.cameraCount }, (_, i) => (
+                  <Button key={i} size="sm" variant={i === 0 ? "default" : "outline"} className="text-xs">
+                    Cam {i + 1}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Control Panel */}
+        {/* Control Panel - Exact Width from Layout */}
         <div 
-          className="space-y-4 overflow-y-auto border border-gray-200 bg-white rounded-lg p-4"
+          className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
           style={{
             width: `${layout.controlPanel.width}%`,
           }}
