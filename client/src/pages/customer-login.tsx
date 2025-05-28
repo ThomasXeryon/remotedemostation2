@@ -11,9 +11,10 @@ interface CustomerLoginProps {
   stationId: string;
   organizationName: string;
   stationName: string;
+  requireApproval?: boolean;
 }
 
-export function CustomerLogin({ stationId, organizationName, stationName }: CustomerLoginProps) {
+export function CustomerLogin({ stationId, organizationName, stationName, requireApproval = false }: CustomerLoginProps) {
   const [, setLocation] = useLocation();
   const [formData, setFormData] = useState({
     email: "",
@@ -24,11 +25,14 @@ export function CustomerLogin({ stationId, organizationName, stationName }: Cust
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [needsApproval, setNeedsApproval] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
+    setSuccess("");
 
     try {
       // Register or authenticate the customer
@@ -40,6 +44,7 @@ export function CustomerLogin({ stationId, organizationName, stationName }: Cust
         body: JSON.stringify({
           ...formData,
           stationId,
+          requireApproval,
         }),
       });
 
@@ -49,9 +54,14 @@ export function CustomerLogin({ stationId, organizationName, stationName }: Cust
 
       const result = await response.json();
       
-      // Store customer token and redirect to station control
-      sessionStorage.setItem('customerToken', result.token);
-      setLocation(`/stations/${stationId}/control`);
+      if (requireApproval && result.needsApproval) {
+        setNeedsApproval(true);
+        setSuccess('Your account has been created and is pending admin approval. You will be notified once approved.');
+      } else {
+        // Store customer token and redirect to station control
+        sessionStorage.setItem('customerToken', result.token);
+        setLocation(`/stations/${stationId}/control`);
+      }
     } catch (error) {
       setError('Failed to authenticate. Please check your information and try again.');
     } finally {
@@ -150,6 +160,12 @@ export function CustomerLogin({ stationId, organizationName, stationName }: Cust
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {success && (
+                <Alert>
+                  <AlertDescription>{success}</AlertDescription>
                 </Alert>
               )}
 
