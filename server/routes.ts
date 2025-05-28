@@ -372,7 +372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/demo-stations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const stationId = req.params.id;
+      const stationId = parseInt(req.params.id);
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {

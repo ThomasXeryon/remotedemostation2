@@ -31,15 +31,15 @@ export interface IStorage {
   updateOrganization(id: number, updates: Partial<InsertOrganization>): Promise<Organization | undefined>;
 
   // Demo Stations
-  getDemoStation(id: string): Promise<DemoStation | undefined>;
+  getDemoStation(id: number): Promise<DemoStation | undefined>;
   getDemoStationsByOrganization(organizationId: number): Promise<DemoStation[]>;
   createDemoStation(station: InsertDemoStation): Promise<DemoStation>;
-  updateDemoStation(id: string, updates: Partial<InsertDemoStation>): Promise<DemoStation | undefined>;
-  updateDemoStationHeartbeat(id: string): Promise<void>;
-  deleteDemoStation(id: string): Promise<void>;
+  updateDemoStation(id: number, updates: Partial<InsertDemoStation>): Promise<DemoStation | undefined>;
+  updateDemoStationHeartbeat(id: number): Promise<void>;
+  deleteDemoStation(id: number): Promise<void>;
 
   // Control Configurations
-  getControlConfiguration(demoStationId: string): Promise<ControlConfiguration | undefined>;
+  getControlConfiguration(demoStationId: number): Promise<ControlConfiguration | undefined>;
   createControlConfiguration(config: InsertControlConfiguration): Promise<ControlConfiguration>;
   updateControlConfiguration(id: number, updates: Partial<InsertControlConfiguration>): Promise<ControlConfiguration | undefined>;
 
@@ -142,12 +142,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDemoStation(insertStation: InsertDemoStation): Promise<DemoStation> {
-    // Generate a unique UUID for the station
-    const stationId = `station_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
     const [station] = await db
       .insert(demoStations)
-      .values({ ...insertStation, id: stationId })
+      .values(insertStation)
       .returning();
     return station;
   }
