@@ -72,119 +72,89 @@ export default function Settings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={profileData.firstName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={profileData.lastName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                />
-              </div>
-              <Button 
-                onClick={handleProfileUpdate}
-                disabled={updateProfileMutation.isPending}
-              >
-                {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
-              </Button>
-            </CardContent>
-          </Card>
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={profileData.firstName}
+                onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={profileData.lastName}
+                onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={profileData.email}
+              onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+            />
+          </div>
+          <Button 
+            onClick={handleProfileUpdate}
+            disabled={updateProfileMutation.isPending}
+          >
+            {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
+          </Button>
+        </CardContent>
+      </Card>
 
-          {/* Security Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Security
-              </CardTitle>
-              <CardDescription>
-                Manage your password and security preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full justify-start">
-                <Key className="h-4 w-4 mr-2" />
-                Change Password
-              </Button>
-              <p className="text-sm text-slate-600">
-                Last password change: Never
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Notification Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                Notifications
-              </CardTitle>
-              <CardDescription>
-                Configure how you receive notifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Email Notifications</p>
-                    <p className="text-sm text-slate-600">Receive email alerts for station events</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Configure
-                  </Button>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Real-time Alerts</p>
-                    <p className="text-sm text-slate-600">Browser notifications for critical events</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Configure
-                  </Button>
-                </div>
+      {/* Security Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Security
+          </CardTitle>
+          <CardDescription>
+            Manage your password and security preferences
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Change your password and configure security settings
+            </p>
+            <Separator />
+            <div className="space-y-2">
+              <Label>Password</Label>
+              <div className="flex space-x-2">
+                <Input type="password" placeholder="Current password" />
+                <Input type="password" placeholder="New password" />
+                <Button>Update</Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-          {/* Organization Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <SettingsIcon className="h-5 w-5" />
-                Organization Management
-              </CardTitle>
-              <CardDescription>
-                Manage your organizations and team settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/organizations">
-                <Button variant="outline" className="w-full justify-start">
-                  Manage Organizations
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Organization Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <SettingsIcon className="h-5 w-5" />
+            Organization Management
+          </CardTitle>
+          <CardDescription>
+            Manage your organizations and team settings
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link href="/organizations">
+            <Button variant="outline" className="w-full justify-start">
+              Manage Organizations
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
