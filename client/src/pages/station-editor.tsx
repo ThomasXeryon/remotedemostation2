@@ -91,14 +91,24 @@ export default function StationEditor() {
   // Initialize config when station data loads
   React.useEffect(() => {
     if (station) {
-      setConfig(prev => ({
-        ...prev,
+      setConfig({
         name: station.name,
         description: station.description || '',
         cameraCount: station.cameraCount || 1,
         sessionTimeLimit: station.sessionTimeLimit || 30,
         requiresLogin: station.requiresLogin ?? true,
-      }));
+        safetyLimits: {
+          maxSpeed: 100,
+          maxPosition: 500,
+          minPosition: -500,
+          emergencyStopEnabled: true,
+        },
+        networkSettings: {
+          connectionTimeout: 5000,
+          heartbeatInterval: 1000,
+          maxRetries: 3,
+        },
+      });
     }
   }, [station]);
 
