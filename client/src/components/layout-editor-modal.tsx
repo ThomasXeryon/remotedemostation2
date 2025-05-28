@@ -114,15 +114,16 @@ export function LayoutEditorModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] h-[95vh] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-[95vw] h-[95vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center space-x-2">
             <Layout className="w-5 h-5" />
             <span>Interface Layout Editor</span>
           </DialogTitle>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 h-full">
+        <div className="flex-1 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 h-full">
           {/* Layout Controls */}
           <div className="lg:col-span-1 space-y-4 max-h-full overflow-y-auto">
             <Card>
@@ -350,6 +351,7 @@ export function LayoutEditorModal({
                 </div>
               </CardContent>
             </Card>
+          </div>
           </div>
         </div>
       </DialogContent>
