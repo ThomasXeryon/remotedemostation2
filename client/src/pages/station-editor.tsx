@@ -70,6 +70,8 @@ export default function StationEditor() {
     enabled: !!id,
   });
 
+  console.log('Control config from API:', controlConfig);
+
   const [config, setConfig] = useState<StationConfig>({
     name: '',
     description: '',
@@ -119,7 +121,8 @@ export default function StationEditor() {
 
   // Initialize controls when control config loads
   React.useEffect(() => {
-    if (controlConfig?.controls) {
+    if (controlConfig?.controls && Array.isArray(controlConfig.controls)) {
+      console.log('Loading controls:', controlConfig.controls);
       setControls(controlConfig.controls);
     }
   }, [controlConfig]);
