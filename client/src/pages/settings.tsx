@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { User, Settings as SettingsIcon, Key, Bell, Shield } from "lucide-react";
 import { Layout } from "@/components/layout";
+import { Link } from "wouter";
 
 export default function Settings() {
   const user = getCurrentUser();
@@ -182,9 +183,11 @@ export default function Settings() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full justify-start">
-                Manage Organizations
-              </Button>
+              <Link href="/organizations">
+                <Button variant="outline" className="w-full justify-start">
+                  Manage Organizations
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
