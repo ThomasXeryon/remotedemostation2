@@ -90,6 +90,7 @@ export default function StationEditor() {
   });
 
   const [controls, setControls] = useState<ControlWidget[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Initialize config when station data loads
   React.useEffect(() => {
@@ -341,9 +342,9 @@ export default function StationEditor() {
                       <Plus className="w-4 h-4 mr-1" />
                       Slider
                     </Button>
-                    <Button size="sm" onClick={() => addControl('joystick')}>
+                    <Button size="sm" onClick={() => addControl('toggle')}>
                       <Plus className="w-4 h-4 mr-1" />
-                      Joystick
+                      Toggle
                     </Button>
                   </div>
                 </CardTitle>
@@ -373,10 +374,10 @@ export default function StationEditor() {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label>Control Label</Label>
+                              <Label>Control Name</Label>
                               <Input
-                                value={control.label}
-                                onChange={(e) => updateControl(control.id, { label: e.target.value })}
+                                value={control.name}
+                                onChange={(e) => updateControl(control.id, { name: e.target.value })}
                                 placeholder="e.g., Move Forward"
                               />
                             </div>
@@ -395,7 +396,14 @@ export default function StationEditor() {
                   )}
                 </div>
                 {controls.length > 0 && (
-                  <div className="flex justify-end pt-4">
+                  <div className="flex justify-between items-center pt-4 border-t">
+                    <Button 
+                      variant="outline"
+                      onClick={() => setShowPreview(!showPreview)}
+                    >
+                      <Gamepad2 className="w-4 h-4 mr-2" />
+                      {showPreview ? 'Hide Preview' : 'Show Live Preview'}
+                    </Button>
                     <Button 
                       onClick={() => saveControlsMutation.mutate()}
                       disabled={saveControlsMutation.isPending}
@@ -404,6 +412,61 @@ export default function StationEditor() {
                       {saveControlsMutation.isPending ? 'Saving...' : 'Save Controls'}
                     </Button>
                   </div>
+                )}
+                
+                {/* Live Preview Panel */}
+                {showPreview && controls.length > 0 && (
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Live Control Preview</CardTitle>
+                      <p className="text-sm text-slate-600">This is how your controls will appear to users</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-slate-50 p-6 rounded-lg min-h-[200px] relative">
+                        <div className="grid grid-cols-3 gap-4">
+                          {controls.map((control) => (
+                            <div key={control.id} className="flex flex-col space-y-2">
+                              {control.type === 'button' && (
+                                <Button className="w-full" disabled>
+                                  {control.name || 'Unnamed Button'}
+                                </Button>
+                              )}
+                              {control.type === 'slider' && (
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium">
+                                    {control.name || 'Unnamed Slider'}
+                                  </Label>
+                                  <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="100" 
+                                    defaultValue="50"
+                                    className="w-full"
+                                    disabled
+                                  />
+                                </div>
+                              )}
+                              {control.type === 'toggle' && (
+                                <div className="flex items-center space-x-2">
+                                  <input 
+                                    type="checkbox" 
+                                    disabled
+                                    className="w-4 h-4"
+                                  />
+                                  <Label className="text-sm">
+                                    {control.name || 'Unnamed Toggle'}
+                                  </Label>
+                                </div>
+                              )}
+                              <p className="text-xs text-slate-500">
+                                Command: {control.command || 'No command'}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
               </CardContent>
             </Card>
