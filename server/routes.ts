@@ -372,7 +372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/demo-stations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const stationId = parseInt(req.params.id);
+      const stationId = req.params.id;
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
@@ -392,6 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const stationData = insertDemoStationSchema.parse({
+        id: generateStationId(),
         name: req.body.name,
         description: req.body.description || null,
         organizationId: req.user!.organizationId,
@@ -413,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/demo-stations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const stationId = parseInt(req.params.id);
+      const stationId = req.params.id;
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
@@ -433,7 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/demo-stations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const stationId = parseInt(req.params.id);
+      const stationId = req.params.id;
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
