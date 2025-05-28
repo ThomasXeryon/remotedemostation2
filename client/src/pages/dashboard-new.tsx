@@ -37,7 +37,7 @@ export function Dashboard() {
   const stations = (demoStations as DemoStation[]) || [];
 
   return (
-    <div className="px-6 py-3 space-y-4">
+    <div className="py-3 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
