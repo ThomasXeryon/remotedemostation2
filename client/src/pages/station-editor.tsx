@@ -57,7 +57,7 @@ export default function StationEditor() {
 
   // Fetch station data
   const { data: station, isLoading } = useQuery<DemoStation>({
-    queryKey: ['/api/demo-stations', id],
+    queryKey: [`/api/demo-stations/${id}`],
     enabled: !!id,
   });
 
