@@ -391,11 +391,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Insufficient permissions' });
       }
 
-      console.log('Creating station with data:', {
-        name: req.body.name,
-        organizationId: req.user!.organizationId
-      });
-
       const stationData = insertDemoStationSchema.parse({
         name: req.body.name,
         description: req.body.description || null,
@@ -408,9 +403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         safetyLimits: {}
       });
 
-      console.log('Parsed station data:', stationData);
       const station = await storage.createDemoStation(stationData);
-      console.log('Created station:', station);
       res.status(201).json(station);
     } catch (error) {
       console.error('Station creation detailed error:', error);
@@ -473,7 +466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Control configurations routes
   app.get('/api/demo-stations/:id/controls', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const stationId = parseInt(req.params.id);
+      const stationId = req.params.id;
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
@@ -489,7 +482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/demo-stations/:id/controls', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const stationId = parseInt(req.params.id);
+      const stationId = req.params.id;
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
@@ -516,7 +509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sessions routes
   app.post('/api/demo-stations/:id/sessions', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const stationId = parseInt(req.params.id);
+      const stationId = req.params.id;
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
