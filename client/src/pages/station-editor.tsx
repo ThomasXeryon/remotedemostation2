@@ -19,13 +19,16 @@ import type { DemoStation } from '@shared/schema';
 
 interface ControlWidget {
   id: string;
-  type: 'button' | 'slider' | 'joystick' | 'toggle' | 'input';
-  label: string;
+  name: string;
+  type: 'button' | 'slider' | 'toggle';
   command: string;
   parameters?: Record<string, any>;
   position: { x: number; y: number };
   size: { width: number; height: number };
 }
+
+
+
 
 interface StationConfig {
   name: string;
