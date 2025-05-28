@@ -21,9 +21,9 @@ export default function Analytics() {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1,284</div>
+              <div className="text-2xl font-bold">-</div>
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                Connect analytics service to view data
               </p>
             </CardContent>
           </Card>
@@ -34,9 +34,9 @@ export default function Analytics() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">245</div>
+              <div className="text-2xl font-bold">-</div>
               <p className="text-xs text-muted-foreground">
-                +15.3% from last month
+                Connect analytics service to view data
               </p>
             </CardContent>
           </Card>
@@ -47,9 +47,9 @@ export default function Analytics() {
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12.5m</div>
+              <div className="text-2xl font-bold">-</div>
               <p className="text-xs text-muted-foreground">
-                +2.4% from last month
+                Connect analytics service to view data
               </p>
             </CardContent>
           </Card>
@@ -60,9 +60,9 @@ export default function Analytics() {
               <Zap className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8,432</div>
+              <div className="text-2xl font-bold">-</div>
               <p className="text-xs text-muted-foreground">
-                +12.8% from last month
+                Connect analytics service to view data
               </p>
             </CardContent>
           </Card>

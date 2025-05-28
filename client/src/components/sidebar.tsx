@@ -66,7 +66,6 @@ export function Sidebar({
       path: '/stations', 
       icon: Cpu, 
       label: 'Demo Stations',
-      badge: demoStations.length,
       active: location === '/stations'
     },
     { 
@@ -126,11 +125,6 @@ export function Sidebar({
             >
               <item.icon className="h-5 w-5" />
               <span>{item.label}</span>
-              {item.badge && (
-                <Badge variant="secondary" className="ml-auto">
-                  {item.badge}
-                </Badge>
-              )}
             </Link>
           ))}
         </div>

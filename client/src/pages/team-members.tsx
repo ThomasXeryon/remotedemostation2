@@ -20,36 +20,8 @@ export default function TeamMembers() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("viewer");
 
-  // Mock team members data - in real app this would come from API
-  const teamMembers = [
-    {
-      id: 1,
-      firstName: "John",
-      lastName: "Doe",
-      email: "john.doe@acmerobotics.com",
-      role: "admin",
-      status: "active",
-      lastSeen: "2 hours ago",
-    },
-    {
-      id: 2,
-      firstName: "Jane",
-      lastName: "Smith",
-      email: "jane.smith@acmerobotics.com",
-      role: "operator",
-      status: "active",
-      lastSeen: "1 day ago",
-    },
-    {
-      id: 3,
-      firstName: "Mike",
-      lastName: "Johnson",
-      email: "mike.johnson@acmerobotics.com",
-      role: "viewer",
-      status: "invited",
-      lastSeen: "Never",
-    },
-  ];
+  // Team members will be loaded from API when team management is implemented
+  const teamMembers: any[] = [];
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -217,45 +189,59 @@ export default function TeamMembers() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {teamMembers.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <Avatar>
-                      <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${member.firstName} ${member.lastName}`} />
-                      <AvatarFallback>
-                        {member.firstName[0]}{member.lastName[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{member.firstName} {member.lastName}</p>
-                      <p className="text-sm text-slate-600">{member.email}</p>
-                      <p className="text-xs text-slate-500">Last seen: {member.lastSeen}</p>
+            {teamMembers.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 mb-2">No team members yet</h3>
+                <p className="text-slate-600 mb-4">
+                  Invite team members to collaborate on your demo stations
+                </p>
+                <Button onClick={() => setIsInviteModalOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invite First Member
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {teamMembers.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <Avatar>
+                        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${member.firstName} ${member.lastName}`} />
+                        <AvatarFallback>
+                          {member.firstName[0]}{member.lastName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{member.firstName} {member.lastName}</p>
+                        <p className="text-sm text-slate-600">{member.email}</p>
+                        <p className="text-xs text-slate-500">Last seen: {member.lastSeen}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge className={getRoleColor(member.role)}>
+                        {member.role}
+                      </Badge>
+                      <Badge className={getStatusColor(member.status)}>
+                        {member.status}
+                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem>Edit Role</DropdownMenuItem>
+                          <DropdownMenuItem>Resend Invitation</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">Remove Member</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge className={getRoleColor(member.role)}>
-                      {member.role}
-                    </Badge>
-                    <Badge className={getStatusColor(member.status)}>
-                      {member.status}
-                    </Badge>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>Edit Role</DropdownMenuItem>
-                        <DropdownMenuItem>Resend Invitation</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Remove Member</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
