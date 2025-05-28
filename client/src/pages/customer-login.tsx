@@ -172,9 +172,11 @@ export function CustomerLogin({ stationId, organizationName, stationName, requir
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isSubmitting}
+                disabled={isSubmitting || needsApproval}
               >
-                {isSubmitting ? "Connecting..." : "Access Demo Station"}
+                {isSubmitting ? "Submitting..." : 
+                 needsApproval ? "Pending Approval" : 
+                 requireApproval ? "Request Access" : "Access Demo Station"}
               </Button>
             </form>
           </CardContent>
@@ -182,7 +184,11 @@ export function CustomerLogin({ stationId, organizationName, stationName, requir
 
         <div className="text-center mt-6 text-sm text-gray-500">
           <p>Your information will be used to track your demo session.</p>
-          <p>No account creation required.</p>
+          {requireApproval ? (
+            <p>Account approval required before accessing this station.</p>
+          ) : (
+            <p>No account creation required.</p>
+          )}
         </div>
       </div>
     </div>
