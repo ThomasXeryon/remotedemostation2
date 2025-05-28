@@ -71,8 +71,8 @@ export default function Organizations() {
   // Delete organization mutation
   const deleteOrgMutation = useMutation({
     mutationFn: async (orgId: number) => {
-      return await apiRequest(`/api/organizations/${orgId}`, {
-        method: 'DELETE',
+      return await apiRequest(`/api/organizations/${orgId}/delete`, {
+        method: 'POST',
       });
     },
     onSuccess: () => {

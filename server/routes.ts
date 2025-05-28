@@ -299,9 +299,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete organization - simplified approach
-  console.log('Registering DELETE /api/organizations/:id route');
-  app.delete('/api/organizations/:id', async (req, res) => {
+  // Delete organization via POST to bypass routing issues
+  console.log('Registering POST /api/organizations/:id/delete route');
+  app.post('/api/organizations/:id/delete', async (req, res) => {
     console.log('=== ORGANIZATION DELETION ENDPOINT CALLED ===');
     console.log('Method:', req.method);
     console.log('URL:', req.url);
