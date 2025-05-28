@@ -49,8 +49,8 @@ export function StationControl() {
     enabled: !!id,
   });
 
-  const { data: controls } = useQuery({
-    queryKey: ['/api/demo-stations', id, 'controls'],
+  const { data: controlConfig } = useQuery({
+    queryKey: [`/api/demo-stations/${id}/controls`],
     enabled: !!id,
   });
 
@@ -181,14 +181,14 @@ export function StationControl() {
         {/* Right Side - Real Hardware Controls */}
         <div className="w-80 p-4 border-l space-y-4 overflow-y-auto">
           {/* Real Custom Controls - only shows when configured */}
-          {controlWidgets.length > 0 ? (
+          {controlConfig?.controls && controlConfig.controls.length > 0 ? (
             <div>
               <h3 className="font-semibold mb-3">Hardware Controls</h3>
               <div className="grid grid-cols-2 gap-2">
-                {controlWidgets.map((widget) => (
+                {controlConfig.controls.map((widget: ControlWidget) => (
                   <Button
                     key={widget.id}
-                    onClick={() => handleCommand(widget.command, widget.parameters)}
+                    onClick={() => handleCommand(widget.command, widget.parameters || {})}
                     disabled={!isSessionActive}
                     variant="outline"
                     size="sm"
