@@ -100,16 +100,16 @@ export function StationControl() {
 
   if (stationLoading) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Loading station...</div>
+      <div className="h-screen flex items-center justify-center">
+        <div>Loading station...</div>
       </div>
     );
   }
 
   if (!station) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Station not found</div>
+      <div className="h-screen flex items-center justify-center">
+        <div>Station not found</div>
       </div>
     );
   }
@@ -118,7 +118,7 @@ export function StationControl() {
   const controlWidgets = (Array.isArray(controls) ? controls : []) as ControlWidget[];
 
   return (
-    <div className="h-screen bg-black flex flex-col">
+    <div className="h-screen flex flex-col">
       {/* Top Control Bar */}
       <div className="flex items-center justify-between p-4 bg-gray-900 text-white">
         <div className="flex items-center space-x-4">
@@ -179,11 +179,11 @@ export function StationControl() {
         </div>
 
         {/* Right Side - Real Hardware Controls */}
-        <div className="w-80 p-4 bg-gray-900 space-y-4 overflow-y-auto">
+        <div className="w-80 p-4 border-l space-y-4 overflow-y-auto">
           {/* Real Custom Controls - only shows when configured */}
           {controlWidgets.length > 0 ? (
             <div>
-              <h3 className="text-white font-semibold mb-3">Hardware Controls</h3>
+              <h3 className="font-semibold mb-3">Hardware Controls</h3>
               <div className="grid grid-cols-2 gap-2">
                 {controlWidgets.map((widget) => (
                   <Button
@@ -192,7 +192,6 @@ export function StationControl() {
                     disabled={!isSessionActive}
                     variant="outline"
                     size="sm"
-                    className="text-white border-gray-600 hover:bg-gray-700"
                   >
                     {widget.name}
                   </Button>
@@ -200,7 +199,7 @@ export function StationControl() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-gray-500">
               <div className="text-sm">No Controls Configured</div>
               <div className="text-xs mt-1">Configure controls in Station Editor</div>
             </div>
@@ -209,36 +208,36 @@ export function StationControl() {
           {/* Real Hardware Status - only shows when connected */}
           {isConnected && telemetryData && telemetryData.length > 0 ? (
             <div>
-              <h3 className="text-white font-semibold mb-3">Hardware Status</h3>
+              <h3 className="font-semibold mb-3">Hardware Status</h3>
               <div className="space-y-2 text-sm">
                 {telemetryData[0].position && (
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Position:</span>
-                    <span className="text-green-400 font-mono">{telemetryData[0].position}mm</span>
+                    <span className="text-gray-600">Position:</span>
+                    <span className="text-green-600 font-mono">{telemetryData[0].position}mm</span>
                   </div>
                 )}
                 {telemetryData[0].velocity && (
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Velocity:</span>
-                    <span className="text-blue-400 font-mono">{telemetryData[0].velocity}mm/s</span>
+                    <span className="text-gray-600">Velocity:</span>
+                    <span className="text-blue-600 font-mono">{telemetryData[0].velocity}mm/s</span>
                   </div>
                 )}
                 {telemetryData[0].load && (
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Load:</span>
-                    <span className="text-yellow-400 font-mono">{telemetryData[0].load}%</span>
+                    <span className="text-gray-600">Load:</span>
+                    <span className="text-yellow-600 font-mono">{telemetryData[0].load}%</span>
                   </div>
                 )}
                 {telemetryData[0].temperature && (
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Temperature:</span>
-                    <span className="text-orange-400 font-mono">{telemetryData[0].temperature}°C</span>
+                    <span className="text-gray-600">Temperature:</span>
+                    <span className="text-orange-600 font-mono">{telemetryData[0].temperature}°C</span>
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-gray-500">
               <div className="text-sm">No Hardware Connected</div>
               <div className="text-xs mt-1">Connect demo station to view status</div>
             </div>
