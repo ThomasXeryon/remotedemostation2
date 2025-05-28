@@ -134,7 +134,10 @@ export default function StationEditor() {
 
       // Load saved layout if it exists
       if (station.configuration?.interfaceLayout) {
+        console.log('Loading saved layout:', station.configuration.interfaceLayout);
         setLayout(station.configuration.interfaceLayout);
+      } else {
+        console.log('No saved layout found, station.configuration:', station.configuration);
       }
     }
   }, [station, isLoading]);
