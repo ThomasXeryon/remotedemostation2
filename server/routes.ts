@@ -299,31 +299,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete organization - moved before other routes to ensure proper registration
-  app.delete('/api/organizations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  // Delete organization - simplified approach
+  console.log('Registering DELETE /api/organizations/:id route');
+  app.delete('/api/organizations/:id', async (req, res) => {
     console.log('=== ORGANIZATION DELETION ENDPOINT CALLED ===');
     console.log('Method:', req.method);
     console.log('URL:', req.url);
     console.log('Params:', req.params);
-    console.log('User:', req.user);
     
     try {
       const orgId = parseInt(req.params.id);
-      console.log(`Parsing org ID: ${orgId}`);
+      console.log(`Attempting to delete organization ${orgId}`);
       
       if (isNaN(orgId)) {
         console.error('Invalid organization ID');
         return res.status(400).json({ message: 'Invalid organization ID' });
       }
       
-      console.log(`Calling storage.deleteOrganization(${orgId})`);
-      await storage.deleteOrganization(orgId);
+      // Direct database deletion
+      console.log(`Deleting organization ${orgId} from database`);
+      await db.delete(organizations).where(eq(organizations.id, orgId));
       console.log(`Organization ${orgId} deleted successfully`);
       
       res.status(200).json({ message: 'Organization deleted successfully' });
     } catch (error) {
       console.error('Organization deletion failed:', error);
-      res.status(500).json({ message: 'Failed to delete organization', error: error.message });
+      res.status(500).json({ message: 'Failed to delete organization', error });
     }
   });
 
