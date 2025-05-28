@@ -33,9 +33,16 @@ interface ControlWidget {
   type: 'button' | 'slider' | 'joystick' | 'toggle';
   name: string;
   command: string;
-  parameters: Record<string, any>;
+  parameters?: Record<string, any>;
   position: { x: number; y: number };
   size: { width: number; height: number };
+  style: {
+    backgroundColor: string;
+    textColor: string;
+    borderColor: string;
+    borderRadius: number;
+    fontSize: number;
+  };
 }
 
 export function StationControl() {
@@ -197,22 +204,114 @@ export function StationControl() {
 
         {/* Right Side - Real Hardware Controls */}
         <div className="w-80 p-4 border-l space-y-4 overflow-y-auto">
-          {/* Real Custom Controls - only shows when configured */}
+          {/* Custom Control Layout - exactly as designed */}
           {controlConfig?.controls && controlConfig.controls.length > 0 ? (
             <div>
               <h3 className="font-semibold mb-3">Hardware Controls</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {controlConfig.controls.map((widget: ControlWidget) => (
-                  <Button
-                    key={widget.id}
-                    onClick={() => handleCommand(widget.command, widget.parameters || {})}
-                    disabled={!isSessionActive}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {widget.name}
-                  </Button>
-                ))}
+              <div className="relative bg-gray-50 rounded-lg p-4 min-h-[400px] border-2 border-dashed border-gray-200">
+                {controlConfig.controls.map((widget: ControlWidget) => {
+                  const style = {
+                    position: 'absolute' as const,
+                    left: widget.position.x,
+                    top: widget.position.y,
+                    width: widget.size.width,
+                    height: widget.size.height,
+                    backgroundColor: widget.style?.backgroundColor || '#3b82f6',
+                    color: widget.style?.textColor || '#ffffff',
+                    border: `2px solid ${widget.style?.borderColor || '#2563eb'}`,
+                    borderRadius: widget.style?.borderRadius || 6,
+                    fontSize: widget.style?.fontSize || 14,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: isSessionActive ? 'pointer' : 'not-allowed',
+                    opacity: isSessionActive ? 1 : 0.6,
+                    transition: 'all 0.2s ease',
+                    fontWeight: 'medium',
+                    userSelect: 'none' as const,
+                  };
+
+                  const handleControlClick = () => {
+                    if (isSessionActive) {
+                      handleCommand(widget.command, widget.parameters || {});
+                    }
+                  };
+
+                  switch (widget.type) {
+                    case 'button':
+                      return (
+                        <div
+                          key={widget.id}
+                          style={style}
+                          onClick={handleControlClick}
+                          className="shadow-sm hover:shadow-md active:scale-95 transition-all"
+                        >
+                          {widget.name}
+                        </div>
+                      );
+
+                    case 'slider':
+                      return (
+                        <div
+                          key={widget.id}
+                          style={{...style, padding: '8px'}}
+                          className="shadow-sm"
+                        >
+                          <input
+                            type="range"
+                            className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                            style={{
+                              background: `linear-gradient(to right, ${widget.style?.borderColor || '#2563eb'} 0%, ${widget.style?.borderColor || '#2563eb'} 50%, #e5e7eb 50%, #e5e7eb 100%)`,
+                            }}
+                            disabled={!isSessionActive}
+                            onChange={(e) => {
+                              if (isSessionActive) {
+                                handleCommand(widget.command, { value: e.target.value, ...widget.parameters });
+                              }
+                            }}
+                          />
+                        </div>
+                      );
+
+                    case 'toggle':
+                      return (
+                        <div
+                          key={widget.id}
+                          style={{...style, padding: '8px'}}
+                          onClick={handleControlClick}
+                          className="shadow-sm cursor-pointer"
+                        >
+                          <div 
+                            className="w-12 h-6 rounded-full relative transition-colors"
+                            style={{backgroundColor: widget.style?.borderColor || '#2563eb'}}
+                          >
+                            <div 
+                              className="w-5 h-5 rounded-full absolute top-0.5 left-0.5 transition-transform"
+                              style={{backgroundColor: widget.style?.textColor || '#ffffff'}}
+                            />
+                          </div>
+                        </div>
+                      );
+
+                    case 'joystick':
+                      return (
+                        <div
+                          key={widget.id}
+                          style={{...style, borderRadius: '50%'}}
+                          onClick={handleControlClick}
+                          className="shadow-sm cursor-pointer"
+                        >
+                          <div 
+                            className="w-16 h-16 rounded-full"
+                            style={{backgroundColor: widget.style?.textColor || '#ffffff'}}
+                          />
+                        </div>
+                      );
+
+                    default:
+                      return null;
+                  }
+                })}
               </div>
             </div>
           ) : (
