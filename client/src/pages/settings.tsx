@@ -53,29 +53,25 @@ export default function Settings() {
   }
 
   return (
-      <div className="flex-1 p-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
-            <p className="text-slate-600 mt-2">
-              Manage your account settings and preferences
-            </p>
-          </div>
+    <div className="flex-1 space-y-6 p-6">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">Manage your account settings and preferences</p>
+      </div>
 
-          {/* Profile Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Profile Information
-              </CardTitle>
-              <CardDescription>
-                Update your personal information and contact details
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+      {/* Profile Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Profile Information
+          </CardTitle>
+          <CardDescription>
+            Update your personal information and contact details
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
