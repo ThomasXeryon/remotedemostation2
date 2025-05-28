@@ -187,15 +187,10 @@ export function StationControl() {
         </div>
       </div>
 
-      {/* Main Control Interface - Match Layout Editor Exactly */}
-      <div className="flex-1 flex p-4 h-full" style={{ gap: '16px' }}>
-        {/* Video Feed - Exact Width from Layout */}
-        <div 
-          className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
-          style={{
-            width: `${layout.camera.width}%`,
-          }}
-        >
+      {/* Main Control Interface - Simple Two Column Layout */}
+      <div className="flex-1 flex gap-4 p-4">
+        {/* Video Feed - 60% width */}
+        <div className="flex-[3] bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Live Camera Feed</h3>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -203,7 +198,7 @@ export function StationControl() {
               <span>1080p</span>
             </div>
           </div>
-          <div className="flex-1 border rounded-lg flex items-center justify-center relative bg-black">
+          <div className="aspect-video border rounded-lg flex items-center justify-center relative bg-black">
             <VideoFeed
               stationName={demoStation.name}
               telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
@@ -223,13 +218,8 @@ export function StationControl() {
           </div>
         </div>
 
-        {/* Control Panel - Exact Width from Layout */}
-        <div 
-          className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
-          style={{
-            width: `${layout.controlPanel.width}%`,
-          }}
-        >
+        {/* Control Panel - 40% width */}
+        <div className="flex-[2] bg-white border border-gray-200 rounded-lg p-4">
           {/* Custom Control Layout - exactly as designed */}
           {controlConfig?.controls && controlConfig.controls.length > 0 ? (
             <div>
