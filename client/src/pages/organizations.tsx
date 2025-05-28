@@ -69,6 +69,35 @@ export default function Organizations() {
     }
   });
 
+  // Delete organization mutation
+  const deleteOrgMutation = useMutation({
+    mutationFn: async (orgId: number) => {
+      return await apiRequest(`/api/organizations/${orgId}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users/me/organizations'] });
+      toast({
+        title: "Organization deleted successfully!",
+        description: "The organization and all its data have been permanently removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete organization",
+        description: error.message || "There was an error deleting the organization.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteOrg = (orgId: number, orgName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${orgName}"? This action cannot be undone and will permanently remove all data associated with this organization.`)) {
+      deleteOrgMutation.mutate(orgId);
+    }
+  };
+
   const handleCreateOrg = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -272,9 +301,19 @@ export default function Organizations() {
                       <p className="text-sm text-slate-500">/{org.slug}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    <Settings className="w-4 h-4" />
-                  </Button>
+                  <div className="flex space-x-1">
+                    <Button variant="ghost" size="sm">
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDeleteOrg(org.id, org.name)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               

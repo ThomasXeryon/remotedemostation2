@@ -98,14 +98,12 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
         });
       }
       
-      // Clear all queries and refetch with new token
+      // Clear all queries and refresh the page to ensure everything updates
       queryClient.clear();
       
-      // Force immediate refetch with new token
+      // Reload the page to ensure all data is fresh with new organization
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/users/me/organizations'] });
+        window.location.reload();
       }, 100);
       
       // Dispatch custom event to notify other components

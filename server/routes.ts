@@ -321,6 +321,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete organization
+  app.delete('/api/organizations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = parseInt(req.params.id);
+      
+      // Check if user is admin of this organization
+      const userRole = await storage.getUserRole(req.user!.id, orgId);
+      if (userRole !== 'admin') {
+        return res.status(403).json({ message: 'Only organization admins can delete organizations' });
+      }
+
+      // Delete the organization (this will cascade to delete related data)
+      await storage.deleteOrganization(orgId);
+      
+      res.json({ message: 'Organization deleted successfully' });
+    } catch (error) {
+      console.error('Organization deletion error:', error);
+      res.status(500).json({ message: 'Failed to delete organization' });
+    }
+  });
+
   // Switch organization context
   app.post('/api/users/me/switch-organization', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
