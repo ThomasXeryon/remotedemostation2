@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus, Mail, Shield, User } from "lucide-react";
-import { PageLayout } from "@/components/page-layout";
 
 export default function TeamMembers() {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);

@@ -172,14 +172,17 @@ export default function StationsPage() {
   }
 
   return (
-    <PageLayout
-      title="Demo Stations"
-      subtitle="Manage and monitor your organization's demo stations"
-      action={{
-        label: "Add Station",
-        onClick: () => setIsCreateModalOpen(true)
-      }}
-    >
+    <div className="flex-1 space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Demo Stations</h1>
+          <p className="text-muted-foreground">Manage and monitor your organization's demo stations</p>
+        </div>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Station
+        </Button>
+      </div>
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogTrigger asChild>
           {/* The button is now rendered by the PageLayout component */}
