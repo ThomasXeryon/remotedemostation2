@@ -498,6 +498,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const config = await storage.getControlConfiguration(stationId);
+      if (!config) {
+        return res.json({ controls: [], layout: {} });
+      }
       res.json(config);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch control configuration' });
