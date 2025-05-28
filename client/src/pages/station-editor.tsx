@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { getCurrentUser } from '@/lib/auth';
 import { ControlBuilderModal, type ControlWidget } from '@/components/control-builder-modal';
+import { LayoutEditorModal, type LayoutConfig } from '@/components/layout-editor-modal';
 import type { DemoStation } from '@shared/schema';
 
 interface StationConfig {
@@ -47,6 +48,7 @@ export default function StationEditor() {
   const [activeTab, setActiveTab] = useState('basic');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isControlBuilderOpen, setIsControlBuilderOpen] = useState(false);
+  const [isLayoutEditorOpen, setIsLayoutEditorOpen] = useState(false);
 
   // State for station configuration
   const [config, setConfig] = useState<StationConfig>({
@@ -70,6 +72,18 @@ export default function StationEditor() {
   });
 
   const [controls, setControls] = useState<ControlWidget[]>([]);
+  const [layout, setLayout] = useState<LayoutConfig>({
+    camera: {
+      width: 65,
+      height: 80,
+      position: { x: 5, y: 10 }
+    },
+    controlPanel: {
+      width: 25,
+      height: 80,
+      position: { x: 72, y: 10 }
+    }
+  });
 
   // Fetch station data
   const { data: station, isLoading, refetch: refetchStation } = useQuery<DemoStation>({
@@ -196,6 +210,15 @@ export default function StationEditor() {
     saveControlsMutation.mutate();
   };
 
+  const handleSaveLayout = (newLayout: LayoutConfig) => {
+    setLayout(newLayout);
+    // Save layout to station configuration
+    handleConfigChange({ 
+      ...config, 
+      interfaceLayout: newLayout 
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 space-y-6 p-6">
@@ -247,9 +270,10 @@ export default function StationEditor() {
       {/* Configuration Tabs */}
       <div className="border rounded-lg">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic">Basic Settings</TabsTrigger>
             <TabsTrigger value="controls">Controls</TabsTrigger>
+            <TabsTrigger value="layout">Interface Layout</TabsTrigger>
             <TabsTrigger value="safety">Safety</TabsTrigger>
             <TabsTrigger value="network">Network</TabsTrigger>
           </TabsList>
@@ -391,6 +415,53 @@ export default function StationEditor() {
             </Card>
           </TabsContent>
 
+          {/* Layout Tab */}
+          <TabsContent value="layout" className="space-y-6 p-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Settings className="w-5 h-5" />
+                    <span>Interface Layout Designer</span>
+                  </div>
+                  <Button onClick={() => setIsLayoutEditorOpen(true)}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Open Layout Editor
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-center py-12 text-gray-500">
+                    <Settings className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium">Customize Your Interface Layout</p>
+                    <p className="text-sm mb-4">Drag and resize camera and control panel areas to create the perfect interface</p>
+                    <Button onClick={() => setIsLayoutEditorOpen(true)} variant="outline">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Start Layout Design
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium mb-2">Current Layout Settings</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-medium text-gray-700">Camera Area</p>
+                        <p>Size: {layout.camera.width}% × {layout.camera.height}%</p>
+                        <p>Position: ({Math.round(layout.camera.position.x)}%, {Math.round(layout.camera.position.y)}%)</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-700">Control Panel</p>
+                        <p>Size: {layout.controlPanel.width}% × {layout.controlPanel.height}%</p>
+                        <p>Position: ({Math.round(layout.controlPanel.position.x)}%, {Math.round(layout.controlPanel.position.y)}%)</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Safety Tab */}
           <TabsContent value="safety" className="space-y-6 p-6">
             <Card>
@@ -478,6 +549,14 @@ export default function StationEditor() {
         onClose={() => setIsControlBuilderOpen(false)}
         controls={controls}
         onSaveControls={handleSaveControls}
+      />
+
+      {/* Layout Editor Modal */}
+      <LayoutEditorModal
+        isOpen={isLayoutEditorOpen}
+        onClose={() => setIsLayoutEditorOpen(false)}
+        layout={layout}
+        onSaveLayout={handleSaveLayout}
       />
     </div>
   );
