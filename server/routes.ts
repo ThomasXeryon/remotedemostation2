@@ -5,8 +5,8 @@ import { storage, generateStationId } from "./storage";
 import { db } from "./db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { insertUserSchema, insertOrganizationSchema, insertDemoStationSchema, insertControlConfigurationSchema, userOrganizations, organizations } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { insertUserSchema, insertOrganizationSchema, insertDemoStationSchema, insertControlConfigurationSchema, userOrganizations, organizations, demoStations } from "@shared/schema";
+import { eq, and, sql } from "drizzle-orm";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -299,29 +299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create organization
-  app.post('/api/organizations', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-      const orgData = insertOrganizationSchema.parse(req.body);
-
-      // Create the organization
-      const organization = await storage.createOrganization(orgData);
-
-      // Add the creating user as an admin of this organization
-      await storage.addUserToOrganization({
-        userId: req.user!.id,
-        organizationId: organization.id,
-        role: 'admin'
-      });
-
-      res.status(201).json(organization);
-    } catch (error) {
-      console.error('Organization creation error:', error);
-      res.status(500).json({ message: 'Failed to create organization', error: error.message });
-    }
-  });
-
-  // Delete organization
+  // Delete organization - moved before other routes to ensure proper registration
   app.delete('/api/organizations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     console.log('=== ORGANIZATION DELETION ENDPOINT CALLED ===');
     console.log('Method:', req.method);
@@ -346,6 +324,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Organization deletion failed:', error);
       res.status(500).json({ message: 'Failed to delete organization', error: error.message });
+    }
+  });
+
+  // Create organization
+  app.post('/api/organizations', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgData = insertOrganizationSchema.parse(req.body);
+
+      // Create the organization
+      const organization = await storage.createOrganization(orgData);
+
+      // Add the creating user as an admin of this organization
+      await storage.addUserToOrganization({
+        userId: req.user!.id,
+        organizationId: organization.id,
+        role: 'admin'
+      });
+
+      res.status(201).json(organization);
+    } catch (error) {
+      console.error('Organization creation error:', error);
+      res.status(500).json({ message: 'Failed to create organization', error: error.message });
+    }
+  });
+
+  // Get organization statistics
+  app.get('/api/organizations/:id/stats', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = parseInt(req.params.id);
+      
+      // Get user count
+      const userCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(userOrganizations)
+        .where(eq(userOrganizations.organizationId, orgId));
+      
+      // Get station count
+      const stationCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(demoStations)
+        .where(eq(demoStations.organizationId, orgId));
+      
+      res.json({
+        userCount: userCount[0]?.count || 0,
+        stationCount: stationCount[0]?.count || 0
+      });
+    } catch (error) {
+      console.error('Failed to get organization stats:', error);
+      res.status(500).json({ message: 'Failed to get organization statistics' });
     }
   });
 
