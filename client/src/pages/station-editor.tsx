@@ -58,6 +58,17 @@ export default function StationEditor() {
   // Fetch station data
   const { data: station, isLoading } = useQuery<DemoStation>({
     queryKey: ['/api/demo-stations', id],
+    queryFn: async () => {
+      const response = await fetch(`/api/demo-stations/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch station');
+      }
+      return response.json();
+    },
     enabled: !!id,
   });
 
