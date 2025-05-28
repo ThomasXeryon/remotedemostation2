@@ -43,13 +43,18 @@ export const authStorage = {
 };
 
 export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
-  const response = await apiRequest('POST', '/api/auth/login', credentials);
-  const data = await response.json();
+  const response = await apiRequest('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(credentials),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
   
-  authStorage.setToken(data.token);
-  authStorage.setUser(data.user);
+  authStorage.setToken(response.token);
+  authStorage.setUser(response.user);
   
-  return data;
+  return response;
 }
 
 export async function logout(): Promise<void> {
