@@ -158,16 +158,15 @@ export default function StationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Demo Stations</h1>
-            <p className="text-slate-600 mt-2">
-              Manage and monitor your organization's demo stations
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Demo Stations</h1>
+          <p className="text-muted-foreground">
+            Manage and monitor your organization's demo stations
+          </p>
+        </div>
 
           {(currentUser.role === 'admin' || currentUser.role === 'operator') && (
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
@@ -376,9 +375,6 @@ export default function StationsPage() {
             ))}
           </div>
         )}
-
-
-      </div>
     </div>
   );
 }

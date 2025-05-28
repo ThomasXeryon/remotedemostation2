@@ -134,11 +134,11 @@ export default function Organizations() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="flex justify-between items-center mb-8">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Organizations</h1>
-          <p className="text-slate-600 mt-2">Manage your organizations and create new ones</p>
+          <h1 className="text-3xl font-bold">Organizations</h1>
+          <p className="text-muted-foreground">Manage your organizations and create new ones</p>
         </div>
         
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
