@@ -325,15 +325,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/organizations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const orgId = parseInt(req.params.id);
+      console.log(`API: Attempting to delete organization ${orgId}`);
       
       // Check if user is admin of this organization
       const userRole = await storage.getUserRole(req.user!.id, orgId);
+      console.log(`User role for org ${orgId}:`, userRole);
+      
       if (userRole !== 'admin') {
+        console.log(`Permission denied: User is not admin of organization ${orgId}`);
         return res.status(403).json({ message: 'Only organization admins can delete organizations' });
       }
 
       // Delete the organization (this will cascade to delete related data)
+      console.log(`Calling storage.deleteOrganization(${orgId})`);
       await storage.deleteOrganization(orgId);
+      console.log(`Successfully deleted organization ${orgId}`);
       
       res.json({ message: 'Organization deleted successfully' });
     } catch (error) {
