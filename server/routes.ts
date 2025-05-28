@@ -392,7 +392,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const stationData = insertDemoStationSchema.parse({
-        id: generateStationId(),
         name: req.body.name,
         description: req.body.description || null,
         organizationId: req.user!.organizationId,
@@ -408,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(station);
     } catch (error) {
       console.error('Station creation error:', error);
-      res.status(400).json({ message: 'Failed to create demo station', error: error.message });
+      res.status(400).json({ message: 'Failed to create demo station', error: error instanceof Error ? error.message : String(error) });
     }
   });
 
