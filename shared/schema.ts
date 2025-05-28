@@ -51,7 +51,7 @@ export const demoStations = pgTable("demo_stations", {
 
 export const controlConfigurations = pgTable("control_configurations", {
   id: serial("id").primaryKey(),
-  demoStationId: integer("demo_station_id").notNull(),
+  demoStationId: text("demo_station_id").notNull(),
   controls: jsonb("controls").notNull(), // Array of control definitions
   layout: jsonb("layout").notNull(), // Positioning and layout info
   createdBy: integer("created_by").notNull(),
@@ -62,7 +62,7 @@ export const controlConfigurations = pgTable("control_configurations", {
 export const sessions = pgTable("sessions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  demoStationId: integer("demo_station_id").notNull(),
+  demoStationId: text("demo_station_id").notNull(),
   startTime: timestamp("start_time").defaultNow().notNull(),
   endTime: timestamp("end_time"),
   duration: integer("duration"), // in seconds
@@ -72,7 +72,7 @@ export const sessions = pgTable("sessions", {
 
 export const telemetryData = pgTable("telemetry_data", {
   id: serial("id").primaryKey(),
-  demoStationId: integer("demo_station_id").notNull(),
+  demoStationId: text("demo_station_id").notNull(),
   sessionId: integer("session_id"),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
   position: text("position"),
