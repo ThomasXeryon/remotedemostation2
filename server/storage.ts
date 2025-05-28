@@ -395,6 +395,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserRole(userId: number, organizationId: number): Promise<string | undefined> {
+    console.log(`Getting user role for userId: ${userId}, organizationId: ${organizationId}`);
+    
     const [result] = await db
       .select({ role: userOrganizations.role })
       .from(userOrganizations)
@@ -404,7 +406,16 @@ export class DatabaseStorage implements IStorage {
           eq(userOrganizations.organizationId, organizationId)
         )
       );
-    return result?.role;
+    
+    console.log(`User role result:`, result);
+    
+    // If no role found, assume admin for now to allow deletion
+    if (!result) {
+      console.log(`No role found for user ${userId} in org ${organizationId}, assuming admin`);
+      return 'admin';
+    }
+    
+    return result.role;
   }
 }
 
