@@ -546,11 +546,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...currentConfig,
           interfaceLayout: interfaceLayout
         };
-        console.log('Merged configuration with layout:', updates.configuration);
+        console.log('Before update - Current config:', currentConfig);
+        console.log('Before update - Interface layout:', interfaceLayout);
+        console.log('Before update - Final configuration:', updates.configuration);
       }
 
+      console.log('Sending updates to storage:', updates);
       const updatedStation = await storage.updateDemoStation(stationId, updates);
-      console.log('Updated station:', updatedStation);
+      console.log('Updated station returned from storage:', updatedStation);
+      console.log('Updated station configuration field:', updatedStation?.configuration);
       res.json(updatedStation);
     } catch (error) {
       console.error('Error updating station:', error);
