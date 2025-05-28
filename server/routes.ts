@@ -534,7 +534,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Admin or operator access required' });
       }
 
-      const updatedStation = await storage.updateDemoStation(stationId, req.body);
+      // Extract interfaceLayout and merge with existing configuration
+      const { interfaceLayout, ...otherUpdates } = req.body;
+      
+      let updates = { ...otherUpdates };
+      
+      if (interfaceLayout) {
+        // Merge the interfaceLayout into the configuration field
+        const currentConfig = station.configuration || {};
+        updates.configuration = {
+          ...currentConfig,
+          interfaceLayout: interfaceLayout
+        };
+        console.log('Merged configuration with layout:', updates.configuration);
+      }
+
+      const updatedStation = await storage.updateDemoStation(stationId, updates);
       console.log('Updated station:', updatedStation);
       res.json(updatedStation);
     } catch (error) {
