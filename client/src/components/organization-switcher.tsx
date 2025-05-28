@@ -149,7 +149,13 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
   const displayOrg = selectedOrg || userData?.organization || currentOrganization;
 
   const handleCreateOrganization = () => {
-    setLocation('/organizations');
+    console.log('Create organization button clicked');
+    try {
+      setLocation('/organizations');
+      console.log('Navigation to /organizations triggered');
+    } catch (error) {
+      console.error('Failed to navigate to organizations:', error);
+    }
   };
 
   return (
