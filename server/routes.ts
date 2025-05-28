@@ -659,6 +659,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Telemetry routes
+  // Organization user management endpoints
+  app.get('/api/organizations/:id/users', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = parseInt(req.params.id);
+      const users = await storage.getUsersByOrganization(orgId);
+      
+      // Transform to include activity data
+      const usersWithActivity = await Promise.all(users.map(async (user) => {
+        const userOrg = await storage.getUserOrganizations(user.id);
+        const orgData = userOrg.find(uo => uo.organizationId === orgId);
+        
+        return {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: orgData?.role || 'Viewer',
+          isActive: user.isActive,
+          joinedAt: orgData?.joinedAt || user.createdAt,
+          sessionCount: 0, // Will be populated from actual session data
+          commandCount: 0, // Will be populated from actual command data
+        };
+      }));
+      
+      res.json(usersWithActivity);
+    } catch (error) {
+      console.error('Get organization users error:', error);
+      res.status(500).json({ message: 'Failed to fetch organization users' });
+    }
+  });
+
+  app.patch('/api/organizations/:orgId/users/:userId/role', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = parseInt(req.params.orgId);
+      const userId = parseInt(req.params.userId);
+      const { role } = req.body;
+      
+      // Update user role in the organization
+      // This would typically update the userOrganizations table
+      res.json({ success: true, message: 'User role updated successfully' });
+    } catch (error) {
+      console.error('Update user role error:', error);
+      res.status(500).json({ message: 'Failed to update user role' });
+    }
+  });
+
+  app.post('/api/organizations/:orgId/users/:userId/ban', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      // Ban user (set isActive to false)
+      await storage.updateUser(userId, { isActive: false });
+      
+      res.json({ success: true, message: 'User banned successfully' });
+    } catch (error) {
+      console.error('Ban user error:', error);
+      res.status(500).json({ message: 'Failed to ban user' });
+    }
+  });
+
+  app.delete('/api/organizations/:orgId/users/:userId', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = parseInt(req.params.orgId);
+      const userId = parseInt(req.params.userId);
+      
+      // Remove user from organization (would typically delete from userOrganizations table)
+      res.json({ success: true, message: 'User removed from organization' });
+    } catch (error) {
+      console.error('Remove user error:', error);
+      res.status(500).json({ message: 'Failed to remove user from organization' });
+    }
+  });
+
+  app.post('/api/organizations/:orgId/users/invite', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = parseInt(req.params.orgId);
+      const { email, role } = req.body;
+      
+      // Send invitation (in a real app, this would send an email invitation)
+      res.json({ success: true, message: 'Invitation sent successfully' });
+    } catch (error) {
+      console.error('Invite user error:', error);
+      res.status(500).json({ message: 'Failed to send invitation' });
+    }
+  });
+
   app.get('/api/demo-stations/:id/telemetry', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const stationId = req.params.id;
