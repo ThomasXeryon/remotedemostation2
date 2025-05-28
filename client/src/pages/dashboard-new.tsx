@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Monitor, Settings, Play, Clock, Users } from "lucide-react";
 import { Link } from "wouter";
+import { queryClient } from "@/lib/queryClient";
 
 interface DemoStation {
   id: string;
@@ -22,9 +24,22 @@ interface DemoStation {
 }
 
 export function Dashboard() {
-  const { data: demoStations, isLoading } = useQuery({
+  const { data: demoStations, isLoading, refetch } = useQuery({
     queryKey: ['/api/demo-stations'],
   });
+
+  // Listen for organization changes and refetch data
+  useEffect(() => {
+    const handleOrganizationChanged = () => {
+      console.log('Dashboard: Organization changed, refetching demo stations');
+      refetch();
+    };
+
+    window.addEventListener('organizationChanged', handleOrganizationChanged);
+    return () => {
+      window.removeEventListener('organizationChanged', handleOrganizationChanged);
+    };
+  }, [refetch]);
 
   if (isLoading) {
     return (

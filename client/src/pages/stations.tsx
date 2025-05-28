@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Plus, Cpu, Circle, Settings, Trash2, Edit, Power, PowerOff, Camera, Clock } from 'lucide-react';
@@ -42,10 +42,23 @@ export default function StationsPage() {
 
 
   // Fetch demo stations
-  const { data: demoStations = [], isLoading } = useQuery({
+  const { data: demoStations = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/demo-stations'],
     enabled: !!currentUser,
   });
+
+  // Listen for organization changes and refetch data
+  useEffect(() => {
+    const handleOrganizationChanged = () => {
+      console.log('Stations page: Organization changed, refetching demo stations');
+      refetch();
+    };
+
+    window.addEventListener('organizationChanged', handleOrganizationChanged);
+    return () => {
+      window.removeEventListener('organizationChanged', handleOrganizationChanged);
+    };
+  }, [refetch]);
 
   // Create station mutation
   const createStationMutation = useMutation({
