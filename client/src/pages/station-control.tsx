@@ -192,15 +192,13 @@ export function StationControl() {
         </div>
       </div>
 
-      {/* Main Control Interface - Use Saved Layout */}
+      {/* Main Control Interface - Exact Layout from Editor */}
       <div className="flex-1 flex gap-4 p-4">
-        {/* Video Feed - Dynamic width based on saved layout */}
+        {/* Camera Feed Panel */}
         <div 
           className="bg-white border border-gray-200 rounded-lg p-4"
           style={{ 
-            width: stationData?.configuration?.interfaceLayout?.camera?.width 
-              ? `${stationData.configuration.interfaceLayout.camera.width}%` 
-              : '60%' 
+            width: `${layout.camera.width}%`
           }}
         >
           <div className="flex items-center justify-between mb-4">
@@ -216,27 +214,14 @@ export function StationControl() {
               telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
               isRecording={isSessionActive}
             />
-
-            {/* Camera count indicator */}
-            {stationData && stationData.cameraCount > 1 && (
-              <div className="absolute top-4 left-4 flex space-x-2">
-                {Array.from({ length: stationData.cameraCount }, (_, i) => (
-                  <Button key={i} size="sm" variant={i === 0 ? "default" : "outline"} className="text-xs">
-                    Cam {i + 1}
-                  </Button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Control Panel - Dynamic width based on saved layout */}
+        {/* Control Panel */}
         <div 
           className="bg-white border border-gray-200 rounded-lg p-4"
           style={{ 
-            width: stationData?.configuration?.interfaceLayout?.controlPanel?.width 
-              ? `${stationData.configuration.interfaceLayout.controlPanel.width}%` 
-              : '40%' 
+            width: `${layout.controlPanel.width}%`
           }}
         >
           {/* Custom Control Layout - exactly as designed */}
