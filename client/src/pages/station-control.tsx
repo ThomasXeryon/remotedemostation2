@@ -216,8 +216,16 @@ export function StationControl() {
           </div>
         </div>
 
-        {/* Right Side - Real Hardware Controls */}
-        <div className="w-80 p-4 border-l space-y-4 overflow-y-auto">
+        {/* Control Panel - Custom Layout Position */}
+        <div 
+          className="absolute p-4 space-y-4 overflow-y-auto border border-gray-200 bg-white rounded-lg"
+          style={{
+            left: `${layout.controlPanel.position.x}%`,
+            top: `${layout.controlPanel.position.y}%`,
+            width: `${layout.controlPanel.width}%`,
+            height: `${layout.controlPanel.height}%`,
+          }}
+        >
           {/* Custom Control Layout - exactly as designed */}
           {controlConfig?.controls && controlConfig.controls.length > 0 ? (
             <div>
