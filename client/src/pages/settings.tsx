@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { User, Settings as SettingsIcon, Key, Bell, Shield } from "lucide-react";
-import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 
 export default function Settings() {
@@ -54,7 +53,6 @@ export default function Settings() {
   }
 
   return (
-    <Layout>
       <div className="flex-1 p-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Header */}
@@ -192,6 +190,5 @@ export default function Settings() {
           </Card>
         </div>
       </div>
-    </Layout>
   );
 }
