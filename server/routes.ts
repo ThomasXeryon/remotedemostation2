@@ -323,23 +323,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Delete organization
   app.delete('/api/organizations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    console.log('=== ORGANIZATION DELETION ENDPOINT HIT ===');
-    console.log('Request params:', req.params);
-    console.log('Request user:', req.user);
+    console.log('=== ORGANIZATION DELETION ENDPOINT CALLED ===');
+    console.log('Method:', req.method);
+    console.log('URL:', req.url);
+    console.log('Params:', req.params);
+    console.log('User:', req.user);
     
     try {
       const orgId = parseInt(req.params.id);
-      console.log(`API: Attempting to delete organization ${orgId}`);
+      console.log(`Parsing org ID: ${orgId}`);
       
-      // Skip permission check for now and just delete
+      if (isNaN(orgId)) {
+        console.error('Invalid organization ID');
+        return res.status(400).json({ message: 'Invalid organization ID' });
+      }
+      
       console.log(`Calling storage.deleteOrganization(${orgId})`);
       await storage.deleteOrganization(orgId);
-      console.log(`Successfully deleted organization ${orgId}`);
+      console.log(`Organization ${orgId} deleted successfully`);
       
-      res.json({ message: 'Organization deleted successfully' });
+      res.status(200).json({ message: 'Organization deleted successfully' });
     } catch (error) {
-      console.error('Organization deletion error:', error);
-      res.status(500).json({ message: 'Failed to delete organization' });
+      console.error('Organization deletion failed:', error);
+      res.status(500).json({ message: 'Failed to delete organization', error: error.message });
     }
   });
 
