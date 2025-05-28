@@ -68,11 +68,11 @@ export default function StationEditor() {
   });
 
   const [config, setConfig] = useState<StationConfig>({
-    name: '',
-    description: '',
-    cameraCount: 1,
-    sessionTimeLimit: 30,
-    requiresLogin: true,
+    name: station?.name || '',
+    description: station?.description || '',
+    cameraCount: station?.cameraCount || 1,
+    sessionTimeLimit: station?.sessionTimeLimit || 30,
+    requiresLogin: station?.requiresLogin ?? true,
     safetyLimits: {
       maxSpeed: 100,
       maxPosition: 500,
@@ -90,7 +90,8 @@ export default function StationEditor() {
 
   // Initialize config when station data loads
   React.useEffect(() => {
-    if (station) {
+    if (station && station.name) {
+      console.log('Loading station data:', station);
       setConfig({
         name: station.name,
         description: station.description || '',
@@ -110,7 +111,7 @@ export default function StationEditor() {
         },
       });
     }
-  }, [station]);
+  }, [station?.id, station?.name, station?.description]);
 
   // Initialize controls when control config loads
   React.useEffect(() => {
