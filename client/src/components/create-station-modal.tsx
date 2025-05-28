@@ -33,6 +33,7 @@ const createStationSchema = z.object({
   cameraCount: z.number().min(1).max(2),
   sessionTimeLimit: z.number().min(1).max(180), // 1-180 minutes
   requiresLogin: z.boolean().default(true),
+  requireApproval: z.boolean().default(false),
 });
 
 type CreateStationFormData = z.infer<typeof createStationSchema>;
@@ -54,6 +55,7 @@ export function CreateStationModal({ isOpen, onClose }: CreateStationModalProps)
       cameraCount: 1,
       sessionTimeLimit: 30,
       requiresLogin: true,
+      requireApproval: false,
     },
   });
 
@@ -69,6 +71,7 @@ export function CreateStationModal({ isOpen, onClose }: CreateStationModalProps)
             cameraCount: data.cameraCount,
             sessionTimeLimit: data.sessionTimeLimit,
             requiresLogin: data.requiresLogin,
+            requireApproval: data.requireApproval,
           },
           safetyLimits: {
             maxSpeed: 100,
@@ -197,6 +200,27 @@ export function CreateStationModal({ isOpen, onClose }: CreateStationModalProps)
                     <FormLabel className="text-base">Require User Login</FormLabel>
                     <FormDescription>
                       Users must be logged in to access this station
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="requireApproval"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Require Admin Approval</FormLabel>
+                    <FormDescription>
+                      Customer accounts must be approved by an admin before accessing this station
                     </FormDescription>
                   </div>
                   <FormControl>
