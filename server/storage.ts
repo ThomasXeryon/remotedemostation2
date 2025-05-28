@@ -10,6 +10,11 @@ import {
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
 
+// Generate unique UUID for demo stations
+function generateStationId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}-${Math.random().toString(36).substr(2, 9)}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
 export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
@@ -31,15 +36,15 @@ export interface IStorage {
   updateOrganization(id: number, updates: Partial<InsertOrganization>): Promise<Organization | undefined>;
 
   // Demo Stations
-  getDemoStation(id: number): Promise<DemoStation | undefined>;
+  getDemoStation(id: string): Promise<DemoStation | undefined>;
   getDemoStationsByOrganization(organizationId: number): Promise<DemoStation[]>;
   createDemoStation(station: InsertDemoStation): Promise<DemoStation>;
-  updateDemoStation(id: number, updates: Partial<InsertDemoStation>): Promise<DemoStation | undefined>;
-  updateDemoStationHeartbeat(id: number): Promise<void>;
-  deleteDemoStation(id: number): Promise<void>;
+  updateDemoStation(id: string, updates: Partial<InsertDemoStation>): Promise<DemoStation | undefined>;
+  updateDemoStationHeartbeat(id: string): Promise<void>;
+  deleteDemoStation(id: string): Promise<void>;
 
   // Control Configurations
-  getControlConfiguration(demoStationId: number): Promise<ControlConfiguration | undefined>;
+  getControlConfiguration(demoStationId: string): Promise<ControlConfiguration | undefined>;
   createControlConfiguration(config: InsertControlConfiguration): Promise<ControlConfiguration>;
   updateControlConfiguration(id: number, updates: Partial<InsertControlConfiguration>): Promise<ControlConfiguration | undefined>;
 
@@ -128,7 +133,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Demo Stations
-  async getDemoStation(id: number): Promise<DemoStation | undefined> {
+  async getDemoStation(id: string): Promise<DemoStation | undefined> {
     const [station] = await db.select().from(demoStations).where(eq(demoStations.id, id));
     return station || undefined;
   }
