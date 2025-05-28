@@ -36,6 +36,7 @@ interface StationConfig {
   cameraCount: number;
   sessionTimeLimit: number;
   requiresLogin: boolean;
+  requireApproval: boolean;
   safetyLimits: {
     maxSpeed: number;
     maxPosition: number;
@@ -320,7 +321,7 @@ export default function StationEditor() {
                     rows={3}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <Label htmlFor="cameraCount">Camera Count</Label>
                     <Select 
@@ -336,13 +337,34 @@ export default function StationEditor() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex items-center space-x-2 pt-6">
-                    <Switch
-                      id="requiresLogin"
-                      checked={config.requiresLogin}
-                      onCheckedChange={(checked) => handleConfigChange({ requiresLogin: checked })}
-                    />
-                    <Label htmlFor="requiresLogin">Require user login</Label>
+                </div>
+                
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-gray-900">Access Settings</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="requiresLogin" className="text-base font-medium">Require User Login</Label>
+                        <p className="text-sm text-gray-500">Users must be logged in to access this station</p>
+                      </div>
+                      <Switch
+                        id="requiresLogin"
+                        checked={config.requiresLogin}
+                        onCheckedChange={(checked) => handleConfigChange({ requiresLogin: checked })}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="requireApproval" className="text-base font-medium">Require Admin Approval</Label>
+                        <p className="text-sm text-gray-500">Customer accounts must be approved by an admin before accessing this station</p>
+                      </div>
+                      <Switch
+                        id="requireApproval"
+                        checked={config.requireApproval}
+                        onCheckedChange={(checked) => handleConfigChange({ requireApproval: checked })}
+                      />
+                    </div>
                   </div>
                 </div>
               </CardContent>
