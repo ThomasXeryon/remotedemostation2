@@ -44,11 +44,10 @@ export default function Organizations() {
   // Create organization mutation
   const createOrgMutation = useMutation({
     mutationFn: async (orgData: typeof newOrg) => {
-      const response = await apiRequest('POST', '/api/organizations', orgData);
-      if (!response.ok) {
-        throw new Error('Failed to create organization');
-      }
-      return response.json();
+      return await apiRequest('/api/organizations', {
+        method: 'POST',
+        body: JSON.stringify(orgData),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users/me/organizations'] });
