@@ -111,7 +111,11 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
       
       // Clear queries and force immediate refresh without page reload
       queryClient.clear();
-      queryClient.invalidateQueries();
+      
+      // Immediately invalidate specific queries that depend on organization
+      queryClient.invalidateQueries({ queryKey: ['/api/demo-stations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/me/organizations'] });
       
       // Dispatch event to update other components immediately
       window.dispatchEvent(new CustomEvent('organizationChanged', { 
