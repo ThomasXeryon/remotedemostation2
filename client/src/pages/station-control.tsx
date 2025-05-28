@@ -196,25 +196,15 @@ export function StationControl() {
       <div className="flex-1 flex gap-4 p-4">
         {/* Camera Feed Panel */}
         <div 
-          className="bg-white border border-gray-200 rounded-lg p-4"
           style={{ 
             width: `${layout.camera.width}%`
           }}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Live Camera Feed</h3>
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <span>WebRTC</span>
-              <span>1080p</span>
-            </div>
-          </div>
-          <div className="aspect-video border rounded-lg flex items-center justify-center relative bg-black">
-            <VideoFeed
-              stationName={stationData?.name || 'Demo Station'}
-              telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
-              isRecording={isSessionActive}
-            />
-          </div>
+          <VideoFeed
+            stationName={stationData?.name || 'Demo Station'}
+            telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
+            isRecording={isSessionActive}
+          />
         </div>
 
         {/* Control Panel */}
