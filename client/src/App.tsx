@@ -15,6 +15,7 @@ import NotFound from "@/pages/not-found";
 import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
 import { StationControl } from "./pages/station-control";
+import { CustomerLogin } from "./pages/customer-login";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated()) {
@@ -52,6 +53,13 @@ function Router() {
           <StationControl />
         </ProtectedRoute>
       </Route>
+      <Route path="/stations/:id/customer-login" component={({ params }) => (
+        <CustomerLogin 
+          stationId={params.id} 
+          organizationName="Demo Organization" 
+          stationName="Demo Station" 
+        />
+      )} />
       <Route path="/settings">
         <ProtectedRoute>
           <Settings />
