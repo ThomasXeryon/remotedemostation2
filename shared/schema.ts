@@ -59,6 +59,8 @@ export const demoStations = pgTable("demo_stations", {
   lastHeartbeat: timestamp("last_heartbeat"),
   configuration: jsonb("configuration").default('{}').notNull(),
   safetyLimits: jsonb("safety_limits").default('{}').notNull(),
+  interfaceLayout: jsonb("interface_layout").default('{}').notNull(),
+  networkSettings: jsonb("network_settings").default('{}').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

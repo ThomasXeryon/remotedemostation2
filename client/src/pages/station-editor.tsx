@@ -217,11 +217,15 @@ export default function StationEditor() {
 
   const handleSaveLayout = (newLayout: LayoutConfig) => {
     setLayout(newLayout);
-    // Save layout to station configuration
-    handleConfigChange({ 
+    // Save layout to station configuration (store in configuration field until schema is updated)
+    const updatedConfig = { 
       ...config, 
-      interfaceLayout: newLayout 
-    });
+      configuration: {
+        ...config.configuration,
+        interfaceLayout: newLayout
+      }
+    };
+    handleConfigChange(updatedConfig);
   };
 
   if (isLoading) {
