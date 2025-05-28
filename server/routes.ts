@@ -391,6 +391,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Insufficient permissions' });
       }
 
+      console.log('Creating station with data:', {
+        name: req.body.name,
+        organizationId: req.user!.organizationId
+      });
+
       const stationData = insertDemoStationSchema.parse({
         name: req.body.name,
         description: req.body.description || null,
@@ -403,10 +408,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         safetyLimits: {}
       });
 
+      console.log('Parsed station data:', stationData);
       const station = await storage.createDemoStation(stationData);
+      console.log('Created station:', station);
       res.status(201).json(station);
     } catch (error) {
-      console.error('Station creation error:', error);
+      console.error('Station creation detailed error:', error);
+      console.error('Request body:', req.body);
+      console.error('Station data being parsed:', {
+        name: req.body.name,
+        description: req.body.description || null,
+        organizationId: req.user!.organizationId,
+        hardwareType: "universal",
+        cameraCount: req.body.cameraCount || 1,
+        sessionTimeLimit: req.body.sessionTimeLimit || 30,
+        requiresLogin: req.body.requiresLogin || false,
+        configuration: {},
+        safetyLimits: {}
+      });
       res.status(400).json({ message: 'Failed to create demo station', error: error instanceof Error ? error.message : String(error) });
     }
   });
