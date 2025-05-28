@@ -577,7 +577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Telemetry routes
   app.get('/api/demo-stations/:id/telemetry', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const stationId = parseInt(req.params.id);
+      const stationId = req.params.id;
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
