@@ -86,7 +86,7 @@ export const commands = pgTable("commands", {
   id: serial("id").primaryKey(),
   sessionId: integer("session_id").notNull(),
   userId: integer("user_id").notNull(),
-  demoStationId: integer("demo_station_id").notNull(),
+  demoStationId: text("demo_station_id").notNull(),
   command: text("command").notNull(),
   parameters: jsonb("parameters"),
   timestamp: timestamp("timestamp").defaultNow().notNull(),

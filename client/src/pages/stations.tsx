@@ -136,6 +136,7 @@ export default function StationsPage() {
   };
 
   const handleEditStation = (station: DemoStation) => {
+    console.log('Editing station with ID:', station.id);
     setLocation(`/stations/${station.id}/edit`);
   };
 

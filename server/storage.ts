@@ -145,8 +145,15 @@ export class DatabaseStorage implements IStorage {
 
   // Demo Stations
   async getDemoStation(id: string): Promise<DemoStation | undefined> {
-    const [station] = await db.select().from(demoStations).where(eq(demoStations.id, id));
-    return station || undefined;
+    try {
+      console.log('Storage: Looking for station with ID:', id);
+      const [station] = await db.select().from(demoStations).where(eq(demoStations.id, id));
+      console.log('Storage: Found station:', station);
+      return station || undefined;
+    } catch (error) {
+      console.error('Storage: Error fetching station:', error);
+      return undefined;
+    }
   }
 
   async getDemoStationsByOrganization(organizationId: number): Promise<DemoStation[]> {

@@ -373,7 +373,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/demo-stations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const stationId = req.params.id;
+      console.log('Fetching station with ID:', stationId);
+      
       const station = await storage.getDemoStation(stationId);
+      console.log('Found station:', station);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
         return res.status(404).json({ message: 'Demo station not found' });
@@ -381,6 +384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(station);
     } catch (error) {
+      console.error('Error fetching station:', error);
       res.status(500).json({ message: 'Failed to fetch demo station' });
     }
   });
@@ -391,41 +395,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Insufficient permissions' });
       }
 
-      const stationData = insertDemoStationSchema.parse({
-        name: req.body.name,
+      console.log('Creating station with data:', req.body);
+      console.log('User organization ID:', req.user!.organizationId);
+
+      // Validate required fields
+      if (!req.body.name || req.body.name.trim() === '') {
+        return res.status(400).json({ message: 'Station name is required' });
+      }
+
+      const stationData = {
+        name: req.body.name.trim(),
         description: req.body.description || null,
         organizationId: req.user!.organizationId,
         hardwareType: "universal",
-        cameraCount: req.body.cameraCount || 1,
-        sessionTimeLimit: req.body.sessionTimeLimit || 30,
-        requiresLogin: req.body.requiresLogin || false,
+        isOnline: false,
+        cameraCount: parseInt(req.body.cameraCount) || 1,
+        sessionTimeLimit: parseInt(req.body.sessionTimeLimit) || 30,
+        requiresLogin: req.body.requiresLogin === true || req.body.requiresLogin === 'true',
         configuration: {},
         safetyLimits: {}
-      });
+      };
 
-      const station = await storage.createDemoStation(stationData);
+      console.log('Parsed station data:', stationData);
+
+      const validatedData = insertDemoStationSchema.parse(stationData);
+      console.log('Validated station data:', validatedData);
+
+      const station = await storage.createDemoStation(validatedData);
+      console.log('Created station:', station);
+      
       res.status(201).json(station);
     } catch (error) {
       console.error('Station creation detailed error:', error);
       console.error('Request body:', req.body);
-      console.error('Station data being parsed:', {
-        name: req.body.name,
-        description: req.body.description || null,
-        organizationId: req.user!.organizationId,
-        hardwareType: "universal",
-        cameraCount: req.body.cameraCount || 1,
-        sessionTimeLimit: req.body.sessionTimeLimit || 30,
-        requiresLogin: req.body.requiresLogin || false,
-        configuration: {},
-        safetyLimits: {}
-      });
-      res.status(400).json({ message: 'Failed to create demo station', error: error instanceof Error ? error.message : String(error) });
+      
+      if (error instanceof Error && error.message.includes('validation')) {
+        res.status(400).json({ message: 'Invalid station data', details: error.message });
+      } else {
+        res.status(400).json({ message: 'Failed to create demo station', error: error instanceof Error ? error.message : String(error) });
+      }
     }
   });
 
   app.patch('/api/demo-stations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const stationId = req.params.id;
+      console.log('Updating station with ID:', stationId);
+      console.log('Update data:', req.body);
+      
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
@@ -437,8 +454,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const updatedStation = await storage.updateDemoStation(stationId, req.body);
+      console.log('Updated station:', updatedStation);
       res.json(updatedStation);
     } catch (error) {
+      console.error('Error updating station:', error);
       res.status(400).json({ message: 'Failed to update demo station' });
     }
   });
@@ -446,7 +465,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/demo-stations/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const stationId = req.params.id;
+      console.log('Deleting station with ID:', stationId);
+      
       const station = await storage.getDemoStation(stationId);
+      console.log('Station to delete:', station);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
         return res.status(404).json({ message: 'Demo station not found' });
@@ -457,8 +479,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.deleteDemoStation(stationId);
+      console.log('Station deleted successfully:', stationId);
       res.json({ message: 'Demo station deleted successfully' });
     } catch (error) {
+      console.error('Error deleting station:', error);
       res.status(500).json({ message: 'Failed to delete demo station' });
     }
   });
