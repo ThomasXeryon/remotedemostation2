@@ -9,6 +9,8 @@ import Login from "@/pages/login";
 import { Dashboard } from "@/pages/dashboard-new";
 import Organizations from "@/pages/organizations";
 import Settings from "@/pages/settings";
+import Analytics from "@/pages/analytics";
+import TeamMembers from "@/pages/team-members";
 import NotFound from "@/pages/not-found";
 import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
@@ -58,6 +60,16 @@ function Router() {
       <Route path="/settings">
         <ProtectedRoute>
           <Settings />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/analytics">
+        <ProtectedRoute>
+          <Analytics />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/team-members">
+        <ProtectedRoute>
+          <TeamMembers />
         </ProtectedRoute>
       </Route>
       <Route path="/">

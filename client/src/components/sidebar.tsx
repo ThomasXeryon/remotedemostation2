@@ -70,10 +70,10 @@ export function Sidebar({
       active: location === '/stations'
     },
     { 
-      path: '/team', 
+      path: '/team-members', 
       icon: Users, 
       label: 'Team Members',
-      active: location === '/team'
+      active: location === '/team-members'
     },
     { 
       path: '/analytics', 
