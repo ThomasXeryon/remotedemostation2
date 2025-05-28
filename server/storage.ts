@@ -147,14 +147,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDemoStation(insertStation: InsertDemoStation): Promise<DemoStation> {
+    const stationId = generateStationId();
     const [station] = await db
       .insert(demoStations)
-      .values(insertStation)
+      .values({ ...insertStation, id: stationId })
       .returning();
     return station;
   }
 
-  async updateDemoStation(id: number, updates: Partial<InsertDemoStation>): Promise<DemoStation | undefined> {
+  async updateDemoStation(id: string, updates: Partial<InsertDemoStation>): Promise<DemoStation | undefined> {
     const [station] = await db
       .update(demoStations)
       .set(updates)
@@ -163,7 +164,7 @@ export class DatabaseStorage implements IStorage {
     return station || undefined;
   }
 
-  async updateDemoStationHeartbeat(id: number): Promise<void> {
+  async updateDemoStationHeartbeat(id: string): Promise<void> {
     await db
       .update(demoStations)
       .set({ 
@@ -173,12 +174,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(demoStations.id, id));
   }
 
-  async deleteDemoStation(id: number): Promise<void> {
+  async deleteDemoStation(id: string): Promise<void> {
     await db.delete(demoStations).where(eq(demoStations.id, id));
   }
 
   // Control Configurations
-  async getControlConfiguration(demoStationId: number): Promise<ControlConfiguration | undefined> {
+  async getControlConfiguration(demoStationId: string): Promise<ControlConfiguration | undefined> {
     const [config] = await db
       .select()
       .from(controlConfigurations)
