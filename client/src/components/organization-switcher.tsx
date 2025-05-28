@@ -83,13 +83,21 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
     onSuccess: (data: any, organizationId: number) => {
       console.log('Organization switch successful:', data);
       
-      // Save the new JWT token FIRST before any other operations
+      // Save the new JWT token
       if (data.token) {
         localStorage.setItem('auth_token', data.token);
         console.log('New token saved to localStorage');
       }
       
-      // Find the organization that was switched to
+      // Update user data in localStorage with new organization
+      const currentUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+      if (data.organization) {
+        currentUser.organization = data.organization;
+        localStorage.setItem('auth_user', JSON.stringify(currentUser));
+        console.log('Updated user organization in localStorage:', data.organization);
+      }
+      
+      // Update selected org state
       const newOrg = organizations.find(org => org.id === organizationId);
       if (newOrg) {
         setSelectedOrg({
@@ -101,13 +109,14 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
       
       toast({ title: 'Organization switched successfully' });
       
-      // Clear all cached queries
+      // Clear queries and force immediate refresh without page reload
       queryClient.clear();
+      queryClient.invalidateQueries();
       
-      // Wait a bit longer for token to be saved, then reload
-      setTimeout(() => {
-        window.location.reload();
-      }, 200);
+      // Dispatch event to update other components immediately
+      window.dispatchEvent(new CustomEvent('organizationChanged', { 
+        detail: { organization: data.organization } 
+      }));
     },
     onError: (error: any) => {
       console.error('Organization switch failed:', error);

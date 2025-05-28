@@ -38,18 +38,27 @@ export function Sidebar({
 
   // Listen for organization changes
   useEffect(() => {
-    const handleOrganizationChanged = () => {
-      // Organization has changed, component will re-render with new user data
-      setCurrentOrganization(user.organization);
+    const handleOrganizationChanged = (event: any) => {
+      console.log('Organization changed event received:', event.detail);
+      // Update current organization from the event or refresh user data
+      if (event.detail?.organization) {
+        setCurrentOrganization(event.detail.organization);
+      } else {
+        // Fallback: get updated user data from localStorage
+        const updatedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+        if (updatedUser.organization) {
+          setCurrentOrganization(updatedUser.organization);
+        }
+      }
     };
 
     window.addEventListener('organizationChanged', handleOrganizationChanged);
     return () => {
       window.removeEventListener('organizationChanged', handleOrganizationChanged);
     };
-  }, [user.organization]);
+  }, []);
 
-  // Update current organization when user prop changes
+  // Also update when user prop changes
   useEffect(() => {
     setCurrentOrganization(user.organization);
   }, [user.organization]);
