@@ -125,7 +125,7 @@ export function LayoutEditorModal({
         <div className="flex-1 overflow-auto p-4">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 min-h-full">
           {/* Layout Controls */}
-          <div className="lg:col-span-1 space-y-4 overflow-y-auto max-h-screen">
+          <div className="lg:col-span-1 space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
