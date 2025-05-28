@@ -67,17 +67,19 @@ export function StationControl() {
     refetchInterval: 1000, // Refresh every second when session is active
   });
 
-  // Debug the station data
-  console.log('Full station data:', station);
-  console.log('Station configuration:', station?.configuration);
+  // Fix: station comes as an array, get the first element
+  const stationData = Array.isArray(station) ? station[0] : station;
+  
+  console.log('Station data:', stationData);
+  console.log('Station configuration:', stationData?.configuration);
   
   // Get saved layout or use default
-  const layout = station?.configuration?.interfaceLayout || {
-    camera: { width: 37, height: 90, position: { x: 5, y: 5 } },
+  const layout = stationData?.configuration?.interfaceLayout || {
+    camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
     controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
   };
 
-  console.log('Current layout being used:', layout);
+  console.log('Using layout:', layout);
 
   // Listen for organization changes and refetch data
   useEffect(() => {
@@ -196,8 +198,8 @@ export function StationControl() {
         <div 
           className="bg-white border border-gray-200 rounded-lg p-4"
           style={{ 
-            width: station?.configuration?.interfaceLayout?.camera?.width 
-              ? `${station.configuration.interfaceLayout.camera.width}%` 
+            width: stationData?.configuration?.interfaceLayout?.camera?.width 
+              ? `${stationData.configuration.interfaceLayout.camera.width}%` 
               : '60%' 
           }}
         >
@@ -210,15 +212,15 @@ export function StationControl() {
           </div>
           <div className="aspect-video border rounded-lg flex items-center justify-center relative bg-black">
             <VideoFeed
-              stationName={demoStation.name}
+              stationName={stationData?.name || 'Demo Station'}
               telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
               isRecording={isSessionActive}
             />
 
             {/* Camera count indicator */}
-            {demoStation.cameraCount > 1 && (
+            {stationData && stationData.cameraCount > 1 && (
               <div className="absolute top-4 left-4 flex space-x-2">
-                {Array.from({ length: demoStation.cameraCount }, (_, i) => (
+                {Array.from({ length: stationData.cameraCount }, (_, i) => (
                   <Button key={i} size="sm" variant={i === 0 ? "default" : "outline"} className="text-xs">
                     Cam {i + 1}
                   </Button>
@@ -232,8 +234,8 @@ export function StationControl() {
         <div 
           className="bg-white border border-gray-200 rounded-lg p-4"
           style={{ 
-            width: station?.configuration?.interfaceLayout?.controlPanel?.width 
-              ? `${station.configuration.interfaceLayout.controlPanel.width}%` 
+            width: stationData?.configuration?.interfaceLayout?.controlPanel?.width 
+              ? `${stationData.configuration.interfaceLayout.controlPanel.width}%` 
               : '40%' 
           }}
         >
