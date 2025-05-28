@@ -131,6 +131,11 @@ export default function StationEditor() {
           maxRetries: 3,
         },
       });
+
+      // Load saved layout if it exists
+      if (station.configuration?.interfaceLayout) {
+        setLayout(station.configuration.interfaceLayout);
+      }
     }
   }, [station, isLoading]);
 

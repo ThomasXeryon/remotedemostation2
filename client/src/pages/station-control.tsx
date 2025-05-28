@@ -67,6 +67,12 @@ export function StationControl() {
     refetchInterval: 1000, // Refresh every second when session is active
   });
 
+  // Get saved layout or use default
+  const layout = station?.configuration?.interfaceLayout || {
+    camera: { width: 65, height: 80, position: { x: 5, y: 10 } },
+    controlPanel: { width: 25, height: 80, position: { x: 72, y: 10 } }
+  };
+
   // Listen for organization changes and refetch data
   useEffect(() => {
     const handleOrganizationChanged = () => {
@@ -179,9 +185,17 @@ export function StationControl() {
       </div>
 
       {/* Main Control Interface */}
-      <div className="flex-1 flex">
-        {/* Left Side - Video Feed (takes most space) */}
-        <div className="flex-1 p-4">
+      <div className="flex-1 relative">
+        {/* Video Feed - Custom Layout Position */}
+        <div 
+          className="absolute p-4"
+          style={{
+            left: `${layout.camera.position.x}%`,
+            top: `${layout.camera.position.y}%`,
+            width: `${layout.camera.width}%`,
+            height: `${layout.camera.height}%`,
+          }}
+        >
           <div className="h-full border rounded-lg flex items-center justify-center relative">
             <VideoFeed
               stationName={demoStation.name}
