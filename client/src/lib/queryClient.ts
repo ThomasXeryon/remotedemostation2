@@ -33,7 +33,13 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
       throw new Error(errorMessage);
     }
 
-    return await response.json();
+    // Handle empty responses (like DELETE operations)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    } else {
+      return null;
+    }
   } catch (error) {
     console.error('API request failed:', { endpoint, error });
     throw error;
