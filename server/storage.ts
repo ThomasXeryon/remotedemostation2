@@ -145,8 +145,52 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteOrganization(id: number): Promise<void> {
-    // Delete organization (cascading deletes will handle related data)
-    await db.delete(organizations).where(eq(organizations.id, id));
+    try {
+      console.log(`Attempting to delete organization with ID: ${id}`);
+      
+      // First, delete all related data manually since we don't have CASCADE setup
+      
+      // Delete user-organization relationships
+      console.log('Deleting user-organization relationships...');
+      await db.delete(userOrganizations).where(eq(userOrganizations.organizationId, id));
+      
+      // Delete demo stations and their related data
+      console.log('Getting demo stations for organization...');
+      const stationsToDelete = await db.select().from(demoStations).where(eq(demoStations.organizationId, id));
+      
+      for (const station of stationsToDelete) {
+        console.log(`Deleting station ${station.id}...`);
+        
+        // Delete control configurations
+        await db.delete(controlConfigurations).where(eq(controlConfigurations.demoStationId, station.id));
+        
+        // Delete sessions and their related data
+        const sessionsToDelete = await db.select().from(sessions).where(eq(sessions.demoStationId, station.id));
+        for (const session of sessionsToDelete) {
+          // Delete commands
+          await db.delete(commands).where(eq(commands.sessionId, session.id));
+        }
+        
+        // Delete sessions
+        await db.delete(sessions).where(eq(sessions.demoStationId, station.id));
+        
+        // Delete telemetry data
+        await db.delete(telemetryData).where(eq(telemetryData.demoStationId, station.id));
+        
+        // Delete the demo station
+        await db.delete(demoStations).where(eq(demoStations.id, station.id));
+      }
+      
+      // Finally, delete the organization
+      console.log('Deleting organization...');
+      const result = await db.delete(organizations).where(eq(organizations.id, id));
+      console.log('Organization deletion result:', result);
+      
+      console.log(`Successfully deleted organization ${id}`);
+    } catch (error) {
+      console.error(`Failed to delete organization ${id}:`, error);
+      throw error;
+    }
   }
 
   // Demo Stations
