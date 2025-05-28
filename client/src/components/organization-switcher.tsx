@@ -148,15 +148,7 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
   // Determine current organization to display
   const displayOrg = selectedOrg || userData?.organization || currentOrganization;
 
-  const handleCreateOrganization = () => {
-    console.log('Create organization button clicked');
-    try {
-      setLocation('/organizations');
-      console.log('Navigation to /organizations triggered');
-    } catch (error) {
-      console.error('Failed to navigate to organizations:', error);
-    }
-  };
+
 
   return (
     <DropdownMenu>
@@ -215,20 +207,7 @@ export function OrganizationSwitcher({ currentOrganization }: OrganizationSwitch
           </DropdownMenuItem>
         ))}
         
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuItem
-          onClick={handleCreateOrganization}
-          className="flex items-center space-x-3 p-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-        >
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100">
-            <Plus className="h-4 w-4 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium">Create Organization</p>
-            <p className="text-xs text-slate-500">Set up a new organization</p>
-          </div>
-        </DropdownMenuItem>
+
       </DropdownMenuContent>
     </DropdownMenu>
   );
