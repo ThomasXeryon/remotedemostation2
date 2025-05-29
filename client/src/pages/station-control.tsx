@@ -329,7 +329,7 @@ export function StationControl() {
                       return (
                         <div
                           key={widget.id}
-                          style={{...style, borderRadius: '50%', position: 'relative'}}
+                          style={{...style, padding: '8px'}}
                           className="shadow-sm cursor-pointer"
                         >
                           <div className="text-xs mb-2 text-center font-medium text-gray-700">
@@ -342,15 +342,20 @@ export function StationControl() {
                               backgroundColor: widget.style?.backgroundColor || '#f3f4f6'
                             }}
                             onMouseDown={(e) => {
-                              const rect = e.currentTarget.getBoundingClientRect();
+                              e.preventDefault();
+                              const joystickArea = e.currentTarget;
+                              const rect = joystickArea.getBoundingClientRect();
                               const centerX = rect.left + rect.width / 2;
                               const centerY = rect.top + rect.height / 2;
+                              const maxDistance = 30;
+                              
+                              const knob = joystickArea.querySelector('.joystick-knob') as HTMLElement;
+                              if (!knob) return;
                               
                               const handleMouseMove = (moveEvent: MouseEvent) => {
                                 const deltaX = moveEvent.clientX - centerX;
                                 const deltaY = moveEvent.clientY - centerY;
                                 const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                                const maxDistance = 30; // Half the joystick area
                                 
                                 let x = deltaX;
                                 let y = deltaY;
@@ -360,10 +365,8 @@ export function StationControl() {
                                   y = (deltaY / distance) * maxDistance;
                                 }
                                 
-                                const knob = e.currentTarget.querySelector('.joystick-knob') as HTMLElement;
-                                if (knob) {
-                                  knob.style.transform = `translate(${x}px, ${y}px)`;
-                                }
+                                knob.style.transform = `translate(${x}px, ${y}px)`;
+                                knob.style.transition = 'none';
                                 
                                 if (isSessionActive) {
                                   handleCommand(widget.command, { 
@@ -375,13 +378,13 @@ export function StationControl() {
                               };
                               
                               const handleMouseUp = () => {
-                                const knob = e.currentTarget.querySelector('.joystick-knob') as HTMLElement;
-                                if (knob) {
-                                  knob.style.transform = 'translate(0px, 0px)';
-                                }
+                                knob.style.transform = 'translate(0px, 0px)';
+                                knob.style.transition = 'transform 0.2s ease';
+                                
                                 if (isSessionActive) {
                                   handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
                                 }
+                                
                                 document.removeEventListener('mousemove', handleMouseMove);
                                 document.removeEventListener('mouseup', handleMouseUp);
                               };
@@ -391,10 +394,11 @@ export function StationControl() {
                             }}
                           >
                             <div 
-                              className="joystick-knob w-6 h-6 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all"
+                              className="joystick-knob w-6 h-6 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                               style={{
                                 backgroundColor: widget.style?.textColor || '#2563eb',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                transition: 'transform 0.2s ease'
                               }}
                             />
                           </div>
