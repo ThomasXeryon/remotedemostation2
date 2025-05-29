@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Square, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Joystick } from "@/components/joystick";
 
 interface DemoStation {
   id: string;
@@ -330,75 +331,27 @@ export function StationControl() {
                         <div
                           key={widget.id}
                           style={{...style, padding: '8px'}}
-                          className="shadow-sm cursor-pointer"
+                          className="shadow-sm"
                         >
                           <div className="text-xs mb-2 text-center font-medium text-gray-700">
                             {widget.name}
                           </div>
-                          <div 
-                            className="w-20 h-20 rounded-full border-4 relative mx-auto"
-                            style={{
-                              borderColor: widget.style?.borderColor || '#2563eb',
-                              backgroundColor: widget.style?.backgroundColor || '#f3f4f6'
-                            }}
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              const joystickArea = e.currentTarget;
-                              const rect = joystickArea.getBoundingClientRect();
-                              const centerX = rect.left + rect.width / 2;
-                              const centerY = rect.top + rect.height / 2;
-                              const maxDistance = 30;
-                              
-                              const knob = joystickArea.querySelector('.joystick-knob') as HTMLElement;
-                              if (!knob) return;
-                              
-                              const handleMouseMove = (moveEvent: MouseEvent) => {
-                                const deltaX = moveEvent.clientX - centerX;
-                                const deltaY = moveEvent.clientY - centerY;
-                                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                                
-                                let x = deltaX;
-                                let y = deltaY;
-                                
-                                if (distance > maxDistance) {
-                                  x = (deltaX / distance) * maxDistance;
-                                  y = (deltaY / distance) * maxDistance;
-                                }
-                                
-                                knob.style.transform = `translate(${x}px, ${y}px)`;
-                                knob.style.transition = 'none';
-                                
+                          <div className="flex justify-center">
+                            <Joystick
+                              size={80}
+                              onMove={(x, y) => {
                                 if (isSessionActive) {
                                   handleCommand(widget.command, { 
-                                    x: Math.round((x / maxDistance) * 100), 
-                                    y: Math.round((y / maxDistance) * 100),
+                                    x: Math.round(x * 100), 
+                                    y: Math.round(y * 100),
                                     ...widget.parameters 
                                   });
                                 }
-                              };
-                              
-                              const handleMouseUp = () => {
-                                knob.style.transform = 'translate(0px, 0px)';
-                                knob.style.transition = 'transform 0.2s ease';
-                                
+                              }}
+                              onStop={() => {
                                 if (isSessionActive) {
                                   handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
                                 }
-                                
-                                document.removeEventListener('mousemove', handleMouseMove);
-                                document.removeEventListener('mouseup', handleMouseUp);
-                              };
-                              
-                              document.addEventListener('mousemove', handleMouseMove);
-                              document.addEventListener('mouseup', handleMouseUp);
-                            }}
-                          >
-                            <div 
-                              className="joystick-knob w-6 h-6 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                              style={{
-                                backgroundColor: widget.style?.textColor || '#2563eb',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                transition: 'transform 0.2s ease'
                               }}
                             />
                           </div>
