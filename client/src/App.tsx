@@ -14,7 +14,7 @@ import TeamMembers from "@/pages/team-members";
 import NotFound from "@/pages/not-found";
 import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
-import { StationControl } from "./pages/station-control";
+import StationControl from "./pages/station-control-new";
 import { CustomerLogin } from "./pages/customer-login";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {

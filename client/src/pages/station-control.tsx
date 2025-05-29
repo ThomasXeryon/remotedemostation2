@@ -535,9 +535,11 @@ export default function StationControl() {
 
   // Sync local controls with fetched controls
   useEffect(() => {
-    const controlWidgets = Array.isArray(controlConfig?.controls) ? controlConfig.controls : [];
-    if (controlWidgets.length > 0) {
-      setLocalControls(controlWidgets);
+    if (controlConfig && typeof controlConfig === 'object' && 'controls' in controlConfig) {
+      const controlWidgets = Array.isArray(controlConfig.controls) ? controlConfig.controls : [];
+      if (controlWidgets.length > 0) {
+        setLocalControls(controlWidgets);
+      }
     }
   }, [controlConfig]);
 
