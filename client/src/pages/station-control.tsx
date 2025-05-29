@@ -104,11 +104,13 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
   const containerRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
+  const [isPressed, setIsPressed] = useState(false);
 
   const handleJoystickStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isSessionActive) return;
     e.preventDefault();
     isDraggingRef.current = true;
+    setIsPressed(true);
     
     const container = containerRef.current;
     const knob = knobRef.current;
@@ -117,7 +119,8 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     const containerRect = container.getBoundingClientRect();
     const centerX = containerRect.left + containerRect.width / 2;
     const centerY = containerRect.top + containerRect.height / 2;
-    const maxDistance = Math.min(containerRect.width, containerRect.height) / 2 + 30;
+    const containerRadius = Math.min(containerRect.width, containerRect.height) / 2;
+    const maxDistance = containerRadius - 20; // Leave some padding from edge
 
     const handleMove = (moveEvent: MouseEvent | TouchEvent) => {
       if (!isDraggingRef.current) return;
@@ -149,6 +152,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
 
     const handleEnd = () => {
       isDraggingRef.current = false;
+      setIsPressed(false);
       if (knob) {
         knob.style.left = '50%';
         knob.style.top = '50%';
@@ -173,31 +177,67 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
       ref={containerRef}
       style={{
         ...style,
-        backgroundColor: widget.style.backgroundColor,
-        border: `2px solid ${widget.style.borderColor}`,
+        background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 2).toString(16)).join('')})`,
+        border: `3px solid ${widget.style.borderColor}`,
         borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        cursor: isSessionActive ? 'pointer' : 'not-allowed',
-        opacity: isSessionActive ? 1 : 0.6
+        cursor: isSessionActive ? 'grab' : 'not-allowed',
+        opacity: isSessionActive ? 1 : 0.6,
+        boxShadow: isPressed 
+          ? 'inset 0 4px 8px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.1)' 
+          : '0 6px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)'
       }}
-      className="shadow-sm"
+      className="transition-all duration-150"
       onMouseDown={handleJoystickStart}
       onTouchStart={handleJoystickStart}
     >
+      {/* Crosshair guides */}
+      <div 
+        className="absolute w-full h-0.5 opacity-20"
+        style={{ backgroundColor: widget.style.textColor }}
+      />
+      <div 
+        className="absolute h-full w-0.5 opacity-20"
+        style={{ backgroundColor: widget.style.textColor }}
+      />
+      
+      {/* Center dot */}
+      <div 
+        className="absolute w-2 h-2 rounded-full opacity-30"
+        style={{ backgroundColor: widget.style.textColor }}
+      />
+      
+      {/* Knob */}
       <div
         ref={knobRef}
-        className="w-8 h-8 bg-white rounded-full absolute shadow-lg transition-all"
+        className="absolute rounded-full transition-all duration-150"
         style={{
+          width: '32px',
+          height: '32px',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          transitionDuration: isDraggingRef.current ? '0ms' : '200ms',
+          background: `linear-gradient(145deg, #ffffff, #f0f0f0)`,
+          border: `2px solid ${widget.style.borderColor}`,
+          boxShadow: isPressed 
+            ? '0 2px 4px rgba(0,0,0,0.2), inset 0 1px 2px rgba(0,0,0,0.1)' 
+            : '0 4px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8)',
+          cursor: isSessionActive ? (isDraggingRef.current ? 'grabbing' : 'grab') : 'not-allowed',
+          transitionDuration: isDraggingRef.current ? '0ms' : '150ms',
           zIndex: 10
         }}
-      />
+      >
+        {/* Knob inner highlight */}
+        <div 
+          className="absolute inset-1 rounded-full opacity-40"
+          style={{ 
+            background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%)`
+          }}
+        />
+      </div>
     </div>
   );
 }

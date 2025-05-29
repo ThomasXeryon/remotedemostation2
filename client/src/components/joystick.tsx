@@ -1,3 +1,4 @@
+
 import { useRef, useEffect, useState, useCallback } from 'react';
 
 interface JoystickProps {
@@ -13,8 +14,8 @@ export function Joystick({ onMove, onStop, size = 120, className = '' }: Joystic
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  const handleSize = size / 3;
-  const maxDistance = (size - handleSize) / 2;
+  const handleSize = Math.min(size / 3, 40);
+  const maxDistance = (size - handleSize) / 2 - 8; // Leave padding from edge
 
   const updatePosition = useCallback((clientX: number, clientY: number) => {
     if (!baseRef.current) return;
@@ -105,22 +106,66 @@ export function Joystick({ onMove, onStop, size = 120, className = '' }: Joystic
     <div className={`relative ${className}`}>
       <div
         ref={baseRef}
-        className="bg-slate-100 border-2 border-slate-300 rounded-full relative cursor-pointer select-none"
-        style={{ width: size, height: size }}
+        className="relative cursor-grab select-none transition-all duration-150"
+        style={{ 
+          width: size, 
+          height: size,
+          background: 'linear-gradient(145deg, #f8fafc, #e2e8f0)',
+          border: '3px solid #cbd5e1',
+          borderRadius: '50%',
+          boxShadow: isDragging 
+            ? 'inset 0 4px 8px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.1)' 
+            : '0 6px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
+        {/* Crosshair guides */}
+        <div 
+          className="absolute w-full h-0.5 bg-slate-400 opacity-20"
+          style={{ top: '50%', transform: 'translateY(-50%)' }}
+        />
+        <div 
+          className="absolute h-full w-0.5 bg-slate-400 opacity-20"
+          style={{ left: '50%', transform: 'translateX(-50%)' }}
+        />
+        
+        {/* Center dot */}
+        <div 
+          className="absolute w-2 h-2 bg-slate-400 rounded-full opacity-30"
+          style={{ 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)' 
+          }}
+        />
+        
+        {/* Handle */}
         <div
           ref={handleRef}
-          className="bg-blue-500 rounded-full absolute shadow-lg transition-none"
+          className="absolute rounded-full transition-all duration-150"
           style={{
             width: handleSize,
             height: handleSize,
             left: `calc(50% + ${position.x}px - ${handleSize / 2}px)`,
             top: `calc(50% + ${position.y}px - ${handleSize / 2}px)`,
+            background: 'linear-gradient(145deg, #ffffff, #f0f0f0)',
+            border: '2px solid #3b82f6',
+            boxShadow: isDragging 
+              ? '0 2px 4px rgba(0,0,0,0.2), inset 0 1px 2px rgba(0,0,0,0.1)' 
+              : '0 4px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8)',
             cursor: isDragging ? 'grabbing' : 'grab',
+            transitionDuration: isDragging ? '0ms' : '150ms',
           }}
-        />
+        >
+          {/* Handle inner highlight */}
+          <div 
+            className="absolute inset-1 rounded-full opacity-40"
+            style={{ 
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%)'
+            }}
+          />
+        </div>
       </div>
     </div>
   );
