@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { getCurrentUser } from '@/lib/auth';
-import { Play, Edit2, Save, X, Monitor, Move, Grid3X3 } from 'lucide-react';
+import { Play, Edit2, Save, X, Monitor, Move, Grid3X3, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -39,7 +39,7 @@ export default function StationControlSimple() {
   const [isResizingPanel, setIsResizingPanel] = useState<string | null>(null);
   const [selectedPanel, setSelectedPanel] = useState<string | null>(null);
   const [controls, setControls] = useState<any[]>([]);
-  const [selectedControl, setSelectedControl] = useState<string | null>(null);
+  const [selectedControl, setSelectedControl] = useState<any | null>(null);
   const [isDraggingControl, setIsDraggingControl] = useState<string | null>(null);
 
   // Snap to grid function
@@ -90,9 +90,10 @@ export default function StationControlSimple() {
 
   // Load saved controls from station configuration
   useEffect(() => {
-    if (stationData?.configuration?.controls) {
-      console.log('Loading saved controls:', stationData.configuration.controls);
-      setControls(stationData.configuration.controls);
+    const station = Array.isArray(stationData) ? stationData[0] : stationData;
+    if (station?.configuration?.controls) {
+      console.log('Loading saved controls:', station.configuration.controls);
+      setControls(station.configuration.controls);
     }
   }, [stationData]);
 
@@ -720,6 +721,28 @@ export default function StationControlSimple() {
                       className="w-full"
                     >
                       Snap to Grid
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Control Properties */}
+              {selectedControl && (
+                <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-medium mb-3">Selected Control</h4>
+                  <div className="space-y-2">
+                    <p className="text-sm"><strong>Name:</strong> {selectedControl.name}</p>
+                    <p className="text-sm"><strong>Type:</strong> {selectedControl.type}</p>
+                    <p className="text-sm"><strong>Command:</strong> {selectedControl.command}</p>
+                    <p className="text-sm"><strong>Position:</strong> ({selectedControl.position.x}, {selectedControl.position.y})</p>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => handleDeleteControl(selectedControl.id)}
+                      className="w-full mt-2"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Control
                     </Button>
                   </div>
                 </div>
