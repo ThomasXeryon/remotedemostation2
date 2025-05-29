@@ -480,7 +480,7 @@ export function StationControl() {
           {controlConfig?.controls && controlConfig.controls.length > 0 ? (
             <div>
               <h3 className="font-semibold mb-3">Hardware Controls</h3>
-              <div className="relative bg-gray-50 rounded-lg p-4 min-h-[400px] border-2 border-dashed border-gray-200 overflow-visible">
+              <div className="relative bg-gray-50 rounded-lg p-4 min-h-[400px] border-2 border-dashed border-gray-200 overflow-visible" style={{ position: 'relative' }}>
                 {controlConfig.controls.map((widget: ControlWidget) => {
                   const style = {
                     position: 'absolute' as const,
@@ -566,6 +566,8 @@ export function StationControl() {
                   }
 
                   if (widget.type === 'slider') {
+                    const [sliderValue, setSliderValue] = useState(50);
+                    
                     return (
                       <div
                         key={widget.id}
@@ -576,18 +578,19 @@ export function StationControl() {
                           width: `${widget.size.width}px`,
                           height: `${widget.size.height}px`,
                           background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 2).toString(16)).join('')})`,
-                          border: `2px solid ${widget.style.borderColor}`,
+                          border: `3px solid ${widget.style.borderColor}`,
                           borderRadius: `${widget.style.borderRadius}px`,
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
-                          justifyContent: 'center',
+                          justifyContent: 'space-between',
                           padding: '12px',
                           cursor: isSessionActive ? 'pointer' : 'not-allowed',
                           opacity: isSessionActive ? 1 : 0.6,
-                          position: 'relative'
+                          overflow: 'hidden',
+                          boxSizing: 'border-box'
                         }}
-                        className="shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                        className="shadow-lg hover:shadow-xl transition-all duration-200"
                       >
                         {/* Slider label */}
                         <div 
@@ -595,54 +598,57 @@ export function StationControl() {
                             color: widget.style.textColor, 
                             fontSize: `${Math.max(10, widget.style.fontSize - 2)}px`,
                             fontWeight: '600',
-                            marginBottom: '8px',
                             textAlign: 'center',
                             textShadow: '0 1px 2px rgba(0,0,0,0.3)',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            width: '100%'
+                            width: '100%',
+                            lineHeight: '1.2',
+                            flexShrink: 0
                           }}
                         >
                           {widget.name}
                         </div>
                         
-                        {/* Simple slider */}
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          defaultValue="50"
-                          className="w-full mb-2"
-                          style={{
-                            accentColor: widget.style.textColor,
-                            cursor: isSessionActive ? 'pointer' : 'not-allowed'
-                          }}
-                          disabled={!isSessionActive}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value);
-                            const valueDisplay = document.getElementById(`slider-value-${widget.id}`);
-                            if (valueDisplay) {
-                              valueDisplay.textContent = value.toString();
-                            }
-                            if (isSessionActive) {
-                              handleCommand(widget.command, { value: value, ...widget.parameters });
-                            }
-                          }}
-                        />
-                        
-                        {/* Value display */}
-                        <div 
-                          className="text-sm font-semibold px-2 py-1 rounded"
-                          style={{ 
-                            color: widget.style.textColor,
-                            backgroundColor: 'rgba(255,255,255,0.2)',
-                            minWidth: '30px',
-                            textAlign: 'center'
-                          }}
-                          id={`slider-value-${widget.id}`}
-                        >
-                          50
+                        {/* Slider container */}
+                        <div className="flex-1 flex flex-col justify-center items-center w-full">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={sliderValue}
+                            className="w-full mb-3"
+                            style={{
+                              accentColor: widget.style.textColor,
+                              cursor: isSessionActive ? 'pointer' : 'not-allowed',
+                              height: '6px'
+                            }}
+                            disabled={!isSessionActive}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              setSliderValue(value);
+                              if (isSessionActive) {
+                                handleCommand(widget.command, { value: value, ...widget.parameters });
+                              }
+                            }}
+                          />
+                          
+                          {/* Value display */}
+                          <div 
+                            className="text-sm font-semibold px-3 py-1 rounded"
+                            style={{ 
+                              color: widget.style.textColor,
+                              backgroundColor: 'rgba(255,255,255,0.25)',
+                              minWidth: '40px',
+                              textAlign: 'center',
+                              border: `1px solid rgba(255,255,255,0.3)`,
+                              textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                              flexShrink: 0
+                            }}
+                          >
+                            {sliderValue}
+                          </div>
                         </div>
                       </div>
                     );
