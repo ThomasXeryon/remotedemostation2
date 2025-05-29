@@ -225,6 +225,11 @@ export default function StationControl() {
   useEffect(() => {
     if (controlConfig && typeof controlConfig === 'object' && controlConfig !== null && 'controls' in controlConfig && Array.isArray(controlConfig.controls)) {
       setLocalControls(controlConfig.controls);
+      
+      // Also load layout from control configuration if available
+      if ((controlConfig as any).layout && Object.keys((controlConfig as any).layout).length > 0) {
+        setLocalLayout((controlConfig as any).layout);
+      }
     }
   }, [controlConfig]);
 
@@ -250,19 +255,20 @@ export default function StationControl() {
     if (stationData?.configuration?.interfaceLayout) {
       setLocalLayout(stationData.configuration.interfaceLayout);
     } else {
-      // Set default layout with larger pixel coordinates
-      setLocalLayout({
+      // Set default layout with proper 50/50 split for 1080p canvas
+      const defaultCanvasLayout = {
         camera: {
           position: { x: 40, y: 40 },
-          width: 800,
-          height: 600
+          width: 920, // 50% of 1920px minus padding
+          height: 540  // 50% of 1080px
         },
         controlPanel: {
-          position: { x: 880, y: 40 },
-          width: 600,
-          height: 700
+          position: { x: 980, y: 40 }, // Start after camera width + padding
+          width: 900,  // 50% of 1920px minus padding
+          height: 540  // 50% of 1080px
         }
-      });
+      };
+      setLocalLayout(defaultCanvasLayout);
     }
   }, [stationData]);
 
@@ -340,6 +346,7 @@ export default function StationControl() {
 
   const saveControls = async () => {
     try {
+      // Save controls and layout
       const response = await fetch(`/api/demo-stations/${id}/controls`, {
         method: 'POST',
         headers: {
@@ -353,6 +360,27 @@ export default function StationControl() {
           createdBy: currentUser?.id
         })
       });
+
+      // Also update the station's main configuration with the interface layout
+      if (response.ok && localLayout) {
+        const stationUpdateResponse = await fetch(`/api/demo-stations/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            configuration: {
+              ...stationData?.configuration,
+              interfaceLayout: localLayout
+            }
+          })
+        });
+
+        if (stationUpdateResponse.ok) {
+          console.log('Station configuration updated successfully');
+        }
+      }
 
       if (response.ok) {
         setCanvasEditMode(false);
