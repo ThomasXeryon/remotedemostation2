@@ -88,13 +88,47 @@ export default function StationControlSimple() {
     }
   }, [stationData]);
 
-  // Load saved controls
+  // Load saved controls from station data
   useEffect(() => {
-    if (controlData?.controls) {
-      console.log('Loading saved controls:', controlData.controls);
-      setControls(controlData.controls);
+    if (stationData?.controls) {
+      console.log('Loading saved controls:', stationData.controls);
+      setControls(stationData.controls);
     }
-  }, [controlData]);
+  }, [stationData]);
+
+  // Control drag handlers
+  const handleControlMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const control = controls.find(c => c.id === controlId);
+    if (!control) return;
+    
+    setIsDraggingControl(controlId);
+    setSelectedControl(controlId);
+    setDragOffset({
+      x: e.clientX - control.position.x,
+      y: e.clientY - control.position.y
+    });
+  }, [isEditMode, controls]);
+
+  const handleControlMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingControl) return;
+    
+    const newX = snapToGrid(e.clientX - dragOffset.x);
+    const newY = snapToGrid(e.clientY - dragOffset.y);
+    
+    setControls(prev => prev.map(control => 
+      control.id === isDraggingControl 
+        ? { ...control, position: { x: newX, y: newY } }
+        : control
+    ));
+  }, [isDraggingControl, dragOffset, snapToGrid]);
+
+  const handleControlMouseUp = useCallback(() => {
+    setIsDraggingControl(null);
+  }, []);
 
   // Dragging functionality for toolbox
   const handleToolboxMouseDown = useCallback((e: React.MouseEvent) => {
@@ -237,40 +271,6 @@ export default function StationControlSimple() {
     setControls(prev => [...prev, newControl]);
     setSelectedControl(newControl.id);
   };
-
-  // Control drag handlers
-  const handleControlMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
-    if (!isEditMode) return;
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const control = controls.find(c => c.id === controlId);
-    if (!control) return;
-    
-    setIsDraggingControl(controlId);
-    setSelectedControl(controlId);
-    setDragOffset({
-      x: e.clientX - control.position.x,
-      y: e.clientY - control.position.y
-    });
-  }, [isEditMode, controls]);
-
-  const handleControlMove = useCallback((e: MouseEvent) => {
-    if (!isDraggingControl) return;
-    
-    const newX = snapToGrid(e.clientX - dragOffset.x);
-    const newY = snapToGrid(e.clientY - dragOffset.y);
-    
-    setControls(prev => prev.map(control => 
-      control.id === isDraggingControl 
-        ? { ...control, position: { x: newX, y: newY } }
-        : control
-    ));
-  }, [isDraggingControl, dragOffset, snapToGrid]);
-
-  const handleControlMouseUp = useCallback(() => {
-    setIsDraggingControl(null);
-  }, []);
 
   // Render individual control
   const renderControl = (control: any) => {
