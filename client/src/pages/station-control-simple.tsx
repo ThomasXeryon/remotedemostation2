@@ -34,6 +34,10 @@ export default function StationControlSimple() {
   const [toolboxPosition, setToolboxPosition] = useState({ x: 50, y: 100 });
   const [isDraggingToolbox, setIsDraggingToolbox] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [cameraPanel, setCameraPanel] = useState({ x: 40, y: 40, width: 920, height: 540 });
+  const [controlPanel, setControlPanel] = useState({ x: 980, y: 40, width: 900, height: 540 });
+  const [isDraggingPanel, setIsDraggingPanel] = useState<string | null>(null);
+  const [isResizingPanel, setIsResizingPanel] = useState<string | null>(null);
 
   // Fetch station data
   const { data: stationData, isLoading } = useQuery<DemoStation>({
