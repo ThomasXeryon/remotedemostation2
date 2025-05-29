@@ -493,8 +493,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cameraCount: parseInt(req.body.cameraCount) || 1,
         sessionTimeLimit: parseInt(req.body.sessionTimeLimit) || 30,
         requiresLogin: req.body.requiresLogin === true || req.body.requiresLogin === 'true',
-        configuration: {},
-        safetyLimits: {}
+        configuration: {
+          interfaceLayout: {
+            camera: {
+              position: { x: 40, y: 40 },
+              width: 920,
+              height: 540
+            },
+            controlPanel: {
+              position: { x: 980, y: 40 },
+              width: 900,
+              height: 540
+            }
+          }
+        },
+        safetyLimits: {
+          maxSpeed: 100,
+          maxPosition: 500,
+          minPosition: -500,
+          emergencyStopEnabled: true
+        }
       };
 
       console.log('Parsed station data:', stationData);
