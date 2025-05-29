@@ -117,7 +117,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     const rect = joystick.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    const maxDistance = Math.min(rect.width, rect.height) / 2 - 20; // Dynamic based on size
+    const maxDistance = 25;
 
     const handleMove = (moveEvent: MouseEvent | TouchEvent) => {
       if (!isDraggingRef.current) return;
@@ -163,10 +163,6 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     document.addEventListener('touchend', handleEnd);
   };
 
-  // Calculate sizes based on widget dimensions
-  const containerSize = Math.min(widget.size.width - 16, widget.size.height - 16); // Account for padding
-  const knobSize = Math.max(16, containerSize * 0.35); // At least 16px, max 35% of container
-
   return (
     <div
       style={{
@@ -183,11 +179,9 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     >
       <div 
         ref={joystickRef}
-        className="rounded-full cursor-pointer relative"
+        className="w-16 h-16 rounded-full cursor-pointer relative"
         style={{
           backgroundColor: widget.style.textColor,
-          width: `${containerSize}px`,
-          height: `${containerSize}px`,
           position: 'relative'
         }}
         onMouseDown={handleJoystickStart}
@@ -195,10 +189,8 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
       >
         <div
           ref={knobRef}
-          className="bg-white rounded-full absolute shadow-lg transition-transform"
+          className="w-4 h-4 bg-white rounded-full absolute shadow-sm transition-transform"
           style={{
-            width: `${knobSize}px`,
-            height: `${knobSize}px`,
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
