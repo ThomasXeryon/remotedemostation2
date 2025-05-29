@@ -229,7 +229,8 @@ export default function StationControl() {
   }, [controlConfig]);
 
   useEffect(() => {
-    if (isEditMode) {
+    const isAnyEditMode = canvasEditMode || controlsEditMode;
+    if (isAnyEditMode) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mousemove', handleResizeMove);
       document.addEventListener('mousemove', handlePanelDragMove);
@@ -242,7 +243,7 @@ export default function StationControl() {
       document.removeEventListener('mousemove', handlePanelDragMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isEditMode, handleMouseMove, handleResizeMove, handlePanelDragMove, handleMouseUp]);
+  }, [canvasEditMode, controlsEditMode, handleMouseMove, handleResizeMove, handlePanelDragMove, handleMouseUp]);
 
   // Initialize local layout from station data
   useEffect(() => {
@@ -354,7 +355,8 @@ export default function StationControl() {
       });
 
       if (response.ok) {
-        setIsEditMode(false);
+        setCanvasEditMode(false);
+        setControlsEditMode(false);
         refetchControls();
       } else {
         const errorData = await response.json();
@@ -382,16 +384,181 @@ export default function StationControl() {
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          <Button 
-            onClick={() => isEditMode ? saveControls() : setIsEditMode(true)}
-            variant={isEditMode ? "default" : "outline"}
-            className={isEditMode ? "bg-green-600 hover:bg-green-700" : ""}
-          >
-            {isEditMode ? <Save className="w-4 h-4 mr-2" /> : <Edit3 className="w-4 h-4 mr-2" />}
-            {isEditMode ? "Save Layout" : "Edit Layout"}
-          </Button>
+          {/* Canvas Edit Dropdown */}
+          <div className="relative">
+            <Button
+              onClick={() => setShowCanvasDropdown(!showCanvasDropdown)}
+              variant={canvasEditMode ? "default" : "outline"}
+              className={`${canvasEditMode ? "bg-blue-600 hover:bg-blue-700" : ""} flex items-center gap-2`}
+            >
+              Canvas
+              <ChevronDown className="w-4 h-4" />
+            </Button>
+            
+            {showCanvasDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                <button
+                  onClick={() => {
+                    setCanvasEditMode(!canvasEditMode);
+                    if (!canvasEditMode) {
+                      setShowGrid(true);
+                      setShowCanvasBorder(true);
+                    } else {
+                      setShowGrid(false);
+                      setShowCanvasBorder(false);
+                    }
+                    setShowCanvasDropdown(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                >
+                  {canvasEditMode ? 'Exit Canvas Edit' : 'Edit Canvas Layout'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowGrid(!showGrid);
+                    setShowCanvasDropdown(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                >
+                  {showGrid ? 'Hide Grid' : 'Show Grid'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCanvasBorder(!showCanvasBorder);
+                    setShowCanvasDropdown(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                >
+                  {showCanvasBorder ? 'Hide Canvas Border' : 'Show Canvas Border'}
+                </button>
+                <hr className="my-1" />
+                <div className="px-4 py-2">
+                  <label className="block text-xs text-gray-500 mb-1">Resolution</label>
+                  <select
+                    value={`${canvasSize.width}x${canvasSize.height}`}
+                    onChange={(e) => {
+                      const [width, height] = e.target.value.split('x').map(Number);
+                      setCanvasSize({ width, height });
+                      setShowCanvasDropdown(false);
+                    }}
+                    className="w-full text-sm border border-gray-300 rounded px-2 py-1"
+                  >
+                    <option value="1920x1080">HD (1920×1080)</option>
+                    <option value="2560x1440">2K (2560×1440)</option>
+                    <option value="3840x2160">4K (3840×2160)</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Controls Edit Dropdown */}
+          <div className="relative">
+            <Button
+              onClick={() => setShowControlsDropdown(!showControlsDropdown)}
+              variant={controlsEditMode ? "default" : "outline"}
+              className={`${controlsEditMode ? "bg-green-600 hover:bg-green-700" : ""} flex items-center gap-2`}
+            >
+              Controls
+              <ChevronDown className="w-4 h-4" />
+            </Button>
+            
+            {showControlsDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                <button
+                  onClick={() => {
+                    setControlsEditMode(!controlsEditMode);
+                    setShowControlsDropdown(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                >
+                  {controlsEditMode ? 'Exit Controls Edit' : 'Edit Controls'}
+                </button>
+                {controlsEditMode && (
+                  <>
+                    <hr className="my-1" />
+                    <button
+                      onClick={() => {
+                        const newControl: ControlWidget = {
+                          id: `control-${Date.now()}`,
+                          type: 'button',
+                          name: 'New Button',
+                          command: 'new_command',
+                          parameters: {},
+                          position: { x: 100, y: 100 },
+                          size: { width: 120, height: 40 },
+                          style: {
+                            backgroundColor: '#3b82f6',
+                            textColor: '#ffffff',
+                            borderColor: '#2563eb',
+                            borderRadius: 6,
+                            fontSize: 14
+                          }
+                        };
+                        setLocalControls(prev => [...prev, newControl]);
+                        setShowControlsDropdown(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                    >
+                      Add Button
+                    </button>
+                    <button
+                      onClick={() => {
+                        const newControl: ControlWidget = {
+                          id: `control-${Date.now()}`,
+                          type: 'slider',
+                          name: 'New Slider',
+                          command: 'slider_command',
+                          parameters: { min: 0, max: 100, step: 1 },
+                          position: { x: 100, y: 150 },
+                          size: { width: 200, height: 20 },
+                          style: {
+                            backgroundColor: '#10b981',
+                            textColor: '#ffffff',
+                            borderColor: '#059669',
+                            borderRadius: 10,
+                            fontSize: 12
+                          }
+                        };
+                        setLocalControls(prev => [...prev, newControl]);
+                        setShowControlsDropdown(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                    >
+                      Add Slider
+                    </button>
+                    <button
+                      onClick={() => {
+                        const newControl: ControlWidget = {
+                          id: `control-${Date.now()}`,
+                          type: 'joystick',
+                          name: 'New Joystick',
+                          command: 'joystick_command',
+                          parameters: {},
+                          position: { x: 100, y: 200 },
+                          size: { width: 100, height: 100 },
+                          style: {
+                            backgroundColor: '#8b5cf6',
+                            textColor: '#ffffff',
+                            borderColor: '#7c3aed',
+                            borderRadius: 50,
+                            fontSize: 12
+                          }
+                        };
+                        setLocalControls(prev => [...prev, newControl]);
+                        setShowControlsDropdown(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                    >
+                      Add Joystick
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
           
-          {isEditMode && (
+          {(canvasEditMode || controlsEditMode) && (
             <>
               <Button
                 onClick={() => setShowGrid(!showGrid)}
