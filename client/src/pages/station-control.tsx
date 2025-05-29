@@ -60,15 +60,17 @@ function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
     <div
       style={{
         ...style,
-        backgroundColor: widget.style.backgroundColor,
-        border: `2px solid ${widget.style.borderColor}`,
+        background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 2).toString(16)).join('')})`,
+        border: `3px solid ${widget.style.borderColor}`,
         borderRadius: `${widget.style.borderRadius}px`,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '8px',
+        padding: '12px',
         cursor: isSessionActive ? 'pointer' : 'not-allowed',
-        opacity: isSessionActive ? 1 : 0.6
+        opacity: isSessionActive ? 1 : 0.6,
+        position: 'relative'
       }}
       onClick={() => {
         if (isSessionActive) {
@@ -77,19 +79,77 @@ function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
           handleCommand(widget.command, { value: newToggleState, ...widget.parameters });
         }
       }}
-      className="shadow-sm"
+      className="shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
     >
+      {/* Toggle label */}
       <div 
-        className="w-8 h-4 rounded-full relative transition-colors"
-        style={{backgroundColor: isToggled ? widget.style.textColor : widget.style.borderColor}}
+        style={{ 
+          color: widget.style.textColor, 
+          fontSize: `${Math.max(10, widget.style.fontSize - 2)}px`,
+          fontWeight: '600',
+          marginBottom: '8px',
+          textAlign: 'center',
+          textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+        }}
       >
+        {widget.name}
+      </div>
+      
+      {/* Enhanced toggle switch */}
+      <div 
+        className="relative transition-all duration-300 ease-out"
+        style={{
+          width: '48px',
+          height: '24px',
+          borderRadius: '12px',
+          backgroundColor: isToggled ? widget.style.textColor : '#64748b',
+          boxShadow: isToggled 
+            ? `0 0 12px ${widget.style.textColor}40, inset 0 2px 4px rgba(0,0,0,0.2)` 
+            : 'inset 0 2px 4px rgba(0,0,0,0.3)',
+          border: '2px solid rgba(255,255,255,0.2)'
+        }}
+      >
+        {/* Toggle knob */}
         <div 
-          className="w-3 h-3 rounded-full absolute top-0.5 transition-transform duration-200"
+          className="absolute top-1 rounded-full transition-all duration-300 ease-out"
           style={{
-            backgroundColor: '#ffffff',
-            transform: isToggled ? 'translateX(16px)' : 'translateX(2px)'
+            width: '16px',
+            height: '16px',
+            background: 'linear-gradient(145deg, #ffffff, #f1f5f9)',
+            transform: isToggled ? 'translateX(24px)' : 'translateX(2px)',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)',
+            border: '1px solid #e2e8f0'
           }}
-        />
+        >
+          {/* Knob highlight */}
+          <div 
+            className="absolute inset-0.5 rounded-full opacity-60"
+            style={{ 
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%)'
+            }}
+          />
+        </div>
+        
+        {/* Glow effect when active */}
+        {isToggled && (
+          <div 
+            className="absolute inset-0 rounded-full opacity-40 animate-pulse"
+            style={{
+              background: `radial-gradient(circle, ${widget.style.textColor}60, transparent 70%)`
+            }}
+          />
+        )}
+      </div>
+      
+      {/* State indicator */}
+      <div 
+        className="text-xs font-medium mt-2 transition-colors duration-200"
+        style={{ 
+          color: isToggled ? widget.style.textColor : '#64748b',
+          textShadow: '0 1px 2px rgba(0,0,0,0.2)'
+        }}
+      >
+        {isToggled ? 'ON' : 'OFF'}
       </div>
     </div>
   );
@@ -450,22 +510,48 @@ export function StationControl() {
                         key={widget.id}
                         style={{
                           ...style,
-                          backgroundColor: widget.style.backgroundColor,
+                          background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 3).toString(16)).join('')})`,
                           color: widget.style.textColor,
-                          border: `2px solid ${widget.style.borderColor}`,
+                          border: `3px solid ${widget.style.borderColor}`,
                           borderRadius: `${widget.style.borderRadius}px`,
                           fontSize: `${widget.style.fontSize}px`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontWeight: '500',
+                          fontWeight: '600',
                           cursor: isSessionActive ? 'pointer' : 'not-allowed',
                           opacity: isSessionActive ? 1 : 0.6,
-                          userSelect: 'none'
+                          userSelect: 'none',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                          position: 'relative',
+                          overflow: 'hidden'
                         }}
                         onClick={handleControlClick}
-                        className="shadow-sm hover:shadow-md active:scale-95 transition-all"
+                        className="shadow-lg hover:shadow-xl active:scale-95 active:shadow-inner transition-all duration-150 hover:brightness-110"
+                        onMouseDown={(e) => {
+                          if (isSessionActive) {
+                            e.currentTarget.style.transform = 'scale(0.95)';
+                            e.currentTarget.style.boxShadow = 'inset 0 4px 8px rgba(0,0,0,0.3)';
+                          }
+                        }}
+                        onMouseUp={(e) => {
+                          if (isSessionActive) {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = '';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (isSessionActive) {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = '';
+                          }
+                        }}
                       >
+                        {/* Button highlight overlay */}
+                        <div 
+                          className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"
+                          style={{ borderRadius: `${widget.style.borderRadius - 2}px` }}
+                        />
                         {widget.name}
                       </div>
                     );
@@ -477,37 +563,97 @@ export function StationControl() {
                         key={widget.id}
                         style={{
                           ...style,
-                          backgroundColor: widget.style.backgroundColor,
-                          border: `2px solid ${widget.style.borderColor}`,
+                          background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 2).toString(16)).join('')})`,
+                          border: `3px solid ${widget.style.borderColor}`,
                           borderRadius: `${widget.style.borderRadius}px`,
                           display: 'flex',
+                          flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          padding: '8px'
+                          padding: '12px',
+                          position: 'relative'
                         }}
-                        className="shadow-sm"
+                        className="shadow-lg"
                       >
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          defaultValue="50"
-                          className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                          style={{
-                            background: `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} 50%, #e5e7eb 50%, #e5e7eb 100%)`,
-                            outline: 'none'
+                        {/* Slider label */}
+                        <div 
+                          style={{ 
+                            color: widget.style.textColor, 
+                            fontSize: `${Math.max(10, widget.style.fontSize - 2)}px`,
+                            fontWeight: '600',
+                            marginBottom: '8px',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.3)'
                           }}
-                          disabled={!isSessionActive}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value);
-                            const percentage = value + '%';
-                            e.target.style.background = `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} ${percentage}, #e5e7eb ${percentage}, #e5e7eb 100%)`;
-                            
-                            if (isSessionActive) {
-                              handleCommand(widget.command, { value: value, ...widget.parameters });
-                            }
-                          }}
-                        />
+                        >
+                          {widget.name}
+                        </div>
+                        
+                        {/* Custom slider container */}
+                        <div className="relative w-full">
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            defaultValue="50"
+                            className="w-full h-3 rounded-full appearance-none cursor-pointer slider-thumb"
+                            style={{
+                              background: `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} 50%, #cbd5e1 50%, #cbd5e1 100%)`,
+                              outline: 'none',
+                              WebkitAppearance: 'none',
+                              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            disabled={!isSessionActive}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value);
+                              const percentage = value + '%';
+                              e.target.style.background = `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} ${percentage}, #cbd5e1 ${percentage}, #cbd5e1 100%)`;
+                              
+                              if (isSessionActive) {
+                                handleCommand(widget.command, { value: value, ...widget.parameters });
+                              }
+                            }}
+                          />
+                          
+                          {/* Value display */}
+                          <div 
+                            className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold"
+                            style={{ color: widget.style.textColor }}
+                            id={`slider-value-${widget.id}`}
+                          >
+                            50
+                          </div>
+                        </div>
+                        
+                        <style jsx>{`
+                          .slider-thumb::-webkit-slider-thumb {
+                            appearance: none;
+                            height: 20px;
+                            width: 20px;
+                            border-radius: 50%;
+                            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+                            border: 2px solid ${widget.style.borderColor};
+                            cursor: pointer;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
+                            transition: all 0.15s ease;
+                          }
+                          .slider-thumb::-webkit-slider-thumb:hover {
+                            transform: scale(1.1);
+                            box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.8);
+                          }
+                          .slider-thumb::-webkit-slider-thumb:active {
+                            transform: scale(0.95);
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.2);
+                          }
+                          .slider-thumb::-moz-range-thumb {
+                            height: 20px;
+                            width: 20px;
+                            border-radius: 50%;
+                            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+                            border: 2px solid ${widget.style.borderColor};
+                            cursor: pointer;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                          }
+                        `}</style>
                       </div>
                     );
                   }
