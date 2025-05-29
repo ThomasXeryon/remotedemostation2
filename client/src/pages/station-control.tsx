@@ -330,6 +330,12 @@ export function StationControl() {
     refetchInterval: 1000, // Refresh every second when session is active
   });
 
+  const { 
+    connectionStats, 
+    isConnected, 
+    sendCommand 
+  } = useWebSocket(id || '', currentUser?.id || 1, isSessionActive ? 1 : 0);
+
   // Listen for organization changes and refetch data
   useEffect(() => {
     const handleOrganizationChanged = () => {
@@ -346,12 +352,6 @@ export function StationControl() {
       window.removeEventListener('organizationChanged', handleOrganizationChanged);
     };
   }, [refetchStation, refetchControls, refetchTelemetry, isSessionActive]);
-
-  const { 
-    connectionStats, 
-    isConnected, 
-    sendCommand 
-  } = useWebSocket(id || '', 1, isSessionActive ? 1 : undefined);
 
   // Fix: station comes as an array, get the first element
   const stationData = Array.isArray(station) ? station[0] : station;
