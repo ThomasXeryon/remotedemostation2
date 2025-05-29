@@ -333,7 +333,7 @@ export function StationControl() {
                       return (
                         <div
                           key={widget.id}
-                          style={{...style, padding: '8px', borderRadius: '8px'}}
+                          style={{...style, padding: '8px'}}
                           className="shadow-sm"
                         >
                           <div className="text-xs mb-2 text-center font-medium text-gray-700">

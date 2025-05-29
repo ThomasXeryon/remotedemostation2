@@ -144,9 +144,13 @@ export default function StationEditor() {
 
   // Initialize controls when control config loads
   React.useEffect(() => {
+    console.log('Control config data:', controlConfig);
     if (controlConfig?.controls && Array.isArray(controlConfig.controls)) {
       console.log('Loading controls:', controlConfig.controls);
       setControls(controlConfig.controls);
+    } else if (controlConfig && !controlConfig.controls) {
+      console.log('Control config exists but no controls array found');
+      setControls([]);
     }
   }, [controlConfig]);
 
