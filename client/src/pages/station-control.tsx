@@ -58,21 +58,19 @@ function SliderControl({ widget, style, isSessionActive, handleCommand }: {
     <div
       style={{
         ...style,
-        background: `linear-gradient(135deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd)`,
-        border: `3px solid ${widget.style.borderColor}`,
-        borderRadius: `${widget.style.borderRadius + 8}px`,
+        backgroundColor: widget.style.backgroundColor,
+        border: `2px solid ${widget.style.borderColor}`,
+        borderRadius: `${widget.style.borderRadius}px`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '16px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08)',
-        backdropFilter: 'blur(8px)',
+        padding: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         cursor: isSessionActive ? 'default' : 'not-allowed',
-        opacity: isSessionActive ? 1 : 0.7,
-        transition: 'all 0.3s ease'
+        opacity: isSessionActive ? 1 : 0.6,
+        transition: 'all 0.2s ease'
       }}
-      className="hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
     >
       <span 
         style={{ 
@@ -144,21 +142,19 @@ function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
     <div
       style={{
         ...style,
-        background: `linear-gradient(135deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd)`,
-        border: `3px solid ${widget.style.borderColor}`,
-        borderRadius: `${widget.style.borderRadius + 8}px`,
+        backgroundColor: widget.style.backgroundColor,
+        border: `2px solid ${widget.style.borderColor}`,
+        borderRadius: `${widget.style.borderRadius}px`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '16px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08)',
-        backdropFilter: 'blur(8px)',
+        padding: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         cursor: isSessionActive ? 'pointer' : 'not-allowed',
-        opacity: isSessionActive ? 1 : 0.7,
-        transition: 'all 0.3s ease'
+        opacity: isSessionActive ? 1 : 0.6,
+        transition: 'all 0.2s ease'
       }}
-      className="hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
       onClick={handleToggle}
     >
       <span 
@@ -290,26 +286,18 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
       ref={containerRef}
       style={{
         ...style,
-        background: `
-          radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 70%),
-          linear-gradient(135deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}aa)
-        `,
-        border: `4px solid ${widget.style.borderColor}`,
+        backgroundColor: widget.style.backgroundColor,
+        border: `2px solid ${widget.style.borderColor}`,
         borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
         cursor: isSessionActive ? 'pointer' : 'not-allowed',
-        opacity: isSessionActive ? 1 : 0.7,
-        boxShadow: `
-          0 12px 32px rgba(0,0,0,0.15), 
-          0 4px 12px rgba(0,0,0,0.1),
-          inset 0 2px 4px rgba(255,255,255,0.1)
-        `,
-        transition: 'all 0.3s ease'
+        opacity: isSessionActive ? 1 : 0.6,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        transition: 'all 0.2s ease'
       }}
-      className="hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
       onMouseDown={handleJoystickStart}
       onTouchStart={handleJoystickStart}
     >
@@ -319,33 +307,17 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
       />
       <div
         ref={knobRef}
-        className="w-10 h-10 bg-white rounded-full absolute shadow-2xl transition-all"
+        className="w-8 h-8 bg-white rounded-full absolute shadow-lg transition-all"
         style={{
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          transitionDuration: isDraggingRef.current ? '0ms' : '300ms',
+          transitionDuration: isDraggingRef.current ? '0ms' : '200ms',
           zIndex: 10,
-          background: `
-            radial-gradient(circle at 30% 30%, #ffffff, #f1f5f9),
-            radial-gradient(circle at 70% 70%, rgba(0,0,0,0.05), transparent)
-          `,
-          border: `2px solid ${widget.style.textColor}30`,
-          boxShadow: `
-            0 6px 20px rgba(0,0,0,0.25),
-            0 2px 8px rgba(0,0,0,0.15),
-            inset 0 1px 2px rgba(255,255,255,0.8),
-            0 0 0 2px ${widget.style.textColor}10
-          `
+          border: `1px solid ${widget.style.borderColor}`,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
         }}
-      >
-        <div 
-          className="absolute inset-2 rounded-full"
-          style={{
-            background: `radial-gradient(circle at 35% 35%, ${widget.style.textColor}15, transparent 60%)`
-          }}
-        />
-      </div>
+      />
     </div>
   );
 }
@@ -524,14 +496,14 @@ export function StationControl() {
             <h3 className="text-lg font-semibold mb-4">Hardware Controls</h3>
 
             {controlWidgets.length > 0 ? (
-              <div className="relative w-full h-full">
+              <div className="relative w-full" style={{ height: 'calc(100% - 3rem)' }}>
                 {controlWidgets.map((widget: ControlWidget) => {
                   const widgetStyle = {
                     position: 'absolute' as const,
-                    left: `${widget.position.x}px`,
-                    top: `${widget.position.y}px`,
-                    width: `${widget.size.width}px`,
-                    height: `${widget.size.height}px`,
+                    left: `${Math.max(0, Math.min(widget.position.x, 400))}px`,
+                    top: `${Math.max(0, Math.min(widget.position.y, 300))}px`,
+                    width: `${Math.min(widget.size.width, 200)}px`,
+                    height: `${Math.min(widget.size.height, 100)}px`,
                   };
 
                   switch (widget.type) {
@@ -541,109 +513,47 @@ export function StationControl() {
                           key={widget.id}
                           style={{
                             ...widgetStyle,
-                            background: `
-                              linear-gradient(145deg, ${widget.style.backgroundColor}f8, ${widget.style.backgroundColor}e8, ${widget.style.backgroundColor}f0),
-                              radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 80%),
-                              radial-gradient(circle at 70% 70%, ${widget.style.borderColor}20, transparent 60%)
-                            `,
+                            backgroundColor: widget.style.backgroundColor,
                             color: widget.style.textColor,
-                            border: `3px solid transparent`,
-                            borderImage: `linear-gradient(135deg, ${widget.style.borderColor}80, ${widget.style.borderColor}40, ${widget.style.borderColor}80) 1`,
-                            borderRadius: `${widget.style.borderRadius + 8}px`,
+                            border: `2px solid ${widget.style.borderColor}`,
+                            borderRadius: `${widget.style.borderRadius}px`,
                             fontSize: `${widget.style.fontSize}px`,
-                            fontWeight: '700',
+                            fontWeight: '600',
                             cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                            opacity: isSessionActive ? 1 : 0.5,
+                            opacity: isSessionActive ? 1 : 0.6,
                             boxShadow: isSessionActive 
-                              ? `
-                                0 12px 40px rgba(0,0,0,0.12), 
-                                0 6px 20px rgba(0,0,0,0.08),
-                                0 2px 8px rgba(0,0,0,0.06),
-                                inset 0 2px 4px rgba(255,255,255,0.3),
-                                inset 0 -2px 4px rgba(0,0,0,0.05),
-                                0 0 0 1px ${widget.style.borderColor}30
-                              `
-                              : `0 4px 15px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)`,
-                            textShadow: `
-                              0 1px 3px rgba(0,0,0,0.3),
-                              0 0 8px ${widget.style.textColor}20
-                            `,
-                            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                            transform: 'translateZ(0) scale(1)',
-                            letterSpacing: '0.8px',
-                            textTransform: 'uppercase' as const,
-                            backdropFilter: 'blur(8px)',
-                            position: 'relative' as const,
-                            overflow: 'hidden' as const
+                              ? '0 4px 12px rgba(0,0,0,0.15)'
+                              : '0 2px 6px rgba(0,0,0,0.1)',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
                           }}
-                          className="select-none font-bold tracking-wider relative overflow-hidden"
+                          className="select-none"
                           onClick={() => isSessionActive && handleCommand(widget.command, widget.parameters)}
                           disabled={!isSessionActive}
                           onMouseEnter={(e) => {
                             if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
-                              e.currentTarget.style.boxShadow = `
-                                0 20px 60px rgba(0,0,0,0.15), 
-                                0 8px 25px rgba(0,0,0,0.1),
-                                0 0 0 2px ${widget.style.borderColor}60,
-                                inset 0 2px 6px rgba(255,255,255,0.4)
-                              `;
-                              // Add subtle glow
-                              e.currentTarget.style.filter = `drop-shadow(0 0 12px ${widget.style.textColor}30)`;
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(0px) scale(1)';
-                              e.currentTarget.style.boxShadow = `
-                                0 12px 40px rgba(0,0,0,0.12), 
-                                0 6px 20px rgba(0,0,0,0.08),
-                                0 2px 8px rgba(0,0,0,0.06),
-                                inset 0 2px 4px rgba(255,255,255,0.3),
-                                inset 0 -2px 4px rgba(0,0,0,0.05),
-                                0 0 0 1px ${widget.style.borderColor}30
-                              `;
-                              e.currentTarget.style.filter = 'none';
+                              e.currentTarget.style.transform = 'translateY(0px)';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
                             }
                           }}
                           onMouseDown={(e) => {
                             if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
-                              e.currentTarget.style.boxShadow = `
-                                0 6px 20px rgba(0,0,0,0.2), 
-                                0 2px 8px rgba(0,0,0,0.15),
-                                inset 0 3px 8px rgba(0,0,0,0.1),
-                                inset 0 -1px 3px rgba(255,255,255,0.2)
-                              `;
-                              // Add ripple effect
-                              const ripple = document.createElement('div');
-                              ripple.style.cssText = `
-                                position: absolute;
-                                border-radius: 50%;
-                                background: rgba(255,255,255,0.6);
-                                transform: scale(0);
-                                animation: ripple 0.6s linear;
-                                pointer-events: none;
-                                left: 50%;
-                                top: 50%;
-                                width: 20px;
-                                height: 20px;
-                                margin-left: -10px;
-                                margin-top: -10px;
-                              `;
-                              e.currentTarget.appendChild(ripple);
-                              setTimeout(() => ripple.remove(), 600);
+                              e.currentTarget.style.transform = 'translateY(1px)';
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
                             }
                           }}
                           onMouseUp={(e) => {
                             if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
-                              e.currentTarget.style.boxShadow = `
-                                0 20px 60px rgba(0,0,0,0.15), 
-                                0 8px 25px rgba(0,0,0,0.1),
-                                0 0 0 2px ${widget.style.borderColor}60,
-                                inset 0 2px 6px rgba(255,255,255,0.4)
-                              `;
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
                             }
                           }}
                         >
