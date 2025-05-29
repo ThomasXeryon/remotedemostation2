@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'wouter';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { Play, Square, ArrowLeft, Edit3, Save, Activity, Grid, Monitor, Settings, ChevronDown, Plus, Move, Camera, Layout } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { getCurrentUser } from '@/lib/auth';
-import { useWebSocket } from '@/hooks/use-websocket';
+import { Play, Settings, Eye, Edit2, Save, X, Grid, Square, Monitor } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface DemoStation {
   id: string;
@@ -40,55 +43,65 @@ interface ControlWidget {
 }
 
 export default function StationControl() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const currentUser = getCurrentUser();
   
-  // All state hooks
+  // State
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [canvasEditMode, setCanvasEditMode] = useState(false);
-  const [controlsEditMode, setControlsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedControl, setSelectedControl] = useState<string | null>(null);
   const [localControls, setLocalControls] = useState<ControlWidget[]>([]);
+  const [localLayout, setLocalLayout] = useState<any>(null);
   const [draggedControl, setDraggedControl] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [localLayout, setLocalLayout] = useState<any>(null);
   const [resizing, setResizing] = useState<string | null>(null);
   const [draggingPanel, setDraggingPanel] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(false);
-  const [canvasSize, setCanvasSize] = useState({ width: 1920, height: 1080 }); // Default to 1080p
+  const [canvasSize, setCanvasSize] = useState({ width: 1920, height: 1080 });
   const [showCanvasBorder, setShowCanvasBorder] = useState(false);
-  const [showCanvasDropdown, setShowCanvasDropdown] = useState(false);
-  const [showControlsDropdown, setShowControlsDropdown] = useState(false);
-  
+
   // Grid configuration
-  const GRID_SIZE = 20; // 20px grid squares
+  const GRID_SIZE = 20;
   const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
-  // All queries
-  const { data: station, isLoading: stationLoading, refetch: refetchStation } = useQuery({
+  // Default layout
+  const defaultLayout = {
+    camera: { width: 920, height: 540, position: { x: 40, y: 40 } },
+    controlPanel: { width: 900, height: 540, position: { x: 980, y: 40 } }
+  };
+
+  // Fetch station data
+  const { data: stationData, isLoading } = useQuery<DemoStation[]>({
     queryKey: ['/api/demo-stations', id],
     enabled: !!id,
   });
 
-  const { data: controlConfig, refetch: refetchControls } = useQuery({
-    queryKey: [`/api/demo-stations/${id}/controls`],
+  // Fetch controls
+  const { data: controlsData, refetch: refetchControls } = useQuery({
+    queryKey: ['/api/demo-stations', id, 'controls'],
     enabled: !!id,
   });
 
-  const { 
-    sendCommand 
-  } = useWebSocket(id || '', currentUser?.id || 1, isSessionActive ? 1 : 0);
+  const station = stationData?.[0];
 
-  // Data transformations - moved here to fix declaration order
-  const stationData = station ? (Array.isArray(station) ? station[0] : station) : null;
-  const layout = stationData?.configuration?.interfaceLayout || {
-    camera: { width: 50, height: 90, position: { x: 0, y: 5 } },
-    controlPanel: { width: 50, height: 90, position: { x: 50, y: 5 } }
-  };
+  // Initialize controls and layout
+  useEffect(() => {
+    if (controlsData?.controls) {
+      setLocalControls(controlsData.controls);
+    }
+    if (controlsData?.layout || station?.configuration?.interfaceLayout) {
+      setLocalLayout(controlsData.layout || station.configuration.interfaceLayout || defaultLayout);
+    } else {
+      setLocalLayout(defaultLayout);
+    }
+  }, [controlsData, station]);
 
-  // All callbacks
+  // Event handlers
   const handleMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
-    if (!controlsEditMode) return;
+    if (!isEditMode) return;
     e.preventDefault();
+    
+    setSelectedControl(controlId);
     
     const control = localControls.find(c => c.id === controlId);
     if (!control) return;
@@ -104,24 +117,24 @@ export default function StationControl() {
     }
     
     setDraggedControl(controlId);
-  }, [controlsEditMode, localControls]);
+  }, [isEditMode, localControls]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!draggedControl || !controlsEditMode) return;
+    if (!draggedControl || !isEditMode) return;
     
     const container = document.querySelector('.relative.w-full[style*="calc(100% - 3rem)"]') as HTMLElement;
     if (!container) return;
     
-    const rect = container.getBoundingClientRect();
-    const newX = snapToGrid(Math.max(0, Math.min(container.clientWidth - 120, e.clientX - rect.left - dragOffset.x)));
-    const newY = snapToGrid(Math.max(0, Math.min(container.clientHeight - 40, e.clientY - rect.top - dragOffset.y)));
+    const containerRect = container.getBoundingClientRect();
+    const newX = snapToGrid(e.clientX - containerRect.left - dragOffset.x);
+    const newY = snapToGrid(e.clientY - containerRect.top - dragOffset.y);
     
     setLocalControls(prev => prev.map(control => 
       control.id === draggedControl 
-        ? { ...control, position: { x: newX, y: newY } }
+        ? { ...control, position: { x: Math.max(0, newX), y: Math.max(0, newY) } }
         : control
     ));
-  }, [draggedControl, dragOffset, controlsEditMode]);
+  }, [draggedControl, isEditMode, dragOffset, snapToGrid]);
 
   const handleMouseUp = useCallback(() => {
     setDraggedControl(null);
@@ -129,224 +142,84 @@ export default function StationControl() {
     setDraggingPanel(null);
   }, []);
 
-  // Handle resizing of camera and control panels
-  const handleResizeStart = useCallback((e: React.MouseEvent, element: string) => {
-    if (!canvasEditMode) return;
-    e.preventDefault();
-    e.stopPropagation();
-    setResizing(element);
-  }, [canvasEditMode]);
-
-  const handleResizeMove = useCallback((e: MouseEvent) => {
-    if (!resizing || !canvasEditMode || !localLayout) return;
-    
-    const container = document.querySelector('.flex-1.flex.relative') as HTMLElement;
-    if (!container) return;
-    
-    const rect = container.getBoundingClientRect();
-    const mouseX = snapToGrid(e.clientX - rect.left);
-    const mouseY = snapToGrid(e.clientY - rect.top);
-    
-    setLocalLayout((prev: any) => {
-      const newLayout = { ...prev };
-      
-      if (resizing === 'camera') {
-        // Resize camera panel with pixel coordinates
-        const currentPos = newLayout.camera?.position || { x: 40, y: 40 };
-        newLayout.camera = {
-          ...newLayout.camera,
-          width: Math.max(200, mouseX - currentPos.x),
-          height: Math.max(150, mouseY - currentPos.y)
-        };
-      } else if (resizing === 'controlPanel') {
-        // Resize control panel with pixel coordinates
-        const currentPos = newLayout.controlPanel?.position || { x: 880, y: 40 };
-        newLayout.controlPanel = {
-          ...newLayout.controlPanel,
-          width: Math.max(300, mouseX - currentPos.x),
-          height: Math.max(200, mouseY - currentPos.y)
-        };
-      }
-      
-      return newLayout;
-    });
-  }, [resizing, canvasEditMode, localLayout, snapToGrid]);
-
-  // Handle panel dragging
-  const handlePanelDragStart = useCallback((e: React.MouseEvent, panelType: string) => {
-    if (!canvasEditMode) return;
+  // Panel resize handlers
+  const handlePanelMouseDown = useCallback((e: React.MouseEvent, panelType: string) => {
+    if (!isEditMode) return;
     e.preventDefault();
     e.stopPropagation();
     setDraggingPanel(panelType);
-    
-    const container = document.querySelector('.flex-1.flex.relative') as HTMLElement;
-    if (!container) return;
-    
-    const rect = container.getBoundingClientRect();
-    const panelElement = e.currentTarget as HTMLElement;
-    const panelRect = panelElement.getBoundingClientRect();
-    
-    setDragOffset({
-      x: e.clientX - panelRect.left,
-      y: e.clientY - panelRect.top
-    });
-  }, [canvasEditMode]);
+  }, [isEditMode]);
 
   const handlePanelDragMove = useCallback((e: MouseEvent) => {
-    if (!draggingPanel || !canvasEditMode || !localLayout) return;
+    if (!draggingPanel || !isEditMode) return;
     
-    const container = document.querySelector('.flex-1.flex.relative') as HTMLElement;
+    const container = document.querySelector('.relative.w-full[style*="calc(100% - 3rem)"]') as HTMLElement;
     if (!container) return;
     
-    const rect = container.getBoundingClientRect();
-    const newX = snapToGrid(Math.max(0, e.clientX - rect.left - dragOffset.x));
-    const newY = snapToGrid(Math.max(0, e.clientY - rect.top - dragOffset.y));
+    const containerRect = container.getBoundingClientRect();
+    const newX = snapToGrid(e.clientX - containerRect.left);
+    const newY = snapToGrid(e.clientY - containerRect.top);
     
-    setLocalLayout((prev: any) => {
-      const newLayout = { ...prev };
-      
-      if (draggingPanel === 'camera') {
-        newLayout.camera = {
-          ...newLayout.camera,
-          position: { x: newX, y: newY }
-        };
-      } else if (draggingPanel === 'controlPanel') {
-        newLayout.controlPanel = {
-          ...newLayout.controlPanel,
-          position: { x: newX, y: newY }
-        };
+    setLocalLayout((prev: any) => ({
+      ...prev,
+      [draggingPanel]: {
+        ...prev[draggingPanel],
+        position: { x: Math.max(0, newX), y: Math.max(0, newY) }
       }
-      
-      return newLayout;
-    });
-  }, [draggingPanel, canvasEditMode, localLayout, dragOffset, snapToGrid]);
-
-  // All effects
-  useEffect(() => {
-    if (controlConfig && typeof controlConfig === 'object' && controlConfig !== null && 'controls' in controlConfig && Array.isArray(controlConfig.controls)) {
-      setLocalControls(controlConfig.controls);
-      
-      // Also load layout from control configuration if available
-      if ((controlConfig as any).layout && Object.keys((controlConfig as any).layout).length > 0) {
-        setLocalLayout((controlConfig as any).layout);
-      }
-    }
-  }, [controlConfig]);
-
-  useEffect(() => {
-    const isAnyEditMode = canvasEditMode || controlsEditMode;
-    if (isAnyEditMode) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mousemove', handleResizeMove);
-      document.addEventListener('mousemove', handlePanelDragMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-    
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mousemove', handleResizeMove);
-      document.removeEventListener('mousemove', handlePanelDragMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [canvasEditMode, controlsEditMode, handleMouseMove, handleResizeMove, handlePanelDragMove, handleMouseUp]);
-
-  // Initialize local layout from station data
-  useEffect(() => {
-    if (stationData?.configuration?.interfaceLayout) {
-      setLocalLayout(stationData.configuration.interfaceLayout);
-    } else {
-      // Set default layout with proper 50/50 split for 1080p canvas
-      const defaultCanvasLayout = {
-        camera: {
-          position: { x: 40, y: 40 },
-          width: 920, // 50% of 1920px minus padding
-          height: 540  // 50% of 1080px
-        },
-        controlPanel: {
-          position: { x: 980, y: 40 }, // Start after camera width + padding
-          width: 900,  // 50% of 1920px minus padding
-          height: 540  // 50% of 1080px
-        }
-      };
-      setLocalLayout(defaultCanvasLayout);
-    }
-  }, [stationData]);
-
-  // Early returns
-  if (stationLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div>Loading station...</div>
-      </div>
-    );
-  }
-
-  if (!station) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div>Station not found</div>
-      </div>
-    );
-  }
-
-  // Regular functions (not hooks)
-  const handleCommand = (command: string, parameters?: Record<string, any>) => {
-    sendCommand(JSON.stringify({
-      type: 'command',
-      command,
-      parameters: parameters || {}
     }));
-  };
+  }, [draggingPanel, isEditMode, snapToGrid]);
 
-  const handleStartSession = async () => {
-    try {
-      const response = await fetch(`/api/demo-stations/${id}/sessions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({})
-      });
+  // Resize handlers
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent, panelType: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setResizing(panelType);
+  }, [isEditMode]);
 
-      if (response.ok) {
-        setIsSessionActive(true);
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!resizing || !isEditMode) return;
+    
+    const container = document.querySelector('.relative.w-full[style*="calc(100% - 3rem)"]') as HTMLElement;
+    if (!container) return;
+    
+    const containerRect = container.getBoundingClientRect();
+    const panel = localLayout?.[resizing];
+    if (!panel) return;
+    
+    const newWidth = snapToGrid(e.clientX - containerRect.left - panel.position.x);
+    const newHeight = snapToGrid(e.clientY - containerRect.top - panel.position.y);
+    
+    setLocalLayout((prev: any) => ({
+      ...prev,
+      [resizing]: {
+        ...prev[resizing],
+        width: Math.max(100, newWidth),
+        height: Math.max(100, newHeight)
       }
-    } catch (error) {
-      console.error('Failed to start session:', error);
+    }));
+  }, [resizing, isEditMode, localLayout, snapToGrid]);
+
+  // Attach global event listeners
+  useEffect(() => {
+    if (isEditMode) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mousemove', handlePanelDragMove);
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mousemove', handlePanelDragMove);
+        document.removeEventListener('mousemove', handleResizeMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
     }
-  };
+  }, [isEditMode, handleMouseMove, handlePanelDragMove, handleResizeMove, handleMouseUp]);
 
-  const handleStopSession = () => {
-    setIsSessionActive(false);
-  };
-
-  const addNewControl = (type: 'button' | 'slider' | 'toggle' | 'joystick') => {
-    const newControl: ControlWidget = {
-      id: `${type}_${Date.now()}`,
-      name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      type,
-      command: `${type}_command`,
-      parameters: {},
-      position: { x: 100, y: 100 },
-      size: {
-        width: type === 'joystick' ? 120 : type === 'slider' ? 200 : type === 'toggle' ? 60 : 120,
-        height: type === 'joystick' ? 120 : type === 'slider' ? 30 : type === 'toggle' ? 30 : 40
-      },
-      style: {
-        backgroundColor: '#3b82f6',
-        textColor: '#ffffff',
-        borderColor: '#1d4ed8',
-        borderRadius: 8,
-        fontSize: 14
-      }
-    };
-    setLocalControls(prev => [...prev, newControl]);
-  };
-
+  // Save changes
   const saveControls = async () => {
     try {
-      // Save controls and layout
       const response = await fetch(`/api/demo-stations/${id}/controls`, {
         method: 'POST',
         headers: {
@@ -358,10 +231,9 @@ export default function StationControl() {
           controls: localControls,
           layout: localLayout || {},
           createdBy: currentUser?.id
-        })
+        }),
       });
 
-      // Also update the station's main configuration with the interface layout
       if (response.ok && localLayout) {
         const stationUpdateResponse = await fetch(`/api/demo-stations/${id}`, {
           method: 'PATCH',
@@ -371,430 +243,459 @@ export default function StationControl() {
           },
           body: JSON.stringify({
             configuration: {
-              ...stationData?.configuration,
+              ...station?.configuration,
               interfaceLayout: localLayout
             }
-          })
+          }),
         });
 
         if (stationUpdateResponse.ok) {
-          console.log('Station configuration updated successfully');
+          console.log('Layout saved successfully');
+          refetchControls();
         }
       }
 
       if (response.ok) {
-        setCanvasEditMode(false);
-        setControlsEditMode(false);
-        refetchControls();
+        console.log('Save successful');
       } else {
-        const errorData = await response.json();
-        console.error('Save failed:', errorData);
+        console.error('Save failed:', await response.json());
       }
     } catch (error) {
-      console.error('Failed to save controls:', error);
+      console.error('Save failed:', error);
     }
   };
 
-  return (
-    <div className="h-screen flex flex-col">
-      {/* Top Control Bar */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center space-x-4">
-          <Link href="/dashboard">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Exit Control
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold">{stationData.name}</h1>
-            <p className="text-sm text-gray-600">{stationData.description}</p>
+  // Add new control
+  const addControl = (type: 'button' | 'slider' | 'joystick' | 'toggle') => {
+    const newControl: ControlWidget = {
+      id: `control-${Date.now()}`,
+      type,
+      name: `New ${type}`,
+      command: '',
+      position: { x: 100, y: 100 },
+      size: { width: 100, height: 40 },
+      style: {
+        backgroundColor: '#3b82f6',
+        textColor: '#ffffff',
+        borderColor: '#1e40af',
+        borderRadius: 6,
+        fontSize: 14
+      }
+    };
+    
+    setLocalControls(prev => [...prev, newControl]);
+    setSelectedControl(newControl.id);
+  };
+
+  // Delete control
+  const deleteControl = (controlId: string) => {
+    setLocalControls(prev => prev.filter(c => c.id !== controlId));
+    if (selectedControl === controlId) {
+      setSelectedControl(null);
+    }
+  };
+
+  // Update control properties
+  const updateControl = (controlId: string, updates: Partial<ControlWidget>) => {
+    setLocalControls(prev => prev.map(control => 
+      control.id === controlId ? { ...control, ...updates } : control
+    ));
+  };
+
+  // Control rendering
+  const renderControl = (control: ControlWidget) => {
+    const isSelected = selectedControl === control.id && isEditMode;
+    
+    return (
+      <div
+        key={control.id}
+        className={`absolute cursor-${isEditMode ? 'move' : 'pointer'} select-none ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+        style={{
+          left: control.position.x,
+          top: control.position.y,
+          width: control.size.width,
+          height: control.size.height,
+        }}
+        onMouseDown={(e) => handleMouseDown(e, control.id)}
+        onClick={() => isEditMode && setSelectedControl(control.id)}
+      >
+        {control.type === 'button' && (
+          <button
+            className="w-full h-full rounded flex items-center justify-center text-white font-medium border-2"
+            style={{
+              backgroundColor: control.style.backgroundColor,
+              color: control.style.textColor,
+              borderColor: control.style.borderColor,
+              borderRadius: control.style.borderRadius,
+              fontSize: control.style.fontSize,
+            }}
+          >
+            {control.name}
+          </button>
+        )}
+        
+        {control.type === 'slider' && (
+          <div className="w-full h-full flex items-center">
+            <input
+              type="range"
+              className="w-full"
+              style={{ accentColor: control.style.backgroundColor }}
+              disabled={isEditMode}
+            />
           </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          {/* Canvas Edit Dropdown */}
-          <div className="relative">
-            <Button
-              onClick={() => setShowCanvasDropdown(!showCanvasDropdown)}
-              variant={canvasEditMode ? "default" : "outline"}
-              className={`${canvasEditMode ? "bg-blue-600 hover:bg-blue-700" : ""} flex items-center gap-2`}
-            >
-              Canvas
-              <ChevronDown className="w-4 h-4" />
-            </Button>
+        )}
+        
+        {control.type === 'toggle' && (
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              className="toggle"
+              disabled={isEditMode}
+            />
+            <span style={{ color: control.style.textColor, fontSize: control.style.fontSize }}>
+              {control.name}
+            </span>
+          </label>
+        )}
+        
+        {control.type === 'joystick' && (
+          <div 
+            className="w-full h-full rounded-full border-4 relative"
+            style={{
+              borderColor: control.style.borderColor,
+              backgroundColor: control.style.backgroundColor + '20'
+            }}
+          >
+            <div 
+              className="absolute w-6 h-6 rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+              style={{ backgroundColor: control.style.backgroundColor }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  if (!station) {
+    return <div className="flex items-center justify-center h-screen">Station not found</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{station.name}</h1>
+            <p className="text-gray-600">{station.description}</p>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            {!isEditMode && (
+              <>
+                <Button
+                  onClick={() => setIsSessionActive(!isSessionActive)}
+                  className={`${isSessionActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  {isSessionActive ? 'End Session' : 'Start Session'}
+                </Button>
+                
+                <Button variant="outline" onClick={() => setIsEditMode(true)}>
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+              </>
+            )}
             
-            {showCanvasDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                <button
-                  onClick={() => {
-                    setCanvasEditMode(!canvasEditMode);
-                    if (!canvasEditMode) {
-                      setShowGrid(true);
-                      setShowCanvasBorder(true);
-                    } else {
-                      setShowGrid(false);
-                      setShowCanvasBorder(false);
-                    }
-                    setShowCanvasDropdown(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                >
-                  {canvasEditMode ? 'Exit Canvas Edit' : 'Edit Canvas Layout'}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowGrid(!showGrid);
-                    setShowCanvasDropdown(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                >
-                  {showGrid ? 'Hide Grid' : 'Show Grid'}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowCanvasBorder(!showCanvasBorder);
-                    setShowCanvasDropdown(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                >
-                  {showCanvasBorder ? 'Hide Canvas Border' : 'Show Canvas Border'}
-                </button>
-                <hr className="my-1" />
-                <div className="px-4 py-2">
-                  <label className="block text-xs text-gray-500 mb-1">Resolution</label>
-                  <select
-                    value={`${canvasSize.width}x${canvasSize.height}`}
-                    onChange={(e) => {
-                      const [width, height] = e.target.value.split('x').map(Number);
-                      setCanvasSize({ width, height });
-                      setShowCanvasDropdown(false);
-                    }}
-                    className="w-full text-sm border border-gray-300 rounded px-2 py-1"
-                  >
-                    <option value="1920x1080">HD (1920×1080)</option>
-                    <option value="2560x1440">2K (2560×1440)</option>
-                    <option value="3840x2160">4K (3840×2160)</option>
-                  </select>
-                </div>
-              </div>
+            {isEditMode && (
+              <>
+                <Button onClick={saveControls} className="bg-green-600 hover:bg-green-700">
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </Button>
+                
+                <Button variant="outline" onClick={() => {
+                  setIsEditMode(false);
+                  setSelectedControl(null);
+                }}>
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+              </>
             )}
           </div>
+        </div>
+      </div>
 
-          {/* Controls Edit Dropdown */}
-          <div className="relative">
-            <Button
-              onClick={() => setShowControlsDropdown(!showControlsDropdown)}
-              variant={controlsEditMode ? "default" : "outline"}
-              className={`${controlsEditMode ? "bg-green-600 hover:bg-green-700" : ""} flex items-center gap-2`}
-            >
-              Controls
-              <ChevronDown className="w-4 h-4" />
-            </Button>
-            
-            {showControlsDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                <button
-                  onClick={() => {
-                    setControlsEditMode(!controlsEditMode);
-                    setShowControlsDropdown(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                >
-                  {controlsEditMode ? 'Exit Controls Edit' : 'Edit Controls'}
-                </button>
-                {controlsEditMode && (
+      {/* Main Content */}
+      <div className="flex h-[calc(100vh-5rem)]">
+        {/* Canvas Area */}
+        <div className="flex-1 relative overflow-hidden">
+          <div 
+            className="relative w-full h-full"
+            style={{ 
+              width: canvasSize.width, 
+              height: canvasSize.height,
+              backgroundImage: showGrid ? `
+                linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+                linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
+              ` : 'none',
+              backgroundSize: showGrid ? `${GRID_SIZE}px ${GRID_SIZE}px` : 'auto',
+              border: showCanvasBorder ? '2px dashed #8b5cf6' : 'none',
+            }}
+          >
+            {/* Camera Panel */}
+            {localLayout?.camera && (
+              <div
+                className={`absolute bg-gray-900 rounded-lg flex items-center justify-center text-white ${isEditMode ? 'cursor-move' : ''}`}
+                style={{
+                  left: localLayout.camera.position.x,
+                  top: localLayout.camera.position.y,
+                  width: localLayout.camera.width,
+                  height: localLayout.camera.height,
+                  border: isEditMode ? '2px solid #3b82f6' : 'none'
+                }}
+                onMouseDown={(e) => handlePanelMouseDown(e, 'camera')}
+              >
+                <Monitor className="w-8 h-8 mr-2" />
+                <span>Live Camera Feed</span>
+                
+                {isEditMode && (
                   <>
-                    <hr className="my-1" />
-                    <button
-                      onClick={() => {
-                        const newControl: ControlWidget = {
-                          id: `control-${Date.now()}`,
-                          type: 'button',
-                          name: 'New Button',
-                          command: 'new_command',
-                          parameters: {},
-                          position: { x: 100, y: 100 },
-                          size: { width: 120, height: 40 },
-                          style: {
-                            backgroundColor: '#3b82f6',
-                            textColor: '#ffffff',
-                            borderColor: '#2563eb',
-                            borderRadius: 6,
-                            fontSize: 14
-                          }
-                        };
-                        setLocalControls(prev => [...prev, newControl]);
-                        setShowControlsDropdown(false);
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                    >
-                      Add Button
-                    </button>
-                    <button
-                      onClick={() => {
-                        const newControl: ControlWidget = {
-                          id: `control-${Date.now()}`,
-                          type: 'slider',
-                          name: 'New Slider',
-                          command: 'slider_command',
-                          parameters: { min: 0, max: 100, step: 1 },
-                          position: { x: 100, y: 150 },
-                          size: { width: 200, height: 20 },
-                          style: {
-                            backgroundColor: '#10b981',
-                            textColor: '#ffffff',
-                            borderColor: '#059669',
-                            borderRadius: 10,
-                            fontSize: 12
-                          }
-                        };
-                        setLocalControls(prev => [...prev, newControl]);
-                        setShowControlsDropdown(false);
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                    >
-                      Add Slider
-                    </button>
-                    <button
-                      onClick={() => {
-                        const newControl: ControlWidget = {
-                          id: `control-${Date.now()}`,
-                          type: 'joystick',
-                          name: 'New Joystick',
-                          command: 'joystick_command',
-                          parameters: {},
-                          position: { x: 100, y: 200 },
-                          size: { width: 100, height: 100 },
-                          style: {
-                            backgroundColor: '#8b5cf6',
-                            textColor: '#ffffff',
-                            borderColor: '#7c3aed',
-                            borderRadius: 50,
-                            fontSize: 12
-                          }
-                        };
-                        setLocalControls(prev => [...prev, newControl]);
-                        setShowControlsDropdown(false);
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
-                    >
-                      Add Joystick
-                    </button>
+                    {/* Drag Handle */}
+                    <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded cursor-move" />
+                    
+                    {/* Resize Handle */}
+                    <div 
+                      className="absolute bottom-1 right-1 w-4 h-4 bg-blue-500 cursor-se-resize"
+                      onMouseDown={(e) => handleResizeMouseDown(e, 'camera')}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Control Panel */}
+            {localLayout?.controlPanel && (
+              <div
+                className={`absolute bg-gray-50 border-2 border-gray-200 rounded-lg ${isEditMode ? 'cursor-move' : ''}`}
+                style={{
+                  left: localLayout.controlPanel.position.x,
+                  top: localLayout.controlPanel.position.y,
+                  width: localLayout.controlPanel.width,
+                  height: localLayout.controlPanel.height,
+                  border: isEditMode ? '2px solid #10b981' : '2px solid #e5e7eb'
+                }}
+                onMouseDown={(e) => handlePanelMouseDown(e, 'controlPanel')}
+              >
+                {/* Controls */}
+                {localControls.map(renderControl)}
+                
+                {isEditMode && (
+                  <>
+                    {/* Drag Handle */}
+                    <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded cursor-move" />
+                    
+                    {/* Resize Handle */}
+                    <div 
+                      className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 cursor-se-resize"
+                      onMouseDown={(e) => handleResizeMouseDown(e, 'controlPanel')}
+                    />
                   </>
                 )}
               </div>
             )}
           </div>
-          
-          {(canvasEditMode || controlsEditMode) && (
-            <Button
-              onClick={saveControls}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
-            </Button>
-          )}
-          
-          {!isSessionActive ? (
-            <Button 
-              onClick={handleStartSession} 
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Start Session
-            </Button>
-          ) : (
-            <Button onClick={handleStopSession} variant="destructive">
-              <Square className="w-4 h-4 mr-2" />
-              End Session
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Main Interface */}
-      <div className="flex-1 flex relative bg-gray-50">
-        {/* Canvas Boundary */}
-        {canvasEditMode && showCanvasBorder && (
-          <div 
-            className="absolute border-4 border-purple-500 border-dashed pointer-events-none z-20"
-            style={{
-              left: '20px',
-              top: '20px',
-              width: Math.min(canvasSize.width * 0.8, window.innerWidth * 0.9),
-              height: Math.min(canvasSize.height * 0.8, window.innerHeight * 0.7),
-              backgroundColor: 'rgba(147, 51, 234, 0.05)'
-            }}
-          >
-            <div className="absolute -top-8 left-0 bg-purple-500 text-white px-3 py-1 text-sm rounded font-medium">
-              Output Canvas: {canvasSize.width}×{canvasSize.height}
-            </div>
-            <div className="absolute -bottom-8 right-0 bg-purple-500 text-white px-3 py-1 text-xs rounded">
-              Drag elements within this boundary
-            </div>
-          </div>
-        )}
-        
-        {/* Grid Overlay */}
-        {(canvasEditMode || controlsEditMode) && showGrid && (
-          <div 
-            className="absolute inset-0 pointer-events-none opacity-20 z-10"
-            style={{
-              backgroundImage: `
-                linear-gradient(to right, #3b82f6 1px, transparent 1px),
-                linear-gradient(to bottom, #3b82f6 1px, transparent 1px)
-              `,
-              backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`
-            }}
-          />
-        )}
-        {/* Camera Feed */}
-        <div 
-          className={`bg-gray-900 rounded-lg relative overflow-hidden border-2 ${canvasEditMode ? 'border-blue-400 cursor-move' : 'border-transparent'}`}
-          style={{
-            width: localLayout ? `${localLayout.camera?.width || 800}px` : '800px',
-            height: localLayout ? `${localLayout.camera?.height || 600}px` : '600px',
-            left: localLayout ? `${localLayout.camera?.position?.x || 40}px` : '40px',
-            top: localLayout ? `${localLayout.camera?.position?.y || 40}px` : '40px',
-            position: 'absolute'
-          }}
-          onMouseDown={(e) => handlePanelDragStart(e, 'camera')}
-        >
-          <div className="absolute inset-0 flex items-center justify-center text-white">
-            <div className="text-center">
-              <Activity className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">Live Camera Feed</p>
-              <p className="text-sm opacity-75">Hardware: {stationData.hardwareType}</p>
-            </div>
-          </div>
-          
-          {/* Drag handle for camera */}
-          {canvasEditMode && (
-            <div className="absolute top-1 left-1 w-6 h-6 bg-blue-500 rounded cursor-move opacity-70 hover:opacity-100 flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-sm"></div>
-            </div>
-          )}
-          
-          {/* Resize handle for camera */}
-          {canvasEditMode && (
-            <div
-              className="absolute bottom-1 right-1 w-4 h-4 bg-blue-500 cursor-se-resize opacity-70 hover:opacity-100 rounded-tl z-20"
-              onMouseDown={(e) => handleResizeStart(e, 'camera')}
-              title="Drag to resize camera"
-            />
-          )}
         </div>
 
-        {/* Control Panel */}
-        <div 
-          className={`bg-white border rounded-lg relative border-2 ${canvasEditMode ? 'border-green-400 cursor-move' : 'border-gray-200'}`}
-          style={{
-            width: localLayout ? `${localLayout.controlPanel?.width || 600}px` : '600px',
-            height: localLayout ? `${localLayout.controlPanel?.height || 700}px` : '700px',
-            left: localLayout ? `${localLayout.controlPanel?.position?.x || 880}px` : '880px',
-            top: localLayout ? `${localLayout.controlPanel?.position?.y || 40}px` : '40px',
-            position: 'absolute'
-          }}
-          onMouseDown={(e) => handlePanelDragStart(e, 'controlPanel')}
-        >
-          <div className="h-full p-4 relative overflow-hidden">
-            {/* Drag handle for control panel */}
-            {canvasEditMode && (
-              <div className="absolute top-1 left-1 w-6 h-6 bg-green-500 rounded cursor-move opacity-70 hover:opacity-100 flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-sm"></div>
-              </div>
-            )}
+        {/* Floating Toolbox */}
+        {isEditMode && (
+          <div className="w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4">Edit Toolbox</h3>
             
-            <h3 className="text-lg font-semibold mb-4">Hardware Controls</h3>
-
-            {/* Add Controls Panel - only show in edit mode */}
-            {controlsEditMode && (
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <h4 className="text-sm font-semibold mb-3">Add Controls</h4>
-                <div className="flex space-x-2">
-                  <Button onClick={() => addNewControl('button')} variant="outline" size="sm">
-                    + Button
-                  </Button>
-                  <Button onClick={() => addNewControl('slider')} variant="outline" size="sm">
-                    + Slider
-                  </Button>
-                  <Button onClick={() => addNewControl('toggle')} variant="outline" size="sm">
-                    + Toggle
-                  </Button>
-                  <Button onClick={() => addNewControl('joystick')} variant="outline" size="sm">
-                    + Joystick
-                  </Button>
+            {/* Canvas Options */}
+            <div className="mb-6">
+              <h4 className="font-medium mb-3">Canvas</h4>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="showGrid"
+                    checked={showGrid}
+                    onChange={(e) => setShowGrid(e.target.checked)}
+                  />
+                  <label htmlFor="showGrid" className="text-sm">Show Grid</label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="showBorder"
+                    checked={showCanvasBorder}
+                    onChange={(e) => setShowCanvasBorder(e.target.checked)}
+                  />
+                  <label htmlFor="showBorder" className="text-sm">Show Canvas Border</label>
+                </div>
+                
+                <div>
+                  <Label htmlFor="resolution">Resolution</Label>
+                  <Select
+                    value={`${canvasSize.width}x${canvasSize.height}`}
+                    onValueChange={(value) => {
+                      const [width, height] = value.split('x').map(Number);
+                      setCanvasSize({ width, height });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1920x1080">HD (1920×1080)</SelectItem>
+                      <SelectItem value="2560x1440">2K (2560×1440)</SelectItem>
+                      <SelectItem value="3840x2160">4K (3840×2160)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            )}
+            </div>
 
-            {localControls.length > 0 ? (
-              <div className="relative w-full" style={{ height: 'calc(100% - 3rem)' }}>
-                {localControls.map((widget: ControlWidget) => {
-                  const widgetStyle = {
-                    position: 'absolute' as const,
-                    left: `${widget.position.x}px`,
-                    top: `${widget.position.y}px`,
-                    width: `${widget.size.width}px`,
-                    height: `${widget.size.height}px`,
-                    cursor: controlsEditMode ? 'move' : 'pointer',
-                    outline: controlsEditMode ? '2px dashed #3b82f6' : 'none',
-                    outlineOffset: controlsEditMode ? '4px' : '0px',
-                    opacity: controlsEditMode ? 0.8 : 1,
-                  };
+            {/* Add Controls */}
+            <div className="mb-6">
+              <h4 className="font-medium mb-3">Add Controls</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addControl('button')}
+                  className="w-full"
+                >
+                  Button
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addControl('slider')}
+                  className="w-full"
+                >
+                  Slider
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addControl('toggle')}
+                  className="w-full"
+                >
+                  Toggle
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addControl('joystick')}
+                  className="w-full"
+                >
+                  Joystick
+                </Button>
+              </div>
+            </div>
 
+            {/* Selected Control Properties */}
+            {selectedControl && (
+              <div className="mb-6">
+                <h4 className="font-medium mb-3">Control Properties</h4>
+                {(() => {
+                  const control = localControls.find(c => c.id === selectedControl);
+                  if (!control) return null;
+                  
                   return (
-                    <button
-                      key={widget.id}
-                      style={{
-                        ...widgetStyle,
-                        background: `linear-gradient(135deg, ${widget.style.backgroundColor}f0, ${widget.style.backgroundColor})`,
-                        color: widget.style.textColor,
-                        border: `3px solid ${widget.style.borderColor}`,
-                        borderRadius: `${widget.style.borderRadius + 8}px`,
-                        fontSize: `${widget.style.fontSize + 2}px`,
-                        fontWeight: '700',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                      className="select-none"
-                      onClick={() => {
-                        if (controlsEditMode) return;
-                        if (isSessionActive) handleCommand(widget.command, widget.parameters);
-                      }}
-                      onMouseDown={(e) => {
-                        if (controlsEditMode) {
-                          handleMouseDown(e, widget.id);
-                          return;
-                        }
-                      }}
-                      disabled={!isSessionActive && !controlsEditMode}
-                    >
-                      {widget.name}
-                    </button>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="controlName">Name</Label>
+                        <Input
+                          id="controlName"
+                          value={control.name}
+                          onChange={(e) => updateControl(control.id, { name: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="controlCommand">Command</Label>
+                        <Input
+                          id="controlCommand"
+                          value={control.command}
+                          onChange={(e) => updateControl(control.id, { command: e.target.value })}
+                          placeholder="e.g., move_forward"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="backgroundColor">Background Color</Label>
+                        <Input
+                          id="backgroundColor"
+                          type="color"
+                          value={control.style.backgroundColor}
+                          onChange={(e) => updateControl(control.id, { 
+                            style: { ...control.style, backgroundColor: e.target.value }
+                          })}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="textColor">Text Color</Label>
+                        <Input
+                          id="textColor"
+                          type="color"
+                          value={control.style.textColor}
+                          onChange={(e) => updateControl(control.id, { 
+                            style: { ...control.style, textColor: e.target.value }
+                          })}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label htmlFor="positionX">X Position</Label>
+                          <Input
+                            id="positionX"
+                            type="number"
+                            value={control.position.x}
+                            onChange={(e) => updateControl(control.id, { 
+                              position: { ...control.position, x: Number(e.target.value) }
+                            })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="positionY">Y Position</Label>
+                          <Input
+                            id="positionY"
+                            type="number"
+                            value={control.position.y}
+                            onChange={(e) => updateControl(control.id, { 
+                              position: { ...control.position, y: Number(e.target.value) }
+                            })}
+                          />
+                        </div>
+                      </div>
+                      
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => deleteControl(control.id)}
+                        className="w-full"
+                      >
+                        Delete Control
+                      </Button>
+                    </div>
                   );
-                })}
-              </div>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-400">
-                <div className="text-center">
-                  <p className="text-lg font-medium">No controls configured</p>
-                  <p className="text-sm">Click "Edit Layout" to add controls</p>
-                </div>
+                })()}
               </div>
             )}
           </div>
-          {/* Resize handle for control panel */}
-          {canvasEditMode && (
-            <div
-              className="absolute bottom-1 right-1 w-4 h-4 bg-blue-500 cursor-se-resize opacity-70 hover:opacity-100 rounded-tl z-20"
-              onMouseDown={(e) => handleResizeStart(e, 'controlPanel')}
-              title="Drag to resize control panel"
-            />
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
