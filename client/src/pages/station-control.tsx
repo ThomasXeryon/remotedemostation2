@@ -245,7 +245,7 @@ export function StationControl() {
                   };
 
                   const handleControlClick = () => {
-                    if (isSessionActive && canStartSession) {
+                    if (isSessionActive) {
                       handleCommand(widget.command, widget.parameters || {});
                     }
                   };
@@ -368,72 +368,6 @@ export function StationControl() {
                           </div>
                         </div>
                       );
-                                e.preventDefault();
-                                const joystickArea = e.currentTarget;
-                                const rect = joystickArea.getBoundingClientRect();
-                                const centerX = rect.left + rect.width / 2;
-                                const centerY = rect.top + rect.height / 2;
-                                const maxDistance = 30;
-                                
-                                const knob = joystickArea.querySelector('.joystick-knob') as HTMLElement;
-                                if (!knob) return;
-                                
-                                const handleMouseMove = (moveEvent: MouseEvent) => {
-                                  const deltaX = moveEvent.clientX - centerX;
-                                  const deltaY = moveEvent.clientY - centerY;
-                                  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                                  
-                                  let x = deltaX;
-                                  let y = deltaY;
-                                  
-                                  if (distance > maxDistance) {
-                                    x = (deltaX / distance) * maxDistance;
-                                    y = (deltaY / distance) * maxDistance;
-                                  }
-                                  
-                                  knob.style.transform = `translate(${x}px, ${y}px)`;
-                                  knob.style.transition = 'none';
-                                  
-                                  if (isSessionActive) {
-                                    handleCommand(widget.command, { 
-                                      x: Math.round((x / maxDistance) * 100), 
-                                      y: Math.round((y / maxDistance) * 100),
-                                      ...widget.parameters 
-                                    });
-                                  }
-                                };
-                                
-                                const handleMouseUp = () => {
-                                  knob.style.transform = 'translate(0px, 0px)';
-                                  knob.style.transition = 'transform 0.2s ease';
-                                  
-                                  if (isSessionActive) {
-                                    handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
-                                  }
-                                  
-                                  document.removeEventListener('mousemove', handleMouseMove);
-                                  document.removeEventListener('mouseup', handleMouseUp);
-                                };
-                                
-                                document.addEventListener('mousemove', handleMouseMove);
-                                document.addEventListener('mouseup', handleMouseUp);
-                              }}
-                            >
-                              <div 
-                                className="joystick-knob rounded-full absolute shadow-lg"
-                                style={{
-                                  width: 24,
-                                  height: 24,
-                                  left: 'calc(50% - 12px)',
-                                  top: 'calc(50% - 12px)',
-                                  backgroundColor: widget.style?.textColor || '#3b82f6',
-                                  transition: 'transform 0.2s ease'
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
 
                     default:
                       return null;
@@ -448,43 +382,11 @@ export function StationControl() {
             </div>
           )}
 
-          {/* Real Hardware Status - only shows when connected */}
-          {isConnected && telemetryData && telemetryData.length > 0 ? (
-            <div>
-              <h3 className="font-semibold mb-3">Hardware Status</h3>
-              <div className="space-y-2 text-sm">
-                {telemetryData[0].position && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Position:</span>
-                    <span className="text-green-600 font-mono">{telemetryData[0].position}mm</span>
-                  </div>
-                )}
-                {telemetryData[0].velocity && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Velocity:</span>
-                    <span className="text-blue-600 font-mono">{telemetryData[0].velocity}mm/s</span>
-                  </div>
-                )}
-                {telemetryData[0].load && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Load:</span>
-                    <span className="text-yellow-600 font-mono">{telemetryData[0].load}%</span>
-                  </div>
-                )}
-                {telemetryData[0].temperature && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Temperature:</span>
-                    <span className="text-orange-600 font-mono">{telemetryData[0].temperature}°C</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <div className="text-sm">No Hardware Connected</div>
-              <div className="text-xs mt-1">Connect demo station to view status</div>
-            </div>
-          )}
+          {/* Hardware Status */}
+          <div className="text-center py-8 text-gray-500">
+            <div className="text-sm">Hardware Status</div>
+            <div className="text-xs mt-1">Status will appear when hardware is connected</div>
+          </div>
         </div>
       </div>
     </div>
