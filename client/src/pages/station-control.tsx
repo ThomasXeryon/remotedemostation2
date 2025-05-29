@@ -443,6 +443,10 @@ export function StationControl() {
   const [targetPosition, setTargetPosition] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [localControls, setLocalControls] = useState<ControlWidget[]>([]);
+  const [selectedControl, setSelectedControl] = useState<string | null>(null);
+  const [draggedControl, setDraggedControl] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const currentUser = getCurrentUser();
 
   const { data: station, isLoading: stationLoading, refetch: refetchStation } = useQuery({
@@ -541,7 +545,115 @@ export function StationControl() {
     setIsSessionActive(false);
   };
 
-  const controlWidgets = (controlConfig?.controls && Array.isArray(controlConfig.controls) ? controlConfig.controls : []) as ControlWidget[];
+  const controlWidgets = (controlConfig?.controls ? controlConfig.controls : []) as ControlWidget[];
+
+  // Sync local controls with fetched controls
+  useEffect(() => {
+    if (controlWidgets.length > 0) {
+      setLocalControls(controlWidgets);
+    }
+  }, [controlWidgets]);
+
+  // Add new control function
+  const addNewControl = (type: 'button' | 'slider' | 'toggle' | 'joystick') => {
+    const newControl: ControlWidget = {
+      id: `${type}_${Date.now()}`,
+      name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      type,
+      command: `${type}_command`,
+      parameters: {},
+      position: { x: 100, y: 100 },
+      size: {
+        width: type === 'joystick' ? 120 : type === 'slider' ? 200 : type === 'toggle' ? 60 : 120,
+        height: type === 'joystick' ? 120 : type === 'slider' ? 30 : type === 'toggle' ? 30 : 40
+      },
+      style: {
+        backgroundColor: '#3b82f6',
+        textColor: '#ffffff',
+        borderColor: '#1d4ed8',
+        borderRadius: 8,
+        fontSize: 14
+      }
+    };
+    setLocalControls(prev => [...prev, newControl]);
+  };
+
+  // Mouse event handlers for dragging
+  const handleMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    
+    const control = localControls.find(c => c.id === controlId);
+    if (!control) return;
+
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const containerRect = (e.target as HTMLElement).closest('.relative.w-full')?.getBoundingClientRect();
+    
+    if (containerRect) {
+      setDragOffset({
+        x: e.clientX - (containerRect.left + control.position.x),
+        y: e.clientY - (containerRect.top + control.position.y)
+      });
+    }
+    
+    setDraggedControl(controlId);
+    setSelectedControl(controlId);
+  }, [isEditMode, localControls]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!draggedControl || !isEditMode) return;
+    
+    const container = document.querySelector('.relative.w-full[style*="calc(100% - 3rem)"]') as HTMLElement;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const newX = Math.max(0, Math.min(container.clientWidth - 120, e.clientX - rect.left - dragOffset.x));
+    const newY = Math.max(0, Math.min(container.clientHeight - 40, e.clientY - rect.top - dragOffset.y));
+    
+    setLocalControls(prev => prev.map(control => 
+      control.id === draggedControl 
+        ? { ...control, position: { x: newX, y: newY } }
+        : control
+    ));
+  }, [draggedControl, dragOffset, isEditMode]);
+
+  const handleMouseUp = useCallback(() => {
+    setDraggedControl(null);
+  }, []);
+
+  // Add event listeners
+  useEffect(() => {
+    if (isEditMode) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isEditMode, handleMouseMove, handleMouseUp]);
+
+  // Save controls function
+  const saveControls = async () => {
+    try {
+      const response = await fetch(`/api/demo-stations/${id}/controls`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ controls: localControls })
+      });
+
+      if (response.ok) {
+        setIsEditMode(false);
+        refetchControls();
+      }
+    } catch (error) {
+      console.error('Failed to save controls:', error);
+    }
+  };
 
   return (
     <div className="h-screen flex flex-col">
@@ -561,9 +673,9 @@ export function StationControl() {
         </div>
         <div className="flex items-center space-x-4">
           <Button 
-            onClick={() => setIsEditMode(!isEditMode)}
+            onClick={() => isEditMode ? saveControls() : setIsEditMode(true)}
             variant={isEditMode ? "default" : "outline"}
-            className={isEditMode ? "bg-blue-600 hover:bg-blue-700" : ""}
+            className={isEditMode ? "bg-green-600 hover:bg-green-700" : ""}
           >
             {isEditMode ? <Save className="w-4 h-4 mr-2" /> : <Edit3 className="w-4 h-4 mr-2" />}
             {isEditMode ? "Save Layout" : "Edit Layout"}
@@ -621,9 +733,30 @@ export function StationControl() {
           <div className="h-full p-4 relative overflow-hidden">
             <h3 className="text-lg font-semibold mb-4">Hardware Controls</h3>
 
-            {controlWidgets.length > 0 ? (
+            {/* Add Controls Panel - only show in edit mode */}
+            {isEditMode && (
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <h4 className="text-sm font-semibold mb-3">Add Controls</h4>
+                <div className="flex space-x-2">
+                  <Button onClick={() => addNewControl('button')} variant="outline" size="sm">
+                    + Button
+                  </Button>
+                  <Button onClick={() => addNewControl('slider')} variant="outline" size="sm">
+                    + Slider
+                  </Button>
+                  <Button onClick={() => addNewControl('toggle')} variant="outline" size="sm">
+                    + Toggle
+                  </Button>
+                  <Button onClick={() => addNewControl('joystick')} variant="outline" size="sm">
+                    + Joystick
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {localControls.length > 0 ? (
               <div className="relative w-full" style={{ height: 'calc(100% - 3rem)' }}>
-                {controlWidgets.map((widget: ControlWidget) => {
+                {localControls.map((widget: ControlWidget) => {
                   // Use exact positioning from the control builder without scaling
                   const widgetStyle = {
                     position: 'absolute' as const,
