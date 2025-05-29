@@ -6,7 +6,7 @@ import { ControlPanel } from "@/components/control-panel";
 import { TelemetrySection } from "@/components/telemetry-section";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { getCurrentUser } from "@/lib/auth";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
