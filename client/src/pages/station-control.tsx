@@ -330,20 +330,6 @@ export function StationControl() {
     refetchInterval: 1000, // Refresh every second when session is active
   });
 
-  // Fix: station comes as an array, get the first element
-  const stationData = Array.isArray(station) ? station[0] : station;
-  
-  console.log('Station data:', stationData);
-  console.log('Station configuration:', stationData?.configuration);
-  
-  // Get saved layout or use default
-  const layout = stationData?.configuration?.interfaceLayout || {
-    camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
-    controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
-  };
-
-  console.log('Using layout:', layout);
-
   // Listen for organization changes and refetch data
   useEffect(() => {
     const handleOrganizationChanged = () => {
@@ -366,6 +352,20 @@ export function StationControl() {
     isConnected, 
     sendCommand 
   } = useWebSocket(id || '', 1, isSessionActive ? 1 : undefined);
+
+  // Fix: station comes as an array, get the first element
+  const stationData = Array.isArray(station) ? station[0] : station;
+  
+  console.log('Station data:', stationData);
+  console.log('Station configuration:', stationData?.configuration);
+  
+  // Get saved layout or use default
+  const layout = stationData?.configuration?.interfaceLayout || {
+    camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
+    controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
+  };
+
+  console.log('Using layout:', layout);
 
   const handleCommand = (command: string, parameters?: Record<string, any>) => {
     console.log('Sending command:', command, parameters);
