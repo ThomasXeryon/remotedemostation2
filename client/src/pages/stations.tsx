@@ -122,23 +122,11 @@ export default function StationsPage() {
   });
 
   const getStatusColor = (station: DemoStation) => {
-    if (!station.isOnline) return 'bg-slate-400';
-    if (station.lastHeartbeat) {
-      const timeSinceHeartbeat = Date.now() - new Date(station.lastHeartbeat).getTime();
-      if (timeSinceHeartbeat < 30000) return 'bg-green-500';
-      if (timeSinceHeartbeat < 120000) return 'bg-yellow-500';
-    }
-    return 'bg-red-500';
+    return station.isOnline ? 'text-green-600' : 'text-red-600';
   };
 
   const getStatusText = (station: DemoStation) => {
-    if (!station.isOnline) return 'Offline';
-    if (station.lastHeartbeat) {
-      const timeSinceHeartbeat = Date.now() - new Date(station.lastHeartbeat).getTime();
-      if (timeSinceHeartbeat < 30000) return 'Online';
-      if (timeSinceHeartbeat < 120000) return 'Warning';
-    }
-    return 'Disconnected';
+    return station.isOnline ? 'Enabled' : 'Disabled';
   };
 
   const handleCreateStation = () => {

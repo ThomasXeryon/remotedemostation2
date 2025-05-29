@@ -158,26 +158,10 @@ export function StationControl() {
   const demoStation = station as DemoStation;
   const controlWidgets = (controlConfig?.controls && Array.isArray(controlConfig.controls) ? controlConfig.controls : []) as ControlWidget[];
   
-  // Check if user is admin
   const isAdmin = currentUser?.role === 'admin';
-  const stationDisabled = !demoStation.isOnline;
-  
-  // Determine if Start Session button should be shown
-  const showStartButton = !stationDisabled || isAdmin;
-  const canStartSession = isConnected && demoStation.isOnline;
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Station Disabled Banner - only show to non-admins when station is disabled */}
-      {stationDisabled && !isAdmin && (
-        <Alert className="mx-4 mt-4 border-orange-200 bg-orange-50">
-          <AlertTriangle className="h-4 w-4 text-orange-600" />
-          <AlertDescription className="text-orange-800">
-            This demo station is currently disabled and not available for use.
-          </AlertDescription>
-        </Alert>
-      )}
-      
       {/* Top Control Bar */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-4">
@@ -193,32 +177,19 @@ export function StationControl() {
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          <Badge variant={isConnected ? "default" : "destructive"}>
-            {isConnected ? "Connected" : "Disconnected"}
-          </Badge>
-          {stationDisabled && isAdmin && (
-            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-              Station Disabled
-            </Badge>
-          )}
-          {showStartButton && (
-            <>
-              {!isSessionActive ? (
-                <Button 
-                  onClick={handleStartSession} 
-                  disabled={!canStartSession} 
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  Start Session
-                </Button>
-              ) : (
-                <Button onClick={handleStopSession} variant="destructive">
-                  <Square className="w-4 h-4 mr-2" />
-                  Stop Session
-                </Button>
-              )}
-            </>
+          {!isSessionActive ? (
+            <Button 
+              onClick={handleStartSession} 
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Start Session
+            </Button>
+          ) : (
+            <Button onClick={handleStopSession} variant="destructive">
+              <Square className="w-4 h-4 mr-2" />
+              Stop Session
+            </Button>
           )}
         </div>
       </div>

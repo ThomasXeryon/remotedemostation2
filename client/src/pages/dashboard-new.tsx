@@ -3,9 +3,11 @@ import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Monitor, Settings, Play, Clock, Users } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Monitor, Settings, Play, Clock, Users, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
+import { getCurrentUser } from "@/lib/auth";
 
 interface DemoStation {
   id: string;
@@ -28,6 +30,8 @@ export function Dashboard() {
     queryKey: ['/api/demo-stations'],
   });
 
+  const currentUser = getCurrentUser();
+
   // Listen for organization changes and refetch data
   useEffect(() => {
     const handleOrganizationChanged = () => {
@@ -49,7 +53,11 @@ export function Dashboard() {
     );
   }
 
-  const stations = (demoStations as DemoStation[]) || [];
+  const allStations = (demoStations as DemoStation[]) || [];
+  // Filter stations: regular users only see enabled stations, admins see all
+  const stations = currentUser?.role === 'admin' 
+    ? allStations 
+    : allStations.filter(station => station.isOnline);
 
   return (
     <div className="flex-1 space-y-6 p-6">
