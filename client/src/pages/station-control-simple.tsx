@@ -51,10 +51,18 @@ export default function StationControlSimple() {
   });
 
   // Fetch saved control configuration
-  const { data: controlConfig } = useQuery({
+  const { data: controlConfig, error: controlConfigError } = useQuery({
     queryKey: ['/api/demo-stations', id, 'controls'],
     enabled: !!id,
   });
+
+  // Debug API fetch
+  useEffect(() => {
+    console.log('Fetching controls for station:', id);
+    if (controlConfigError) {
+      console.error('Error fetching control config:', controlConfigError);
+    }
+  }, [id, controlConfigError]);
 
   // Load saved layout when control config is available
   useEffect(() => {
