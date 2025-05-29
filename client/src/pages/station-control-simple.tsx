@@ -88,11 +88,11 @@ export default function StationControlSimple() {
     }
   }, [stationData]);
 
-  // Load saved controls from station data
+  // Load saved controls from station configuration
   useEffect(() => {
-    if (stationData?.controls) {
-      console.log('Loading saved controls:', stationData.controls);
-      setControls(stationData.controls);
+    if (stationData?.configuration?.controls) {
+      console.log('Loading saved controls:', stationData.configuration.controls);
+      setControls(stationData.configuration.controls);
     }
   }, [stationData]);
 
@@ -376,9 +376,9 @@ export default function StationControlSimple() {
         },
         body: JSON.stringify({ 
           configuration: {
-            interfaceLayout: layoutData
-          },
-          controls: controls
+            interfaceLayout: layoutData,
+            controls: controls
+          }
         }),
       });
 
