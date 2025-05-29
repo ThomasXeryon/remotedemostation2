@@ -331,6 +331,19 @@ export default function StationControl() {
             {isEditMode ? <Save className="w-4 h-4 mr-2" /> : <Edit3 className="w-4 h-4 mr-2" />}
             {isEditMode ? "Save Layout" : "Edit Layout"}
           </Button>
+          
+          {isEditMode && (
+            <Button
+              onClick={() => setShowGrid(!showGrid)}
+              variant="outline"
+              size="sm"
+              className={showGrid ? "bg-blue-100" : ""}
+            >
+              <Grid className="w-4 h-4 mr-2" />
+              {showGrid ? "Hide Grid" : "Show Grid"}
+            </Button>
+          )}
+          
           {!isSessionActive ? (
             <Button 
               onClick={handleStartSession} 
@@ -350,14 +363,27 @@ export default function StationControl() {
 
       {/* Main Interface */}
       <div className="flex-1 flex relative">
+        {/* Grid Overlay */}
+        {isEditMode && showGrid && (
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-20 z-10"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, #3b82f6 1px, transparent 1px),
+                linear-gradient(to bottom, #3b82f6 1px, transparent 1px)
+              `,
+              backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`
+            }}
+          />
+        )}
         {/* Camera Feed */}
         <div 
           className="bg-gray-900 rounded-lg m-2 relative overflow-hidden"
           style={{
-            width: `${layout.camera.width}%`,
-            height: `${layout.camera.height}%`,
-            left: `${layout.camera.position.x}%`,
-            top: `${layout.camera.position.y}%`,
+            width: localLayout ? `${localLayout.camera?.width || 45}%` : `${layout.camera.width}%`,
+            height: localLayout ? `${localLayout.camera?.height || 60}%` : `${layout.camera.height}%`,
+            left: localLayout ? `${localLayout.camera?.position?.x || 2}%` : `${layout.camera.position.x}%`,
+            top: localLayout ? `${localLayout.camera?.position?.y || 2}%` : `${layout.camera.position.y}%`,
             position: 'absolute'
           }}
         >
@@ -368,16 +394,24 @@ export default function StationControl() {
               <p className="text-sm opacity-75">Hardware: {stationData.hardwareType}</p>
             </div>
           </div>
+          {/* Resize handle for camera */}
+          {isEditMode && (
+            <div
+              className="absolute bottom-1 right-1 w-4 h-4 bg-blue-500 cursor-se-resize opacity-70 hover:opacity-100 rounded-tl z-20"
+              onMouseDown={(e) => handleResizeStart(e, 'camera')}
+              title="Drag to resize camera"
+            />
+          )}
         </div>
 
         {/* Control Panel */}
         <div 
           className="bg-white border rounded-lg m-2 relative"
           style={{
-            width: `${layout.controlPanel.width}%`,
-            height: `${layout.controlPanel.height}%`,
-            left: `${layout.controlPanel.position.x}%`,
-            top: `${layout.controlPanel.position.y}%`,
+            width: localLayout ? `${localLayout.controlPanel?.width || 45}%` : `${layout.controlPanel.width}%`,
+            height: localLayout ? `${localLayout.controlPanel?.height || 85}%` : `${layout.controlPanel.height}%`,
+            left: localLayout ? `${localLayout.controlPanel?.position?.x || 50}%` : `${layout.controlPanel.position.x}%`,
+            top: localLayout ? `${localLayout.controlPanel?.position?.y || 2}%` : `${layout.controlPanel.position.y}%`,
             position: 'absolute'
           }}
         >
@@ -462,6 +496,14 @@ export default function StationControl() {
               </div>
             )}
           </div>
+          {/* Resize handle for control panel */}
+          {isEditMode && (
+            <div
+              className="absolute bottom-1 right-1 w-4 h-4 bg-blue-500 cursor-se-resize opacity-70 hover:opacity-100 rounded-tl z-20"
+              onMouseDown={(e) => handleResizeStart(e, 'controlPanel')}
+              title="Drag to resize control panel"
+            />
+          )}
         </div>
       </div>
     </div>
