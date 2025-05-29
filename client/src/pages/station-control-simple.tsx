@@ -40,6 +40,7 @@ export default function StationControlSimple() {
   const [selectedPanel, setSelectedPanel] = useState<string | null>(null);
   const [controls, setControls] = useState<any[]>([]);
   const [selectedControl, setSelectedControl] = useState<string | null>(null);
+  const [isDraggingControl, setIsDraggingControl] = useState<string | null>(null);
 
   // Snap to grid function
   const snapToGrid = (value: number, gridSize: number = 20) => {
@@ -49,6 +50,12 @@ export default function StationControlSimple() {
   // Fetch station data
   const { data: stationData, isLoading } = useQuery<DemoStation>({
     queryKey: ['/api/demo-stations', id],
+    enabled: !!id,
+  });
+
+  // Fetch control configuration
+  const { data: controlData } = useQuery({
+    queryKey: ['/api/demo-stations', id, 'controls'],
     enabled: !!id,
   });
 
@@ -80,6 +87,14 @@ export default function StationControlSimple() {
       }
     }
   }, [stationData]);
+
+  // Load saved controls
+  useEffect(() => {
+    if (controlData?.controls) {
+      console.log('Loading saved controls:', controlData.controls);
+      setControls(controlData.controls);
+    }
+  }, [controlData]);
 
   // Dragging functionality for toolbox
   const handleToolboxMouseDown = useCallback((e: React.MouseEvent) => {
@@ -181,7 +196,19 @@ export default function StationControlSimple() {
         document.removeEventListener('mouseup', mouseUpHandler);
       };
     }
-  }, [isDraggingToolbox, isDraggingPanel, isResizingPanel, dragOffset, handlePanelMove]);
+  }, [isDraggingToolbox, isDraggingPanel, isResizingPanel, isDraggingControl, dragOffset, handlePanelMove, handleControlMove]);
+
+  // Mouse event handlers
+  useEffect(() => {
+    if (isDraggingControl) {
+      document.addEventListener('mousemove', handleControlMove);
+      document.addEventListener('mouseup', handleControlMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleControlMove);
+        document.removeEventListener('mouseup', handleControlMouseUp);
+      };
+    }
+  }, [isDraggingControl, handleControlMove, handleControlMouseUp]);
 
   // Control creation functions
   const createControl = (type: 'button' | 'slider' | 'toggle' | 'joystick') => {
@@ -210,6 +237,40 @@ export default function StationControlSimple() {
     setControls(prev => [...prev, newControl]);
     setSelectedControl(newControl.id);
   };
+
+  // Control drag handlers
+  const handleControlMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const control = controls.find(c => c.id === controlId);
+    if (!control) return;
+    
+    setIsDraggingControl(controlId);
+    setSelectedControl(controlId);
+    setDragOffset({
+      x: e.clientX - control.position.x,
+      y: e.clientY - control.position.y
+    });
+  }, [isEditMode, controls]);
+
+  const handleControlMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingControl) return;
+    
+    const newX = snapToGrid(e.clientX - dragOffset.x);
+    const newY = snapToGrid(e.clientY - dragOffset.y);
+    
+    setControls(prev => prev.map(control => 
+      control.id === isDraggingControl 
+        ? { ...control, position: { x: newX, y: newY } }
+        : control
+    ));
+  }, [isDraggingControl, dragOffset, snapToGrid]);
+
+  const handleControlMouseUp = useCallback(() => {
+    setIsDraggingControl(null);
+  }, []);
 
   // Render individual control
   const renderControl = (control: any) => {
@@ -244,16 +305,24 @@ export default function StationControlSimple() {
       }
     };
 
+    const handleControlMouseDownEvent = (e: React.MouseEvent) => {
+      if (isEditMode) {
+        handleControlMouseDown(e, control.id);
+      } else {
+        handleControlClick(e);
+      }
+    };
+
     switch (control.type) {
       case 'button':
         return (
-          <div key={control.id} style={commonStyle} onClick={handleControlClick}>
+          <div key={control.id} style={commonStyle} onMouseDown={handleControlMouseDownEvent}>
             {control.name}
           </div>
         );
       case 'slider':
         return (
-          <div key={control.id} style={commonStyle} onClick={handleControlClick}>
+          <div key={control.id} style={commonStyle} onMouseDown={handleControlMouseDownEvent}>
             <div className="w-full h-2 bg-gray-300 rounded-full relative">
               <div className="h-full bg-blue-500 rounded-full" style={{ width: '50%' }}></div>
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs">50%</div>
@@ -262,7 +331,7 @@ export default function StationControlSimple() {
         );
       case 'toggle':
         return (
-          <div key={control.id} style={commonStyle} onClick={handleControlClick}>
+          <div key={control.id} style={commonStyle} onMouseDown={handleControlMouseDownEvent}>
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-green-500 rounded border-2 border-white"></div>
               <span>{control.name}</span>
@@ -271,7 +340,7 @@ export default function StationControlSimple() {
         );
       case 'joystick':
         return (
-          <div key={control.id} style={{...commonStyle, borderRadius: '50%'}} onClick={handleControlClick}>
+          <div key={control.id} style={{...commonStyle, borderRadius: '50%'}} onMouseDown={handleControlMouseDownEvent}>
             <div 
               className="w-8 h-8 bg-white rounded-full shadow-lg"
               style={{ transform: 'translate(0px, 0px)' }}
