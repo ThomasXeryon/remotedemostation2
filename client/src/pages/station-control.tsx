@@ -87,9 +87,14 @@ function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
           color: widget.style.textColor, 
           fontSize: `${Math.max(10, widget.style.fontSize - 2)}px`,
           fontWeight: '600',
-          marginBottom: '8px',
+          marginBottom: '6px',
           textAlign: 'center',
-          textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+          textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          width: '100%',
+          lineHeight: '1'
         }}
       >
         {widget.name}
@@ -475,7 +480,7 @@ export function StationControl() {
           {controlConfig?.controls && controlConfig.controls.length > 0 ? (
             <div>
               <h3 className="font-semibold mb-3">Hardware Controls</h3>
-              <div className="relative bg-gray-50 rounded-lg p-4 min-h-[400px] border-2 border-dashed border-gray-200">
+              <div className="relative bg-gray-50 rounded-lg p-4 min-h-[400px] border-2 border-dashed border-gray-200 overflow-visible">
                 {controlConfig.controls.map((widget: ControlWidget) => {
                   const style = {
                     position: 'absolute' as const,
@@ -577,7 +582,8 @@ export function StationControl() {
                           flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          padding: '12px'
+                          padding: '8px 12px',
+                          overflow: 'visible'
                         }}
                         className="shadow-lg"
                       >
@@ -587,32 +593,44 @@ export function StationControl() {
                             color: widget.style.textColor, 
                             fontSize: `${Math.max(10, widget.style.fontSize - 2)}px`,
                             fontWeight: '600',
-                            marginBottom: '8px',
-                            textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+                            marginBottom: '6px',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                            textAlign: 'center',
+                            lineHeight: '1',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            width: '100%'
                           }}
                         >
                           {widget.name}
                         </div>
                         
                         {/* Custom slider container */}
-                        <div className="relative w-full">
+                        <div className="relative w-full px-2">
                           <input
                             type="range"
                             min="0"
                             max="100"
                             defaultValue="50"
-                            className="w-full h-3 rounded-full appearance-none cursor-pointer slider-thumb"
+                            className="w-full h-2 rounded-full appearance-none cursor-pointer"
                             style={{
                               background: `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} 50%, #cbd5e1 50%, #cbd5e1 100%)`,
                               outline: 'none',
                               WebkitAppearance: 'none',
-                              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)'
+                              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2)'
                             }}
                             disabled={!isSessionActive}
                             onChange={(e) => {
                               const value = parseInt(e.target.value);
                               const percentage = value + '%';
                               e.target.style.background = `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} ${percentage}, #cbd5e1 ${percentage}, #cbd5e1 100%)`;
+                              
+                              // Update value display
+                              const valueDisplay = document.getElementById(`slider-value-${widget.id}`);
+                              if (valueDisplay) {
+                                valueDisplay.textContent = value.toString();
+                              }
                               
                               if (isSessionActive) {
                                 handleCommand(widget.command, { value: value, ...widget.parameters });
@@ -622,8 +640,14 @@ export function StationControl() {
                           
                           {/* Value display */}
                           <div 
-                            className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold"
-                            style={{ color: widget.style.textColor }}
+                            className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-xs font-semibold"
+                            style={{ 
+                              color: widget.style.textColor,
+                              backgroundColor: 'rgba(255,255,255,0.9)',
+                              padding: '1px 4px',
+                              borderRadius: '3px',
+                              border: `1px solid ${widget.style.borderColor}40`
+                            }}
                             id={`slider-value-${widget.id}`}
                           >
                             50
@@ -631,33 +655,33 @@ export function StationControl() {
                         </div>
                         
                         <style jsx>{`
-                          .slider-thumb::-webkit-slider-thumb {
+                          input[type="range"]::-webkit-slider-thumb {
                             appearance: none;
-                            height: 20px;
-                            width: 20px;
+                            height: 16px;
+                            width: 16px;
                             border-radius: 50%;
                             background: linear-gradient(145deg, #ffffff, #f0f0f0);
                             border: 2px solid ${widget.style.borderColor};
                             cursor: pointer;
-                            box-shadow: 0 2px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8);
                             transition: all 0.15s ease;
                           }
-                          .slider-thumb::-webkit-slider-thumb:hover {
+                          input[type="range"]::-webkit-slider-thumb:hover {
                             transform: scale(1.1);
-                            box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.8);
+                            box-shadow: 0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
                           }
-                          .slider-thumb::-webkit-slider-thumb:active {
+                          input[type="range"]::-webkit-slider-thumb:active {
                             transform: scale(0.95);
                             box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.2);
                           }
-                          .slider-thumb::-moz-range-thumb {
-                            height: 20px;
-                            width: 20px;
+                          input[type="range"]::-moz-range-thumb {
+                            height: 16px;
+                            width: 16px;
                             border-radius: 50%;
                             background: linear-gradient(145deg, #ffffff, #f0f0f0);
                             border: 2px solid ${widget.style.borderColor};
                             cursor: pointer;
-                            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                           }
                         `}</style>
                       </div>
