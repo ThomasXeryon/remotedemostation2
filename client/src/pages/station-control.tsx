@@ -255,9 +255,23 @@ export function StationControl() {
                       return (
                         <div
                           key={widget.id}
-                          style={{...style, borderRadius: '8px'}}
+                          style={{
+                            ...style,
+                            backgroundColor: widget.style.backgroundColor,
+                            color: widget.style.textColor,
+                            border: `2px solid ${widget.style.borderColor}`,
+                            borderRadius: `${widget.style.borderRadius}px`,
+                            fontSize: `${widget.style.fontSize}px`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: '500',
+                            cursor: isSessionActive ? 'pointer' : 'not-allowed',
+                            opacity: isSessionActive ? 1 : 0.6,
+                            userSelect: 'none'
+                          }}
                           onClick={handleControlClick}
-                          className="shadow-sm hover:shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center text-center font-medium"
+                          className="shadow-sm hover:shadow-md active:scale-95 transition-all"
                         >
                           {widget.name}
                         </div>
@@ -267,44 +281,29 @@ export function StationControl() {
                       return (
                         <div
                           key={widget.id}
-                          style={{...style, padding: '8px', borderRadius: '8px'}}
+                          style={{
+                            ...style,
+                            backgroundColor: widget.style.backgroundColor,
+                            border: `2px solid ${widget.style.borderColor}`,
+                            borderRadius: `${widget.style.borderRadius}px`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '8px'
+                          }}
                           className="shadow-sm"
                         >
-                          <div className="text-xs mb-2 text-center font-medium text-gray-700">
-                            {widget.name}
-                          </div>
-                          <div className="px-2">
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              defaultValue="50"
-                              className="w-full h-3 rounded-full appearance-none cursor-pointer"
+                          <div 
+                            className="w-full h-2 rounded-full relative overflow-hidden"
+                            style={{backgroundColor: '#e5e7eb'}}
+                          >
+                            <div 
+                              className="h-full rounded-full transition-all duration-200"
                               style={{
-                                background: `linear-gradient(to right, ${widget.style?.backgroundColor || '#3b82f6'} 0%, ${widget.style?.backgroundColor || '#3b82f6'} 50%, #e5e7eb 50%, #e5e7eb 100%)`,
-                                outline: 'none'
-                              }}
-                              disabled={!isSessionActive}
-                              onChange={(e) => {
-                                // Update visual feedback
-                                const value = parseInt(e.target.value);
-                                const percentage = value + '%';
-                                e.target.style.background = `linear-gradient(to right, ${widget.style?.backgroundColor || '#3b82f6'} 0%, ${widget.style?.backgroundColor || '#3b82f6'} ${percentage}, #e5e7eb ${percentage}, #e5e7eb 100%)`;
-                                
-                                // Update value display
-                                const valueDisplay = document.getElementById(`slider-value-${widget.id}`);
-                                if (valueDisplay) {
-                                  valueDisplay.textContent = value.toString();
-                                }
-                                
-                                if (isSessionActive) {
-                                  handleCommand(widget.command, { value: e.target.value, ...widget.parameters });
-                                }
+                                backgroundColor: widget.style.textColor,
+                                width: '50%'
                               }}
                             />
-                          </div>
-                          <div className="text-xs mt-2 text-center text-gray-500">
-                            Value: <span id={`slider-value-${widget.id}`}>50</span>%
                           </div>
                         </div>
                       );
@@ -313,17 +312,28 @@ export function StationControl() {
                       return (
                         <div
                           key={widget.id}
-                          style={{...style, padding: '8px'}}
+                          style={{
+                            ...style,
+                            backgroundColor: widget.style.backgroundColor,
+                            border: `2px solid ${widget.style.borderColor}`,
+                            borderRadius: `${widget.style.borderRadius}px`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '8px',
+                            cursor: isSessionActive ? 'pointer' : 'not-allowed',
+                            opacity: isSessionActive ? 1 : 0.6
+                          }}
                           onClick={handleControlClick}
-                          className="shadow-sm cursor-pointer"
+                          className="shadow-sm"
                         >
                           <div 
-                            className="w-12 h-6 rounded-full relative transition-colors"
-                            style={{backgroundColor: widget.style?.borderColor || '#2563eb'}}
+                            className="w-8 h-4 rounded-full relative"
+                            style={{backgroundColor: widget.style.borderColor}}
                           >
                             <div 
-                              className="w-5 h-5 rounded-full absolute top-0.5 left-0.5 transition-transform"
-                              style={{backgroundColor: widget.style?.textColor || '#ffffff'}}
+                              className="w-3 h-3 rounded-full absolute top-0.5 left-0.5 transition-transform"
+                              style={{backgroundColor: widget.style.textColor}}
                             />
                           </div>
                         </div>
@@ -333,22 +343,31 @@ export function StationControl() {
                       return (
                         <div
                           key={widget.id}
-                          style={{...style, padding: '8px'}}
+                          style={{
+                            ...style,
+                            backgroundColor: widget.style.backgroundColor,
+                            border: `2px solid ${widget.style.borderColor}`,
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '8px'
+                          }}
                           className="shadow-sm"
                         >
-                          <div className="text-xs mb-2 text-center font-medium text-gray-700">
-                            {widget.name}
-                          </div>
-                          <div className="flex justify-center">
+                          <div 
+                            className="w-12 h-12 rounded-full"
+                            style={{
+                              backgroundColor: widget.style.textColor,
+                              position: 'relative'
+                            }}
+                          >
                             <div
-                              className="relative bg-slate-100 border-2 border-slate-300 rounded-full cursor-pointer select-none"
-                              style={{ 
-                                width: 80, 
-                                height: 80,
-                                borderColor: widget.style?.borderColor || '#2563eb',
-                                backgroundColor: widget.style?.backgroundColor || '#f1f5f9'
-                              }}
-                              onMouseDown={(e) => {
+                              className="w-6 h-6 bg-white rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-sm"
+                            />
+                          </div>
+                        </div>
+                      );
                                 e.preventDefault();
                                 const joystickArea = e.currentTarget;
                                 const rect = joystickArea.getBoundingClientRect();
