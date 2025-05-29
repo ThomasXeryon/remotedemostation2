@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Play, Square, ArrowLeft, Settings, Gauge, Zap, Activity } from 'lucide-react';
+import { Play, Square, ArrowLeft, Settings, Gauge, Zap, Activity, Edit3, Save } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { useWebSocket } from '@/hooks/use-websocket';
 
@@ -442,6 +442,7 @@ export function StationControl() {
   const [speed, setSpeed] = useState(50);
   const [targetPosition, setTargetPosition] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const currentUser = getCurrentUser();
 
   const { data: station, isLoading: stationLoading, refetch: refetchStation } = useQuery({
@@ -559,6 +560,14 @@ export function StationControl() {
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          <Button 
+            onClick={() => setIsEditMode(!isEditMode)}
+            variant={isEditMode ? "default" : "outline"}
+            className={isEditMode ? "bg-blue-600 hover:bg-blue-700" : ""}
+          >
+            {isEditMode ? <Save className="w-4 h-4 mr-2" /> : <Edit3 className="w-4 h-4 mr-2" />}
+            {isEditMode ? "Save Layout" : "Edit Layout"}
+          </Button>
           {!isSessionActive ? (
             <Button 
               onClick={handleStartSession} 
@@ -615,34 +624,24 @@ export function StationControl() {
             {controlWidgets.length > 0 ? (
               <div className="relative w-full" style={{ height: 'calc(100% - 3rem)' }}>
                 {controlWidgets.map((widget: ControlWidget) => {
-                  // The editor canvas is 400px height - we need to scale coordinates to match the actual control panel size
-                  const editorCanvasHeight = 400;
-                  const controlPanelElement = document.querySelector('.relative.w-full[style*="calc(100% - 3rem)"]');
-                  const actualHeight = controlPanelElement ? controlPanelElement.clientHeight : editorCanvasHeight;
-                  const actualWidth = controlPanelElement ? controlPanelElement.clientWidth : 600; // approximate canvas width
-                  
-                  // Scale the positions proportionally
-                  const scaleY = actualHeight / editorCanvasHeight;
-                  const scaleX = actualWidth / 600; // approximate editor canvas width
-                  
-                  const scaledX = widget.position.x * scaleX;
-                  const scaledY = widget.position.y * scaleY;
-                  
+                  // Use exact positioning from the control builder without scaling
                   const widgetStyle = {
                     position: 'absolute' as const,
-                    left: `${scaledX}px`,
-                    top: `${scaledY}px`,
+                    left: `${widget.position.x}px`,
+                    top: `${widget.position.y}px`,
                     width: `${widget.size.width}px`,
                     height: `${widget.size.height}px`,
                   };
 
-                  console.log(`Widget ${widget.name} - Original: (${widget.position.x}, ${widget.position.y}) -> Scaled: (${scaledX}, ${scaledY}) Scale: ${scaleX.toFixed(2)}x${scaleY.toFixed(2)}`);
+                  console.log(`Widget ${widget.name} positioned at:`, widget.position, 'size:', widget.size);
 
-                  // Add visual debugging border to see exact positioning
-                  const debugStyle = {
+                  // Add edit mode styling
+                  const finalStyle = {
                     ...widgetStyle,
-                    border: '2px dashed red',
-                    borderRadius: '4px'
+                    cursor: isEditMode ? 'move' : (widget.type === 'joystick' || widget.type === 'slider' || widget.type === 'toggle' ? 'pointer' : 'default'),
+                    outline: isEditMode ? '2px dashed #3b82f6' : 'none',
+                    outlineOffset: isEditMode ? '4px' : '0px',
+                    opacity: isEditMode ? 0.8 : 1,
                   };
 
                   switch (widget.type) {
@@ -651,7 +650,7 @@ export function StationControl() {
                         <button
                           key={widget.id}
                           style={{
-                            ...debugStyle,
+                            ...finalStyle,
                             background: `linear-gradient(135deg, ${widget.style.backgroundColor}f0, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd)`,
                             color: widget.style.textColor,
                             border: `3px solid ${widget.style.borderColor}`,
