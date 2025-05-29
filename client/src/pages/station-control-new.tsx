@@ -141,27 +141,27 @@ export default function StationControl() {
     if (!container) return;
     
     const rect = container.getBoundingClientRect();
-    const snappedX = snapToGrid(e.clientX - rect.left);
-    const snappedY = snapToGrid(e.clientY - rect.top);
-    const mouseXPercent = (snappedX / rect.width) * 100;
-    const mouseYPercent = (snappedY / rect.height) * 100;
+    const mouseX = snapToGrid(e.clientX - rect.left);
+    const mouseY = snapToGrid(e.clientY - rect.top);
     
     setLocalLayout((prev: any) => {
       const newLayout = { ...prev };
       
       if (resizing === 'camera') {
-        // Resize camera panel with grid snapping
+        // Resize camera panel with pixel coordinates
+        const currentPos = newLayout.camera?.position || { x: 40, y: 40 };
         newLayout.camera = {
           ...newLayout.camera,
-          width: Math.max(20, Math.min(80, mouseXPercent - (newLayout.camera?.position?.x || 0))),
-          height: Math.max(30, Math.min(90, mouseYPercent - (newLayout.camera?.position?.y || 0)))
+          width: Math.max(200, mouseX - currentPos.x),
+          height: Math.max(150, mouseY - currentPos.y)
         };
       } else if (resizing === 'controlPanel') {
-        // Resize control panel with grid snapping
+        // Resize control panel with pixel coordinates
+        const currentPos = newLayout.controlPanel?.position || { x: 880, y: 40 };
         newLayout.controlPanel = {
           ...newLayout.controlPanel,
-          width: Math.max(20, Math.min(80, mouseXPercent - (newLayout.controlPanel?.position?.x || 0))),
-          height: Math.max(30, Math.min(90, mouseYPercent - (newLayout.controlPanel?.position?.y || 0)))
+          width: Math.max(300, mouseX - currentPos.x),
+          height: Math.max(200, mouseY - currentPos.y)
         };
       }
       
@@ -246,17 +246,17 @@ export default function StationControl() {
     if (stationData?.configuration?.interfaceLayout) {
       setLocalLayout(stationData.configuration.interfaceLayout);
     } else {
-      // Set default layout with pixel coordinates
+      // Set default layout with larger pixel coordinates
       setLocalLayout({
         camera: {
-          position: { x: 20, y: 20 },
-          width: 640,
-          height: 480
+          position: { x: 40, y: 40 },
+          width: 800,
+          height: 600
         },
         controlPanel: {
-          position: { x: 680, y: 20 },
-          width: 400,
-          height: 600
+          position: { x: 880, y: 40 },
+          width: 600,
+          height: 700
         }
       });
     }
@@ -455,16 +455,18 @@ export default function StationControl() {
           <div 
             className="absolute border-4 border-purple-500 border-dashed pointer-events-none z-20"
             style={{
-              left: '50%',
-              top: '50%',
-              width: Math.min(canvasSize.width * 0.5, window.innerWidth * 0.8),
-              height: Math.min(canvasSize.height * 0.5, window.innerHeight * 0.6),
-              transform: 'translate(-50%, -50%)',
+              left: '20px',
+              top: '20px',
+              width: Math.min(canvasSize.width * 0.8, window.innerWidth * 0.9),
+              height: Math.min(canvasSize.height * 0.8, window.innerHeight * 0.7),
               backgroundColor: 'rgba(147, 51, 234, 0.05)'
             }}
           >
-            <div className="absolute -top-8 left-0 bg-purple-500 text-white px-2 py-1 text-xs rounded">
+            <div className="absolute -top-8 left-0 bg-purple-500 text-white px-3 py-1 text-sm rounded font-medium">
               Output Canvas: {canvasSize.width}×{canvasSize.height}
+            </div>
+            <div className="absolute -bottom-8 right-0 bg-purple-500 text-white px-3 py-1 text-xs rounded">
+              Drag elements within this boundary
             </div>
           </div>
         )}
@@ -486,10 +488,10 @@ export default function StationControl() {
         <div 
           className={`bg-gray-900 rounded-lg relative overflow-hidden border-2 ${isEditMode ? 'border-blue-400 cursor-move' : 'border-transparent'}`}
           style={{
-            width: localLayout ? `${localLayout.camera?.width || 640}px` : '640px',
-            height: localLayout ? `${localLayout.camera?.height || 480}px` : '480px',
-            left: localLayout ? `${localLayout.camera?.position?.x || 20}px` : '20px',
-            top: localLayout ? `${localLayout.camera?.position?.y || 20}px` : '20px',
+            width: localLayout ? `${localLayout.camera?.width || 800}px` : '800px',
+            height: localLayout ? `${localLayout.camera?.height || 600}px` : '600px',
+            left: localLayout ? `${localLayout.camera?.position?.x || 40}px` : '40px',
+            top: localLayout ? `${localLayout.camera?.position?.y || 40}px` : '40px',
             position: 'absolute'
           }}
           onMouseDown={(e) => handlePanelDragStart(e, 'camera')}
@@ -523,10 +525,10 @@ export default function StationControl() {
         <div 
           className={`bg-white border rounded-lg relative border-2 ${isEditMode ? 'border-green-400 cursor-move' : 'border-gray-200'}`}
           style={{
-            width: localLayout ? `${localLayout.controlPanel?.width || 400}px` : '400px',
-            height: localLayout ? `${localLayout.controlPanel?.height || 600}px` : '600px',
-            left: localLayout ? `${localLayout.controlPanel?.position?.x || 680}px` : '680px',
-            top: localLayout ? `${localLayout.controlPanel?.position?.y || 20}px` : '20px',
+            width: localLayout ? `${localLayout.controlPanel?.width || 600}px` : '600px',
+            height: localLayout ? `${localLayout.controlPanel?.height || 700}px` : '700px',
+            left: localLayout ? `${localLayout.controlPanel?.position?.x || 880}px` : '880px',
+            top: localLayout ? `${localLayout.controlPanel?.position?.y || 40}px` : '40px',
             position: 'absolute'
           }}
           onMouseDown={(e) => handlePanelDragStart(e, 'controlPanel')}
