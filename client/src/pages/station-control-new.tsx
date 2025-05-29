@@ -212,12 +212,20 @@ export default function StationControl() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ controls: localControls })
+        body: JSON.stringify({ 
+          demoStationId: id,
+          controls: localControls,
+          layout: {},
+          createdBy: currentUser?.id
+        })
       });
 
       if (response.ok) {
         setIsEditMode(false);
         refetchControls();
+      } else {
+        const errorData = await response.json();
+        console.error('Save failed:', errorData);
       }
     } catch (error) {
       console.error('Failed to save controls:', error);
