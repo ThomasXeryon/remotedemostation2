@@ -479,10 +479,10 @@ export function StationControl() {
                 {controlConfig.controls.map((widget: ControlWidget) => {
                   const style = {
                     position: 'absolute' as const,
-                    left: widget.position.x,
-                    top: widget.position.y,
-                    width: widget.size.width,
-                    height: widget.size.height,
+                    left: `${widget.position.x}px`,
+                    top: `${widget.position.y}px`,
+                    width: `${widget.size.width}px`,
+                    height: `${widget.size.height}px`,
                     backgroundColor: widget.style?.backgroundColor || '#3b82f6',
                     color: widget.style?.textColor || '#ffffff',
                     border: `2px solid ${widget.style?.borderColor || '#2563eb'}`,
@@ -509,7 +509,11 @@ export function StationControl() {
                       <div
                         key={widget.id}
                         style={{
-                          ...style,
+                          position: 'absolute',
+                          left: `${widget.position.x}px`,
+                          top: `${widget.position.y}px`,
+                          width: `${widget.size.width}px`,
+                          height: `${widget.size.height}px`,
                           background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 3).toString(16)).join('')})`,
                           color: widget.style.textColor,
                           border: `3px solid ${widget.style.borderColor}`,
@@ -523,7 +527,6 @@ export function StationControl() {
                           opacity: isSessionActive ? 1 : 0.6,
                           userSelect: 'none',
                           textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                          position: 'relative',
                           overflow: 'hidden'
                         }}
                         onClick={handleControlClick}
@@ -562,7 +565,11 @@ export function StationControl() {
                       <div
                         key={widget.id}
                         style={{
-                          ...style,
+                          position: 'absolute',
+                          left: `${widget.position.x}px`,
+                          top: `${widget.position.y}px`,
+                          width: `${widget.size.width}px`,
+                          height: `${widget.size.height}px`,
                           background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 2).toString(16)).join('')})`,
                           border: `3px solid ${widget.style.borderColor}`,
                           borderRadius: `${widget.style.borderRadius}px`,
@@ -570,8 +577,7 @@ export function StationControl() {
                           flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          padding: '12px',
-                          position: 'relative'
+                          padding: '12px'
                         }}
                         className="shadow-lg"
                       >
