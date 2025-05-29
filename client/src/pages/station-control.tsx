@@ -117,7 +117,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     const containerRect = container.getBoundingClientRect();
     const centerX = containerRect.left + containerRect.width / 2;
     const centerY = containerRect.top + containerRect.height / 2;
-    const maxDistance = Math.min(containerRect.width, containerRect.height) / 2 - 20;
+    const maxDistance = Math.min(containerRect.width, containerRect.height) / 2 + 30;
 
     const handleMove = (moveEvent: MouseEvent | TouchEvent) => {
       if (!isDraggingRef.current) return;
@@ -189,12 +189,13 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     >
       <div
         ref={knobRef}
-        className="w-6 h-6 bg-white rounded-full absolute shadow-lg transition-all"
+        className="w-8 h-8 bg-white rounded-full absolute shadow-lg transition-all"
         style={{
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          transitionDuration: isDraggingRef.current ? '0ms' : '200ms'
+          transitionDuration: isDraggingRef.current ? '0ms' : '200ms',
+          zIndex: 10
         }}
       />
     </div>
