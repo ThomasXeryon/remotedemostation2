@@ -587,46 +587,13 @@ export default function StationControl() {
           </div>
           
           {(canvasEditMode || controlsEditMode) && (
-            <>
-              <Button
-                onClick={() => setShowGrid(!showGrid)}
-                variant="outline"
-                size="sm"
-                className={showGrid ? "bg-blue-100" : ""}
-              >
-                <Grid className="w-4 h-4 mr-2" />
-                {showGrid ? "Hide Grid" : "Show Grid"}
-              </Button>
-              
-              <Button
-                onClick={() => setShowCanvasBorder(!showCanvasBorder)}
-                variant="outline"
-                size="sm"
-                className={showCanvasBorder ? "bg-purple-100" : ""}
-              >
-                <Monitor className="w-4 h-4 mr-2" />
-                {showCanvasBorder ? "Hide Canvas" : "Show Canvas"}
-              </Button>
-              
-              <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded">
-                <Settings className="w-4 h-4" />
-                <select 
-                  value={`${canvasSize.width}x${canvasSize.height}`}
-                  onChange={(e) => {
-                    const [width, height] = e.target.value.split('x').map(Number);
-                    setCanvasSize({ width, height });
-                  }}
-                  className="text-sm bg-transparent border-none outline-none"
-                >
-                  <option value="1920x1080">1920x1080 (HD)</option>
-                  <option value="2560x1440">2560x1440 (2K)</option>
-                  <option value="3840x2160">3840x2160 (4K)</option>
-                  <option value="1280x720">1280x720 (720p)</option>
-                  <option value="1600x900">1600x900 (16:9)</option>
-                  <option value="1024x768">1024x768 (4:3)</option>
-                </select>
-              </div>
-            </>
+            <Button
+              onClick={saveControls}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save Changes
+            </Button>
           )}
           
           {!isSessionActive ? (
