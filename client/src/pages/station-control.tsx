@@ -102,7 +102,7 @@ export function StationControl() {
     connectionStats, 
     isConnected, 
     sendCommand 
-  } = useWebSocket(id ? parseInt(id) : 0, 1, isSessionActive ? 1 : undefined);
+  } = useWebSocket(id || '', 1, isSessionActive ? 1 : undefined);
 
   const handleCommand = (command: string, parameters?: Record<string, any>) => {
     console.log('Sending command:', command, parameters);
@@ -176,7 +176,7 @@ export function StationControl() {
             {isConnected ? "Connected" : "Disconnected"}
           </Badge>
           {!isSessionActive ? (
-            <Button onClick={handleStartSession} disabled={!demoStation.isOnline} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={handleStartSession} disabled={!isConnected} className="bg-green-600 hover:bg-green-700">
               <Play className="w-4 h-4 mr-2" />
               Start Session
             </Button>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { WebSocketMessage } from '@/types';
 
-export function useWebSocket(stationId: number, userId: number, sessionId?: number) {
+export function useWebSocket(stationId: string | number, userId: number, sessionId?: number) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const [connectionStats, setConnectionStats] = useState({

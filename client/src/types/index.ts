@@ -62,8 +62,8 @@ export interface Session {
 }
 
 export interface WebSocketMessage {
-  type: 'join' | 'command' | 'telemetry' | 'command_executed' | 'joined';
-  stationId?: number;
+  type: 'join' | 'command' | 'telemetry' | 'command_executed' | 'joined' | 'ping' | 'pong';
+  stationId?: string | number;
   userId?: number;
   sessionId?: number;
   command?: string;
@@ -71,5 +71,5 @@ export interface WebSocketMessage {
   position?: number;
   velocity?: number;
   load?: number;
-  timestamp?: Date;
+  timestamp?: number;
 }
