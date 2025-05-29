@@ -72,6 +72,13 @@ export default function StationControl() {
     sendCommand 
   } = useWebSocket(id || '', currentUser?.id || 1, isSessionActive ? 1 : 0);
 
+  // Data transformations - moved here to fix declaration order
+  const stationData = station ? (Array.isArray(station) ? station[0] : station) : null;
+  const layout = stationData?.configuration?.interfaceLayout || {
+    camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
+    controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
+  };
+
   // All callbacks
   const handleMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
     if (!isEditMode) return;
@@ -179,26 +186,7 @@ export default function StationControl() {
     };
   }, [isEditMode, handleMouseMove, handleResizeMove, handleMouseUp]);
 
-  // Initialize local layout from station data
-  useEffect(() => {
-    if (stationData?.configuration?.interfaceLayout) {
-      setLocalLayout(stationData.configuration.interfaceLayout);
-    } else {
-      // Set default layout if none exists
-      setLocalLayout({
-        camera: {
-          position: { x: 5, y: 5 },
-          width: 40,
-          height: 60
-        },
-        controlPanel: {
-          position: { x: 50, y: 5 },
-          width: 45,
-          height: 85
-        }
-      });
-    }
-  }, [stationData]);
+
 
   // Early returns
   if (stationLoading) {
@@ -217,7 +205,7 @@ export default function StationControl() {
     );
   }
 
-  const stationData = Array.isArray(station) ? station[0] : station;
+  const stationData = station ? (Array.isArray(station) ? station[0] : station) : null;
   const layout = stationData?.configuration?.interfaceLayout || {
     camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
     controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
