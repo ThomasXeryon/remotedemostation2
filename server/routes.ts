@@ -657,7 +657,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessionData = {
         userId: req.user!.id,
         demoStationId: stationId,
-        isActive: true
+        isActive: true,
+        customerId: null // For organization members, not external customers
       };
       console.log('Creating session with data:', sessionData);
 
