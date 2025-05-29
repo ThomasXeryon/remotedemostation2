@@ -255,9 +255,9 @@ export function StationControl() {
                       return (
                         <div
                           key={widget.id}
-                          style={style}
+                          style={{...style, borderRadius: '8px'}}
                           onClick={handleControlClick}
-                          className="shadow-sm hover:shadow-md active:scale-95 transition-all"
+                          className="shadow-sm hover:shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center text-center font-medium"
                         >
                           {widget.name}
                         </div>
@@ -267,40 +267,43 @@ export function StationControl() {
                       return (
                         <div
                           key={widget.id}
-                          style={{...style, padding: '8px'}}
+                          style={{...style, padding: '8px', borderRadius: '8px'}}
                           className="shadow-sm"
                         >
                           <div className="text-xs mb-2 text-center font-medium text-gray-700">
                             {widget.name}
                           </div>
-                          <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            defaultValue="50"
-                            className="w-full h-3 rounded-lg appearance-none cursor-pointer slider"
-                            style={{
-                              background: `linear-gradient(to right, ${widget.style?.backgroundColor || '#2563eb'} 0%, ${widget.style?.backgroundColor || '#2563eb'} 50%, #e5e7eb 50%, #e5e7eb 100%)`,
-                            }}
-                            disabled={!isSessionActive}
-                            onChange={(e) => {
-                              // Update visual feedback
-                              const value = parseInt(e.target.value);
-                              const percentage = value + '%';
-                              e.target.style.background = `linear-gradient(to right, ${widget.style?.backgroundColor || '#2563eb'} 0%, ${widget.style?.backgroundColor || '#2563eb'} ${percentage}, #e5e7eb ${percentage}, #e5e7eb 100%)`;
-                              
-                              // Update value display
-                              const valueDisplay = document.getElementById(`slider-value-${widget.id}`);
-                              if (valueDisplay) {
-                                valueDisplay.textContent = value.toString();
-                              }
-                              
-                              if (isSessionActive) {
-                                handleCommand(widget.command, { value: e.target.value, ...widget.parameters });
-                              }
-                            }}
-                          />
-                          <div className="text-xs mt-1 text-center text-gray-500">
+                          <div className="px-2">
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              defaultValue="50"
+                              className="w-full h-3 rounded-full appearance-none cursor-pointer"
+                              style={{
+                                background: `linear-gradient(to right, ${widget.style?.backgroundColor || '#3b82f6'} 0%, ${widget.style?.backgroundColor || '#3b82f6'} 50%, #e5e7eb 50%, #e5e7eb 100%)`,
+                                outline: 'none'
+                              }}
+                              disabled={!isSessionActive}
+                              onChange={(e) => {
+                                // Update visual feedback
+                                const value = parseInt(e.target.value);
+                                const percentage = value + '%';
+                                e.target.style.background = `linear-gradient(to right, ${widget.style?.backgroundColor || '#3b82f6'} 0%, ${widget.style?.backgroundColor || '#3b82f6'} ${percentage}, #e5e7eb ${percentage}, #e5e7eb 100%)`;
+                                
+                                // Update value display
+                                const valueDisplay = document.getElementById(`slider-value-${widget.id}`);
+                                if (valueDisplay) {
+                                  valueDisplay.textContent = value.toString();
+                                }
+                                
+                                if (isSessionActive) {
+                                  handleCommand(widget.command, { value: e.target.value, ...widget.parameters });
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="text-xs mt-2 text-center text-gray-500">
                             Value: <span id={`slider-value-${widget.id}`}>50</span>%
                           </div>
                         </div>
@@ -330,30 +333,85 @@ export function StationControl() {
                       return (
                         <div
                           key={widget.id}
-                          style={{...style, padding: '8px'}}
+                          style={{...style, padding: '8px', borderRadius: '8px'}}
                           className="shadow-sm"
                         >
                           <div className="text-xs mb-2 text-center font-medium text-gray-700">
                             {widget.name}
                           </div>
                           <div className="flex justify-center">
-                            <Joystick
-                              size={80}
-                              onMove={(x, y) => {
-                                if (isSessionActive) {
-                                  handleCommand(widget.command, { 
-                                    x: Math.round(x * 100), 
-                                    y: Math.round(y * 100),
-                                    ...widget.parameters 
-                                  });
-                                }
+                            <div
+                              className="relative bg-slate-100 border-2 border-slate-300 rounded-full cursor-pointer select-none"
+                              style={{ 
+                                width: 80, 
+                                height: 80,
+                                borderColor: widget.style?.borderColor || '#2563eb',
+                                backgroundColor: widget.style?.backgroundColor || '#f1f5f9'
                               }}
-                              onStop={() => {
-                                if (isSessionActive) {
-                                  handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
-                                }
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                const joystickArea = e.currentTarget;
+                                const rect = joystickArea.getBoundingClientRect();
+                                const centerX = rect.left + rect.width / 2;
+                                const centerY = rect.top + rect.height / 2;
+                                const maxDistance = 30;
+                                
+                                const knob = joystickArea.querySelector('.joystick-knob') as HTMLElement;
+                                if (!knob) return;
+                                
+                                const handleMouseMove = (moveEvent: MouseEvent) => {
+                                  const deltaX = moveEvent.clientX - centerX;
+                                  const deltaY = moveEvent.clientY - centerY;
+                                  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                                  
+                                  let x = deltaX;
+                                  let y = deltaY;
+                                  
+                                  if (distance > maxDistance) {
+                                    x = (deltaX / distance) * maxDistance;
+                                    y = (deltaY / distance) * maxDistance;
+                                  }
+                                  
+                                  knob.style.transform = `translate(${x}px, ${y}px)`;
+                                  knob.style.transition = 'none';
+                                  
+                                  if (isSessionActive) {
+                                    handleCommand(widget.command, { 
+                                      x: Math.round((x / maxDistance) * 100), 
+                                      y: Math.round((y / maxDistance) * 100),
+                                      ...widget.parameters 
+                                    });
+                                  }
+                                };
+                                
+                                const handleMouseUp = () => {
+                                  knob.style.transform = 'translate(0px, 0px)';
+                                  knob.style.transition = 'transform 0.2s ease';
+                                  
+                                  if (isSessionActive) {
+                                    handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
+                                  }
+                                  
+                                  document.removeEventListener('mousemove', handleMouseMove);
+                                  document.removeEventListener('mouseup', handleMouseUp);
+                                };
+                                
+                                document.addEventListener('mousemove', handleMouseMove);
+                                document.addEventListener('mouseup', handleMouseUp);
                               }}
-                            />
+                            >
+                              <div 
+                                className="joystick-knob rounded-full absolute shadow-lg"
+                                style={{
+                                  width: 24,
+                                  height: 24,
+                                  left: 'calc(50% - 12px)',
+                                  top: 'calc(50% - 12px)',
+                                  backgroundColor: widget.style?.textColor || '#3b82f6',
+                                  transition: 'transform 0.2s ease'
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
                       );
