@@ -269,19 +269,39 @@ export function StationControl() {
                           style={{...style, padding: '8px'}}
                           className="shadow-sm"
                         >
+                          <div className="text-xs mb-2 text-center font-medium text-gray-700">
+                            {widget.name}
+                          </div>
                           <input
                             type="range"
-                            className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                            min="0"
+                            max="100"
+                            defaultValue="50"
+                            className="w-full h-3 rounded-lg appearance-none cursor-pointer slider"
                             style={{
-                              background: `linear-gradient(to right, ${widget.style?.borderColor || '#2563eb'} 0%, ${widget.style?.borderColor || '#2563eb'} 50%, #e5e7eb 50%, #e5e7eb 100%)`,
+                              background: `linear-gradient(to right, ${widget.style?.backgroundColor || '#2563eb'} 0%, ${widget.style?.backgroundColor || '#2563eb'} 50%, #e5e7eb 50%, #e5e7eb 100%)`,
                             }}
                             disabled={!isSessionActive}
                             onChange={(e) => {
+                              // Update visual feedback
+                              const value = parseInt(e.target.value);
+                              const percentage = value + '%';
+                              e.target.style.background = `linear-gradient(to right, ${widget.style?.backgroundColor || '#2563eb'} 0%, ${widget.style?.backgroundColor || '#2563eb'} ${percentage}, #e5e7eb ${percentage}, #e5e7eb 100%)`;
+                              
+                              // Update value display
+                              const valueDisplay = document.getElementById(`slider-value-${widget.id}`);
+                              if (valueDisplay) {
+                                valueDisplay.textContent = value.toString();
+                              }
+                              
                               if (isSessionActive) {
                                 handleCommand(widget.command, { value: e.target.value, ...widget.parameters });
                               }
                             }}
                           />
+                          <div className="text-xs mt-1 text-center text-gray-500">
+                            Value: <span id={`slider-value-${widget.id}`}>50</span>%
+                          </div>
                         </div>
                       );
 
