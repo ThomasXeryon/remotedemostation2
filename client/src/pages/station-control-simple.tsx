@@ -53,9 +53,11 @@ export default function StationControlSimple() {
   // Load saved layout from station configuration
   useEffect(() => {
     console.log('Station data loaded:', stationData);
-    if (stationData?.configuration?.interfaceLayout) {
-      console.log('Layout found in station config:', stationData.configuration.interfaceLayout);
-      const { camera, controlPanel: control } = stationData.configuration.interfaceLayout;
+    // Handle case where stationData might be an array or single object
+    const station = Array.isArray(stationData) ? stationData[0] : stationData;
+    if (station?.configuration?.interfaceLayout) {
+      console.log('Layout found in station config:', station.configuration.interfaceLayout);
+      const { camera, controlPanel: control } = station.configuration.interfaceLayout;
       if (camera) {
         console.log('Setting camera panel:', camera);
         setCameraPanel({
