@@ -38,6 +38,8 @@ export default function StationControlSimple() {
   const [isDraggingPanel, setIsDraggingPanel] = useState<string | null>(null);
   const [isResizingPanel, setIsResizingPanel] = useState<string | null>(null);
   const [selectedPanel, setSelectedPanel] = useState<string | null>(null);
+  const [controls, setControls] = useState<any[]>([]);
+  const [selectedControl, setSelectedControl] = useState<string | null>(null);
 
   // Snap to grid function
   const snapToGrid = (value: number, gridSize: number = 20) => {
@@ -181,6 +183,106 @@ export default function StationControlSimple() {
     }
   }, [isDraggingToolbox, isDraggingPanel, isResizingPanel, dragOffset, handlePanelMove]);
 
+  // Control creation functions
+  const createControl = (type: 'button' | 'slider' | 'toggle' | 'joystick') => {
+    const newControl = {
+      id: Date.now().toString(),
+      name: `${type.charAt(0).toUpperCase() + type.slice(1)} ${controls.length + 1}`,
+      type,
+      command: `${type}_command`,
+      parameters: {},
+      position: { 
+        x: controlPanel.x + 20 + (controls.length * 20), 
+        y: controlPanel.y + 50 + (controls.length * 20) 
+      },
+      size: type === 'joystick' ? { width: 120, height: 120 } : 
+            type === 'slider' ? { width: 200, height: 40 } :
+            { width: 100, height: 40 },
+      style: {
+        backgroundColor: type === 'button' ? '#3b82f6' : '#10b981',
+        textColor: '#ffffff',
+        borderColor: '#1e40af',
+        borderRadius: 8,
+        fontSize: 14
+      }
+    };
+    
+    setControls(prev => [...prev, newControl]);
+    setSelectedControl(newControl.id);
+  };
+
+  // Render individual control
+  const renderControl = (control: any) => {
+    const commonStyle = {
+      position: 'absolute' as const,
+      left: control.position.x,
+      top: control.position.y,
+      width: control.size.width,
+      height: control.size.height,
+      backgroundColor: control.style.backgroundColor,
+      color: control.style.textColor,
+      borderRadius: control.style.borderRadius,
+      fontSize: control.style.fontSize,
+      border: `2px solid ${control.style.borderColor}`,
+      cursor: isEditMode ? 'move' : 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: 'bold',
+      userSelect: 'none' as const,
+      zIndex: selectedControl === control.id ? 20 : 10,
+      boxShadow: selectedControl === control.id ? '0 0 0 3px rgba(59, 130, 246, 0.5)' : undefined
+    };
+
+    const handleControlClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (isEditMode) {
+        setSelectedControl(control.id);
+      } else {
+        // Handle control interaction in non-edit mode
+        console.log(`Control ${control.name} activated`);
+      }
+    };
+
+    switch (control.type) {
+      case 'button':
+        return (
+          <div key={control.id} style={commonStyle} onClick={handleControlClick}>
+            {control.name}
+          </div>
+        );
+      case 'slider':
+        return (
+          <div key={control.id} style={commonStyle} onClick={handleControlClick}>
+            <div className="w-full h-2 bg-gray-300 rounded-full relative">
+              <div className="h-full bg-blue-500 rounded-full" style={{ width: '50%' }}></div>
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs">50%</div>
+            </div>
+          </div>
+        );
+      case 'toggle':
+        return (
+          <div key={control.id} style={commonStyle} onClick={handleControlClick}>
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-green-500 rounded border-2 border-white"></div>
+              <span>{control.name}</span>
+            </div>
+          </div>
+        );
+      case 'joystick':
+        return (
+          <div key={control.id} style={{...commonStyle, borderRadius: '50%'}} onClick={handleControlClick}>
+            <div 
+              className="w-8 h-8 bg-white rounded-full shadow-lg"
+              style={{ transform: 'translate(0px, 0px)' }}
+            ></div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   // Save functionality
   const handleSave = async () => {
     try {
@@ -206,7 +308,8 @@ export default function StationControlSimple() {
         body: JSON.stringify({ 
           configuration: {
             interfaceLayout: layoutData
-          }
+          },
+          controls: controls
         }),
       });
 
@@ -347,7 +450,13 @@ export default function StationControlSimple() {
                  onClick={() => isEditMode && setSelectedPanel('control')}>
               <div className="p-4">
                 <h3 className="text-lg font-semibold mb-4">Controls</h3>
-                <p className="text-gray-600">Control widgets will appear here</p>
+                {controls.length === 0 ? (
+                  <p className="text-gray-600">Control widgets will appear here</p>
+                ) : (
+                  <div className="text-sm text-gray-600 mb-2">
+                    {controls.length} control{controls.length !== 1 ? 's' : ''} configured
+                  </div>
+                )}
               </div>
               
               {/* Drag Handle */}
@@ -370,6 +479,9 @@ export default function StationControlSimple() {
                 </div>
               )}
             </div>
+
+            {/* Render Controls */}
+            {controls.map(control => renderControl(control))}
           </div>
         </div>
 
@@ -425,10 +537,10 @@ export default function StationControlSimple() {
               <div className="mb-6">
                 <h4 className="font-medium mb-3">Add Controls</h4>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" size="sm" className="w-full">Button</Button>
-                  <Button variant="outline" size="sm" className="w-full">Slider</Button>
-                  <Button variant="outline" size="sm" className="w-full">Toggle</Button>
-                  <Button variant="outline" size="sm" className="w-full">Joystick</Button>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => createControl('button')}>Button</Button>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => createControl('slider')}>Slider</Button>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => createControl('toggle')}>Toggle</Button>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => createControl('joystick')}>Joystick</Button>
                 </div>
               </div>
 
