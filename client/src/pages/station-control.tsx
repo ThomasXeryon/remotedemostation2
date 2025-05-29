@@ -353,7 +353,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
 export function StationControl() {
   const { id } = useParams();
   
-  // All hooks must be at the top level
+  // All hooks must be at the top level - no conditional calls
   const [speed, setSpeed] = useState(50);
   const [targetPosition, setTargetPosition] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -542,43 +542,49 @@ export function StationControl() {
                           style={{
                             ...widgetStyle,
                             background: `
-                              linear-gradient(145deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd),
-                              radial-gradient(circle at 20% 20%, rgba(255,255,255,0.2), transparent 60%)
+                              linear-gradient(135deg, ${widget.style.backgroundColor}f0, ${widget.style.backgroundColor}),
+                              radial-gradient(circle at 25% 25%, rgba(255,255,255,0.3), transparent 70%)
                             `,
                             color: widget.style.textColor,
-                            border: `3px solid ${widget.style.borderColor}`,
-                            borderRadius: `${widget.style.borderRadius + 6}px`,
-                            fontSize: `${widget.style.fontSize + 2}px`,
+                            border: `2px solid ${widget.style.borderColor}`,
+                            borderRadius: `${widget.style.borderRadius + 4}px`,
+                            fontSize: `${widget.style.fontSize}px`,
+                            fontWeight: '600',
                             cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                            opacity: isSessionActive ? 1 : 0.7,
-                            boxShadow: `
-                              0 8px 24px rgba(0,0,0,0.12), 
-                              0 4px 8px rgba(0,0,0,0.08),
-                              inset 0 1px 2px rgba(255,255,255,0.1)
-                            `,
-                            textShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                            transition: 'all 0.2s ease',
-                            transform: 'translateY(0px)'
+                            opacity: isSessionActive ? 1 : 0.6,
+                            boxShadow: isSessionActive 
+                              ? `0 6px 20px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1), inset 0 1px 3px rgba(255,255,255,0.2)`
+                              : `0 3px 10px rgba(0,0,0,0.1)`,
+                            textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                            transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+                            transform: 'translateZ(0)',
+                            letterSpacing: '0.5px'
                           }}
-                          className="font-semibold tracking-wide hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-lg transition-all duration-200"
+                          className="select-none font-semibold"
                           onClick={() => isSessionActive && handleCommand(widget.command, widget.parameters)}
                           disabled={!isSessionActive}
-                          onMouseDown={(e) => {
+                          onMouseEnter={(e) => {
                             if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(2px)';
-                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
-                            }
-                          }}
-                          onMouseUp={(e) => {
-                            if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(-2px)';
-                              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.15), 0 6px 12px rgba(0,0,0,0.1)';
+                              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                              e.currentTarget.style.boxShadow = `0 8px 30px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 3px rgba(255,255,255,0.3)`;
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(0px)';
-                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08)';
+                              e.currentTarget.style.transform = 'translateY(0px) scale(1)';
+                              e.currentTarget.style.boxShadow = `0 6px 20px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1), inset 0 1px 3px rgba(255,255,255,0.2)`;
+                            }
+                          }}
+                          onMouseDown={(e) => {
+                            if (isSessionActive) {
+                              e.currentTarget.style.transform = 'translateY(0px) scale(0.98)';
+                              e.currentTarget.style.boxShadow = `0 3px 12px rgba(0,0,0,0.2), 0 1px 4px rgba(0,0,0,0.15), inset 0 1px 3px rgba(255,255,255,0.1)`;
+                            }
+                          }}
+                          onMouseUp={(e) => {
+                            if (isSessionActive) {
+                              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                              e.currentTarget.style.boxShadow = `0 8px 30px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 3px rgba(255,255,255,0.3)`;
                             }
                           }}
                         >
