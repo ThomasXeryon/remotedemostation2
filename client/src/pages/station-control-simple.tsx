@@ -37,6 +37,12 @@ export default function StationControlSimple() {
   const [controlPanel, setControlPanel] = useState({ x: 980, y: 40, width: 900, height: 540 });
   const [isDraggingPanel, setIsDraggingPanel] = useState<string | null>(null);
   const [isResizingPanel, setIsResizingPanel] = useState<string | null>(null);
+  const [selectedPanel, setSelectedPanel] = useState<string | null>(null);
+
+  // Snap to grid function
+  const snapToGrid = (value: number, gridSize: number = 20) => {
+    return Math.round(value / gridSize) * gridSize;
+  };
 
   // Fetch station data
   const { data: stationData, isLoading } = useQuery<DemoStation>({
@@ -90,28 +96,32 @@ export default function StationControlSimple() {
 
   const handlePanelMove = useCallback((e: MouseEvent) => {
     if (isDraggingPanel) {
-      const newX = Math.max(0, e.clientX - dragOffset.x);
-      const newY = Math.max(0, e.clientY - dragOffset.y);
+      const rawX = Math.max(0, e.clientX - dragOffset.x);
+      const rawY = Math.max(0, e.clientY - dragOffset.y);
+      const snappedX = snapToGrid(rawX);
+      const snappedY = snapToGrid(rawY);
       
       if (isDraggingPanel === 'camera') {
-        setCameraPanel(prev => ({ ...prev, x: newX, y: newY }));
+        setCameraPanel(prev => ({ ...prev, x: snappedX, y: snappedY }));
       } else if (isDraggingPanel === 'control') {
-        setControlPanel(prev => ({ ...prev, x: newX, y: newY }));
+        setControlPanel(prev => ({ ...prev, x: snappedX, y: snappedY }));
       }
     }
     
     if (isResizingPanel) {
       const panel = isResizingPanel === 'camera' ? cameraPanel : controlPanel;
-      const newWidth = Math.max(100, e.clientX - panel.x);
-      const newHeight = Math.max(100, e.clientY - panel.y);
+      const rawWidth = Math.max(100, e.clientX - panel.x);
+      const rawHeight = Math.max(100, e.clientY - panel.y);
+      const snappedWidth = snapToGrid(rawWidth);
+      const snappedHeight = snapToGrid(rawHeight);
       
       if (isResizingPanel === 'camera') {
-        setCameraPanel(prev => ({ ...prev, width: newWidth, height: newHeight }));
+        setCameraPanel(prev => ({ ...prev, width: snappedWidth, height: snappedHeight }));
       } else if (isResizingPanel === 'control') {
-        setControlPanel(prev => ({ ...prev, width: newWidth, height: newHeight }));
+        setControlPanel(prev => ({ ...prev, width: snappedWidth, height: snappedHeight }));
       }
     }
-  }, [isDraggingPanel, isResizingPanel, dragOffset, cameraPanel, controlPanel]);
+  }, [isDraggingPanel, isResizingPanel, dragOffset, cameraPanel, controlPanel, snapToGrid]);
 
   useEffect(() => {
     if (isDraggingToolbox || isDraggingPanel || isResizingPanel) {
@@ -258,8 +268,9 @@ export default function StationControlSimple() {
                    top: cameraPanel.y,
                    width: cameraPanel.width,
                    height: cameraPanel.height,
-                   border: isEditMode ? '2px solid #3b82f6' : 'none'
-                 }}>
+                   border: isEditMode ? (selectedPanel === 'camera' ? '3px solid #3b82f6' : '2px solid #3b82f6') : 'none'
+                 }}
+                 onClick={() => isEditMode && setSelectedPanel('camera')}>
               <Monitor className="w-8 h-8 mr-2" />
               <span>Live Camera Feed</span>
               
@@ -291,8 +302,9 @@ export default function StationControlSimple() {
                    top: controlPanel.y,
                    width: controlPanel.width,
                    height: controlPanel.height,
-                   border: isEditMode ? '2px solid #10b981' : '2px solid #e5e7eb'
-                 }}>
+                   border: isEditMode ? (selectedPanel === 'control' ? '3px solid #10b981' : '2px solid #10b981') : '2px solid #e5e7eb'
+                 }}
+                 onClick={() => isEditMode && setSelectedPanel('control')}>
               <div className="p-4">
                 <h3 className="text-lg font-semibold mb-4">Controls</h3>
                 <p className="text-gray-600">Control widgets will appear here</p>
@@ -379,6 +391,113 @@ export default function StationControlSimple() {
                   <Button variant="outline" size="sm" className="w-full">Joystick</Button>
                 </div>
               </div>
+
+              {/* Selected Panel Properties */}
+              {selectedPanel && (
+                <div className="mb-6">
+                  <h4 className="font-medium mb-3">
+                    {selectedPanel === 'camera' ? 'Camera Panel' : 'Control Panel'} Properties
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="panelX">X Position</Label>
+                        <Input 
+                          id="panelX" 
+                          type="number" 
+                          value={selectedPanel === 'camera' ? cameraPanel.x : controlPanel.x}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            if (selectedPanel === 'camera') {
+                              setCameraPanel(prev => ({ ...prev, x: value }));
+                            } else {
+                              setControlPanel(prev => ({ ...prev, x: value }));
+                            }
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="panelY">Y Position</Label>
+                        <Input 
+                          id="panelY" 
+                          type="number" 
+                          value={selectedPanel === 'camera' ? cameraPanel.y : controlPanel.y}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            if (selectedPanel === 'camera') {
+                              setCameraPanel(prev => ({ ...prev, y: value }));
+                            } else {
+                              setControlPanel(prev => ({ ...prev, y: value }));
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="panelWidth">Width</Label>
+                        <Input 
+                          id="panelWidth" 
+                          type="number" 
+                          value={selectedPanel === 'camera' ? cameraPanel.width : controlPanel.width}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 100;
+                            if (selectedPanel === 'camera') {
+                              setCameraPanel(prev => ({ ...prev, width: value }));
+                            } else {
+                              setControlPanel(prev => ({ ...prev, width: value }));
+                            }
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="panelHeight">Height</Label>
+                        <Input 
+                          id="panelHeight" 
+                          type="number" 
+                          value={selectedPanel === 'camera' ? cameraPanel.height : controlPanel.height}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 100;
+                            if (selectedPanel === 'camera') {
+                              setCameraPanel(prev => ({ ...prev, height: value }));
+                            } else {
+                              setControlPanel(prev => ({ ...prev, height: value }));
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        if (selectedPanel === 'camera') {
+                          setCameraPanel(prev => ({
+                            ...prev,
+                            x: snapToGrid(prev.x),
+                            y: snapToGrid(prev.y),
+                            width: snapToGrid(prev.width),
+                            height: snapToGrid(prev.height)
+                          }));
+                        } else {
+                          setControlPanel(prev => ({
+                            ...prev,
+                            x: snapToGrid(prev.x),
+                            y: snapToGrid(prev.y),
+                            width: snapToGrid(prev.width),
+                            height: snapToGrid(prev.height)
+                          }));
+                        }
+                      }}
+                      className="w-full"
+                    >
+                      Snap to Grid
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Control Properties */}
               <div className="mb-6">
