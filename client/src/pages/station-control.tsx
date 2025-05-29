@@ -437,8 +437,11 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
   );
 }
 
-export function StationControl() {
+export default function StationControl() {
   const { id } = useParams();
+  const currentUser = getCurrentUser();
+  
+  // All state hooks at the top level - MUST be called in the same order every render
   const [speed, setSpeed] = useState(50);
   const [targetPosition, setTargetPosition] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -447,8 +450,8 @@ export function StationControl() {
   const [selectedControl, setSelectedControl] = useState<string | null>(null);
   const [draggedControl, setDraggedControl] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const currentUser = getCurrentUser();
 
+  // All query hooks at the top level
   const { data: station, isLoading: stationLoading, refetch: refetchStation } = useQuery({
     queryKey: ['/api/demo-stations', id],
     enabled: !!id,
@@ -471,6 +474,7 @@ export function StationControl() {
     sendCommand 
   } = useWebSocket(id || '', currentUser?.id || 1, isSessionActive ? 1 : 0);
 
+  // ALL useEffect hooks must be called before any conditional returns
   useEffect(() => {
     const handleOrganizationChanged = () => {
       refetchStation();
@@ -486,6 +490,71 @@ export function StationControl() {
     };
   }, [refetchStation, refetchControls, refetchTelemetry, isSessionActive]);
 
+  // ALL useCallback hooks must be here
+  const handleMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    
+    const control = localControls.find(c => c.id === controlId);
+    if (!control) return;
+
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const containerRect = (e.target as HTMLElement).closest('.relative.w-full')?.getBoundingClientRect();
+    
+    if (containerRect) {
+      setDragOffset({
+        x: e.clientX - (containerRect.left + control.position.x),
+        y: e.clientY - (containerRect.top + control.position.y)
+      });
+    }
+    
+    setDraggedControl(controlId);
+    setSelectedControl(controlId);
+  }, [isEditMode, localControls]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!draggedControl || !isEditMode) return;
+    
+    const container = document.querySelector('.relative.w-full[style*="calc(100% - 3rem)"]') as HTMLElement;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const newX = Math.max(0, Math.min(container.clientWidth - 120, e.clientX - rect.left - dragOffset.x));
+    const newY = Math.max(0, Math.min(container.clientHeight - 40, e.clientY - rect.top - dragOffset.y));
+    
+    setLocalControls(prev => prev.map(control => 
+      control.id === draggedControl 
+        ? { ...control, position: { x: newX, y: newY } }
+        : control
+    ));
+  }, [draggedControl, dragOffset, isEditMode]);
+
+  const handleMouseUp = useCallback(() => {
+    setDraggedControl(null);
+  }, []);
+
+  // Sync local controls with fetched controls
+  useEffect(() => {
+    const controlWidgets = Array.isArray(controlConfig?.controls) ? controlConfig.controls : [];
+    if (controlWidgets.length > 0) {
+      setLocalControls(controlWidgets);
+    }
+  }, [controlConfig]);
+
+  // Add event listeners
+  useEffect(() => {
+    if (isEditMode) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isEditMode, handleMouseMove, handleMouseUp]);
+
+  // Early returns after ALL hooks are called
   if (stationLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -503,16 +572,10 @@ export function StationControl() {
   }
 
   const stationData = Array.isArray(station) ? station[0] : station;
-  
-  // Use the exact layout configuration from the database
   const layout = stationData?.configuration?.interfaceLayout || {
     camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
     controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
   };
-
-  console.log('Station data:', stationData);
-  console.log('Station configuration:', stationData?.configuration);
-  console.log('Using layout:', layout);
 
   const handleCommand = (command: string, parameters?: Record<string, any>) => {
     sendCommand(JSON.stringify({
@@ -545,14 +608,26 @@ export function StationControl() {
     setIsSessionActive(false);
   };
 
-  const controlWidgets = (controlConfig?.controls ? controlConfig.controls : []) as ControlWidget[];
+  // Save controls function
+  const saveControls = async () => {
+    try {
+      const response = await fetch(`/api/demo-stations/${id}/controls`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ controls: localControls })
+      });
 
-  // Sync local controls with fetched controls
-  useEffect(() => {
-    if (controlWidgets.length > 0) {
-      setLocalControls(controlWidgets);
+      if (response.ok) {
+        setIsEditMode(false);
+        refetchControls();
+      }
+    } catch (error) {
+      console.error('Failed to save controls:', error);
     }
-  }, [controlWidgets]);
+  };
 
   // Add new control function
   const addNewControl = (type: 'button' | 'slider' | 'toggle' | 'joystick') => {
@@ -811,26 +886,31 @@ export function StationControl() {
                             if (isEditMode) return; // Prevent command execution in edit mode
                             if (isSessionActive) handleCommand(widget.command, widget.parameters);
                           }}
-                          onMouseDown={(e) => handleMouseDown(e, widget.id)}
+                          onMouseDown={(e) => {
+                            // Handle drag functionality in edit mode
+                            if (isEditMode) {
+                              handleMouseDown(e, widget.id);
+                              return;
+                            }
+                            // Handle button press animation in session mode
+                            if (isSessionActive) {
+                              e.currentTarget.style.transform = 'translateY(1px) scale(0.98)';
+                              e.currentTarget.style.boxShadow = `0 4px 16px ${widget.style.borderColor}50, inset 0 4px 12px rgba(0,0,0,0.2)`;
+                            }
+                          }}
                           disabled={!isSessionActive && !isEditMode}
                           onMouseEnter={(e) => {
-                            if (isSessionActive) {
+                            if (isSessionActive && !isEditMode) {
                               e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
                               e.currentTarget.style.boxShadow = `0 12px 40px ${widget.style.borderColor}40, 0 8px 24px rgba(0,0,0,0.15)`;
                               e.currentTarget.style.filter = 'brightness(1.1)';
                             }
                           }}
                           onMouseLeave={(e) => {
-                            if (isSessionActive) {
+                            if (isSessionActive && !isEditMode) {
                               e.currentTarget.style.transform = 'translateY(0px) scale(1)';
                               e.currentTarget.style.boxShadow = `0 8px 32px ${widget.style.borderColor}30, 0 4px 16px rgba(0,0,0,0.1)`;
                               e.currentTarget.style.filter = 'brightness(1)';
-                            }
-                          }}
-                          onMouseDown={(e) => {
-                            if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(1px) scale(0.98)';
-                              e.currentTarget.style.boxShadow = `0 4px 16px ${widget.style.borderColor}50, inset 0 4px 12px rgba(0,0,0,0.2)`;
                             }
                           }}
                           onMouseUp={(e) => {
