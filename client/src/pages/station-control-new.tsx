@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Play, Square, ArrowLeft, Edit3, Save, Activity } from 'lucide-react';
+import { Play, Square, ArrowLeft, Edit3, Save, Activity, Grid } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { useWebSocket } from '@/hooks/use-websocket';
 
@@ -51,6 +51,11 @@ export default function StationControl() {
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [localLayout, setLocalLayout] = useState<any>(null);
   const [resizing, setResizing] = useState<string | null>(null);
+  const [showGrid, setShowGrid] = useState(false);
+  
+  // Grid configuration
+  const GRID_SIZE = 20; // 20px grid squares
+  const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
   // All queries
   const { data: station, isLoading: stationLoading, refetch: refetchStation } = useQuery({
@@ -95,8 +100,8 @@ export default function StationControl() {
     if (!container) return;
     
     const rect = container.getBoundingClientRect();
-    const newX = Math.max(0, Math.min(container.clientWidth - 120, e.clientX - rect.left - dragOffset.x));
-    const newY = Math.max(0, Math.min(container.clientHeight - 40, e.clientY - rect.top - dragOffset.y));
+    const newX = snapToGrid(Math.max(0, Math.min(container.clientWidth - 120, e.clientX - rect.left - dragOffset.x)));
+    const newY = snapToGrid(Math.max(0, Math.min(container.clientHeight - 40, e.clientY - rect.top - dragOffset.y)));
     
     setLocalControls(prev => prev.map(control => 
       control.id === draggedControl 
@@ -125,21 +130,23 @@ export default function StationControl() {
     if (!container) return;
     
     const rect = container.getBoundingClientRect();
-    const mouseXPercent = ((e.clientX - rect.left) / rect.width) * 100;
-    const mouseYPercent = ((e.clientY - rect.top) / rect.height) * 100;
+    const snappedX = snapToGrid(e.clientX - rect.left);
+    const snappedY = snapToGrid(e.clientY - rect.top);
+    const mouseXPercent = (snappedX / rect.width) * 100;
+    const mouseYPercent = (snappedY / rect.height) * 100;
     
     setLocalLayout((prev: any) => {
       const newLayout = { ...prev };
       
       if (resizing === 'camera') {
-        // Resize camera panel
+        // Resize camera panel with grid snapping
         newLayout.camera = {
           ...newLayout.camera,
           width: Math.max(20, Math.min(80, mouseXPercent - (newLayout.camera?.position?.x || 0))),
           height: Math.max(30, Math.min(90, mouseYPercent - (newLayout.camera?.position?.y || 0)))
         };
       } else if (resizing === 'controlPanel') {
-        // Resize control panel
+        // Resize control panel with grid snapping
         newLayout.controlPanel = {
           ...newLayout.controlPanel,
           width: Math.max(20, Math.min(80, mouseXPercent - (newLayout.controlPanel?.position?.x || 0))),
@@ -149,7 +156,7 @@ export default function StationControl() {
       
       return newLayout;
     });
-  }, [resizing, isEditMode, localLayout]);
+  }, [resizing, isEditMode, localLayout, snapToGrid]);
 
   // All effects
   useEffect(() => {
