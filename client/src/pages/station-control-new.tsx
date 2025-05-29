@@ -71,7 +71,7 @@ export default function StationControl() {
   };
 
   // Fetch station data
-  const { data: stationData, isLoading } = useQuery<DemoStation[]>({
+  const { data: stationData, isLoading } = useQuery<DemoStation>({
     queryKey: ['/api/demo-stations', id],
     enabled: !!id,
   });
@@ -82,15 +82,17 @@ export default function StationControl() {
     enabled: !!id,
   });
 
-  const station = stationData?.[0];
+  const station = stationData;
 
   // Initialize controls and layout
   useEffect(() => {
-    if (controlsData?.controls) {
-      setLocalControls(controlsData.controls);
+    if (controlsData && typeof controlsData === 'object' && 'controls' in controlsData) {
+      setLocalControls((controlsData as any).controls || []);
     }
-    if (controlsData?.layout || station?.configuration?.interfaceLayout) {
-      setLocalLayout(controlsData.layout || station.configuration.interfaceLayout || defaultLayout);
+    if (controlsData && typeof controlsData === 'object' && 'layout' in controlsData) {
+      setLocalLayout((controlsData as any).layout || defaultLayout);
+    } else if (station?.configuration?.interfaceLayout) {
+      setLocalLayout(station.configuration.interfaceLayout);
     } else {
       setLocalLayout(defaultLayout);
     }
@@ -122,7 +124,7 @@ export default function StationControl() {
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!draggedControl || !isEditMode) return;
     
-    const container = document.querySelector('.relative.w-full[style*="calc(100% - 3rem)"]') as HTMLElement;
+    const container = document.querySelector('.flex-1.relative.overflow-hidden') as HTMLElement;
     if (!container) return;
     
     const containerRect = container.getBoundingClientRect();
@@ -134,7 +136,7 @@ export default function StationControl() {
         ? { ...control, position: { x: Math.max(0, newX), y: Math.max(0, newY) } }
         : control
     ));
-  }, [draggedControl, isEditMode, dragOffset, snapToGrid]);
+  }, [draggedControl, isEditMode, dragOffset]);
 
   const handleMouseUp = useCallback(() => {
     setDraggedControl(null);
