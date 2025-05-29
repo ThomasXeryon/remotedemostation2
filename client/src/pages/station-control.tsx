@@ -505,6 +505,10 @@ export function StationControl() {
     controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
   };
 
+  console.log('Station data:', stationData);
+  console.log('Station configuration:', stationData?.configuration);
+  console.log('Using layout:', layout);
+
   const handleCommand = (command: string, parameters?: Record<string, any>) => {
     sendCommand(JSON.stringify({
       type: 'command',
@@ -611,6 +615,7 @@ export function StationControl() {
             {controlWidgets.length > 0 ? (
               <div className="relative w-full" style={{ height: 'calc(100% - 3rem)' }}>
                 {controlWidgets.map((widget: ControlWidget) => {
+                  // Use exact positioning from the control builder
                   const widgetStyle = {
                     position: 'absolute' as const,
                     left: `${widget.position.x}px`,
@@ -618,6 +623,8 @@ export function StationControl() {
                     width: `${widget.size.width}px`,
                     height: `${widget.size.height}px`,
                   };
+
+                  console.log(`Widget ${widget.name} positioned at:`, widget.position, 'size:', widget.size);
 
                   switch (widget.type) {
                     case 'button':
