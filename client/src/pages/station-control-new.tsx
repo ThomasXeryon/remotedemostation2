@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Play, Square, ArrowLeft, Edit3, Save, Activity, Grid } from 'lucide-react';
+import { Play, Square, ArrowLeft, Edit3, Save, Activity, Grid, Monitor, Settings } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { useWebSocket } from '@/hooks/use-websocket';
 
@@ -51,7 +51,10 @@ export default function StationControl() {
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [localLayout, setLocalLayout] = useState<any>(null);
   const [resizing, setResizing] = useState<string | null>(null);
+  const [draggingPanel, setDraggingPanel] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(false);
+  const [canvasSize, setCanvasSize] = useState({ width: 1920, height: 1080 }); // Default HD resolution
+  const [showCanvasBorder, setShowCanvasBorder] = useState(false);
   
   // Grid configuration
   const GRID_SIZE = 20; // 20px grid squares
@@ -120,6 +123,7 @@ export default function StationControl() {
   const handleMouseUp = useCallback(() => {
     setDraggedControl(null);
     setResizing(null);
+    setDraggingPanel(null);
   }, []);
 
   // Handle resizing of camera and control panels
@@ -165,6 +169,55 @@ export default function StationControl() {
     });
   }, [resizing, isEditMode, localLayout, snapToGrid]);
 
+  // Handle panel dragging
+  const handlePanelDragStart = useCallback((e: React.MouseEvent, panelType: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingPanel(panelType);
+    
+    const container = document.querySelector('.flex-1.flex.relative') as HTMLElement;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const panelElement = e.currentTarget as HTMLElement;
+    const panelRect = panelElement.getBoundingClientRect();
+    
+    setDragOffset({
+      x: e.clientX - panelRect.left,
+      y: e.clientY - panelRect.top
+    });
+  }, [isEditMode]);
+
+  const handlePanelDragMove = useCallback((e: MouseEvent) => {
+    if (!draggingPanel || !isEditMode || !localLayout) return;
+    
+    const container = document.querySelector('.flex-1.flex.relative') as HTMLElement;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const newX = snapToGrid(Math.max(0, e.clientX - rect.left - dragOffset.x));
+    const newY = snapToGrid(Math.max(0, e.clientY - rect.top - dragOffset.y));
+    
+    setLocalLayout((prev: any) => {
+      const newLayout = { ...prev };
+      
+      if (draggingPanel === 'camera') {
+        newLayout.camera = {
+          ...newLayout.camera,
+          position: { x: newX, y: newY }
+        };
+      } else if (draggingPanel === 'controlPanel') {
+        newLayout.controlPanel = {
+          ...newLayout.controlPanel,
+          position: { x: newX, y: newY }
+        };
+      }
+      
+      return newLayout;
+    });
+  }, [draggingPanel, isEditMode, localLayout, dragOffset, snapToGrid]);
+
   // All effects
   useEffect(() => {
     if (controlConfig && typeof controlConfig === 'object' && controlConfig !== null && 'controls' in controlConfig && Array.isArray(controlConfig.controls)) {
@@ -176,32 +229,34 @@ export default function StationControl() {
     if (isEditMode) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mousemove', handlePanelDragMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
     
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mousemove', handleResizeMove);
+      document.removeEventListener('mousemove', handlePanelDragMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isEditMode, handleMouseMove, handleResizeMove, handleMouseUp]);
+  }, [isEditMode, handleMouseMove, handleResizeMove, handlePanelDragMove, handleMouseUp]);
 
   // Initialize local layout from station data
   useEffect(() => {
     if (stationData?.configuration?.interfaceLayout) {
       setLocalLayout(stationData.configuration.interfaceLayout);
     } else {
-      // Set default layout if none exists
+      // Set default layout with pixel coordinates
       setLocalLayout({
         camera: {
-          position: { x: 5, y: 5 },
-          width: 40,
-          height: 60
+          position: { x: 20, y: 20 },
+          width: 640,
+          height: 480
         },
         controlPanel: {
-          position: { x: 50, y: 5 },
-          width: 45,
-          height: 85
+          position: { x: 680, y: 20 },
+          width: 400,
+          height: 600
         }
       });
     }
@@ -334,15 +389,46 @@ export default function StationControl() {
           </Button>
           
           {isEditMode && (
-            <Button
-              onClick={() => setShowGrid(!showGrid)}
-              variant="outline"
-              size="sm"
-              className={showGrid ? "bg-blue-100" : ""}
-            >
-              <Grid className="w-4 h-4 mr-2" />
-              {showGrid ? "Hide Grid" : "Show Grid"}
-            </Button>
+            <>
+              <Button
+                onClick={() => setShowGrid(!showGrid)}
+                variant="outline"
+                size="sm"
+                className={showGrid ? "bg-blue-100" : ""}
+              >
+                <Grid className="w-4 h-4 mr-2" />
+                {showGrid ? "Hide Grid" : "Show Grid"}
+              </Button>
+              
+              <Button
+                onClick={() => setShowCanvasBorder(!showCanvasBorder)}
+                variant="outline"
+                size="sm"
+                className={showCanvasBorder ? "bg-purple-100" : ""}
+              >
+                <Monitor className="w-4 h-4 mr-2" />
+                {showCanvasBorder ? "Hide Canvas" : "Show Canvas"}
+              </Button>
+              
+              <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded">
+                <Settings className="w-4 h-4" />
+                <select 
+                  value={`${canvasSize.width}x${canvasSize.height}`}
+                  onChange={(e) => {
+                    const [width, height] = e.target.value.split('x').map(Number);
+                    setCanvasSize({ width, height });
+                  }}
+                  className="text-sm bg-transparent border-none outline-none"
+                >
+                  <option value="1920x1080">1920x1080 (HD)</option>
+                  <option value="2560x1440">2560x1440 (2K)</option>
+                  <option value="3840x2160">3840x2160 (4K)</option>
+                  <option value="1280x720">1280x720 (720p)</option>
+                  <option value="1600x900">1600x900 (16:9)</option>
+                  <option value="1024x768">1024x768 (4:3)</option>
+                </select>
+              </div>
+            </>
           )}
           
           {!isSessionActive ? (
@@ -363,7 +449,26 @@ export default function StationControl() {
       </div>
 
       {/* Main Interface */}
-      <div className="flex-1 flex relative">
+      <div className="flex-1 flex relative bg-gray-50">
+        {/* Canvas Boundary */}
+        {isEditMode && showCanvasBorder && (
+          <div 
+            className="absolute border-4 border-purple-500 border-dashed pointer-events-none z-20"
+            style={{
+              left: '50%',
+              top: '50%',
+              width: Math.min(canvasSize.width * 0.5, window.innerWidth * 0.8),
+              height: Math.min(canvasSize.height * 0.5, window.innerHeight * 0.6),
+              transform: 'translate(-50%, -50%)',
+              backgroundColor: 'rgba(147, 51, 234, 0.05)'
+            }}
+          >
+            <div className="absolute -top-8 left-0 bg-purple-500 text-white px-2 py-1 text-xs rounded">
+              Output Canvas: {canvasSize.width}×{canvasSize.height}
+            </div>
+          </div>
+        )}
+        
         {/* Grid Overlay */}
         {isEditMode && showGrid && (
           <div 
