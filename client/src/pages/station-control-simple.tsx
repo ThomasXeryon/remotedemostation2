@@ -184,41 +184,42 @@ export default function StationControlSimple() {
   // Save functionality
   const handleSave = async () => {
     try {
-      const response = await fetch(`/api/demo-stations/${id}/controls`, {
-        method: 'POST',
+      const layoutData = {
+        camera: { 
+          width: cameraPanel.width, 
+          height: cameraPanel.height, 
+          position: { x: cameraPanel.x, y: cameraPanel.y } 
+        },
+        controlPanel: { 
+          width: controlPanel.width, 
+          height: controlPanel.height, 
+          position: { x: controlPanel.x, y: controlPanel.y } 
+        }
+      };
+
+      const response = await fetch(`/api/demo-stations/${id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         },
         body: JSON.stringify({ 
-          demoStationId: id,
-          controls: [],
-          layout: {
-            camera: { 
-              width: cameraPanel.width, 
-              height: cameraPanel.height, 
-              position: { x: cameraPanel.x, y: cameraPanel.y } 
-            },
-            controlPanel: { 
-              width: controlPanel.width, 
-              height: controlPanel.height, 
-              position: { x: controlPanel.x, y: controlPanel.y } 
-            }
-          },
-          createdBy: currentUser?.id
+          configuration: {
+            interfaceLayout: layoutData
+          }
         }),
       });
 
       if (response.ok) {
-        console.log('Settings saved successfully');
-        alert('Settings saved successfully!');
+        console.log('Layout saved successfully');
+        alert('Layout saved successfully!');
       } else {
         console.error('Save failed:', await response.json());
-        alert('Failed to save settings');
+        alert('Failed to save layout');
       }
     } catch (error) {
       console.error('Save failed:', error);
-      alert('Failed to save settings');
+      alert('Failed to save layout');
     }
   };
 
