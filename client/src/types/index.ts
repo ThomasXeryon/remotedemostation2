@@ -41,7 +41,7 @@ export interface User {
 }
 
 export interface DemoStation {
-  id: number;
+  id: string;
   name: string;
   description?: string;
   isOnline: boolean;

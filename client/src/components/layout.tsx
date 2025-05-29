@@ -1,7 +1,8 @@
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, logout } from '@/lib/auth';
 import { Sidebar } from '@/components/sidebar';
 import { useQuery } from '@tanstack/react-query';
-import type { DemoStation } from '@shared/schema';
+import { useLocation } from 'wouter';
+import type { DemoStation } from '@/types';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,11 +10,17 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const currentUser = getCurrentUser();
+  const [, setLocation] = useLocation();
 
   const { data: demoStations = [] } = useQuery<DemoStation[]>({
     queryKey: ['/api/demo-stations'],
     enabled: !!currentUser,
   });
+
+  const handleLogout = async () => {
+    await logout();
+    setLocation('/login');
+  };
 
   if (!currentUser) {
     return null;
@@ -24,9 +31,7 @@ export function Layout({ children }: LayoutProps) {
       <Sidebar
         user={currentUser}
         demoStations={demoStations}
-        onLogout={() => {
-          // This will be handled by the sidebar's logout button
-        }}
+        onLogout={handleLogout}
         onStationSelect={() => {
           // Station selection is handled by dashboard
         }}
