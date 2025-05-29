@@ -49,6 +49,8 @@ export default function StationControl() {
   const [localControls, setLocalControls] = useState<ControlWidget[]>([]);
   const [draggedControl, setDraggedControl] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [localLayout, setLocalLayout] = useState<any>(null);
+  const [resizing, setResizing] = useState<string | null>(null);
 
   // All queries
   const { data: station, isLoading: stationLoading, refetch: refetchStation } = useQuery({
@@ -105,7 +107,49 @@ export default function StationControl() {
 
   const handleMouseUp = useCallback(() => {
     setDraggedControl(null);
+    setResizing(null);
   }, []);
+
+  // Handle resizing of camera and control panels
+  const handleResizeStart = useCallback((e: React.MouseEvent, element: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setResizing(element);
+  }, [isEditMode]);
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!resizing || !isEditMode || !localLayout) return;
+    
+    const container = document.querySelector('.flex-1.flex.relative') as HTMLElement;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const mouseXPercent = ((e.clientX - rect.left) / rect.width) * 100;
+    const mouseYPercent = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    setLocalLayout((prev: any) => {
+      const newLayout = { ...prev };
+      
+      if (resizing === 'camera') {
+        // Resize camera panel
+        newLayout.camera = {
+          ...newLayout.camera,
+          width: Math.max(20, Math.min(80, mouseXPercent - (newLayout.camera?.position?.x || 0))),
+          height: Math.max(30, Math.min(90, mouseYPercent - (newLayout.camera?.position?.y || 0)))
+        };
+      } else if (resizing === 'controlPanel') {
+        // Resize control panel
+        newLayout.controlPanel = {
+          ...newLayout.controlPanel,
+          width: Math.max(20, Math.min(80, mouseXPercent - (newLayout.controlPanel?.position?.x || 0))),
+          height: Math.max(30, Math.min(90, mouseYPercent - (newLayout.controlPanel?.position?.y || 0)))
+        };
+      }
+      
+      return newLayout;
+    });
+  }, [resizing, isEditMode, localLayout]);
 
   // All effects
   useEffect(() => {
@@ -117,14 +161,37 @@ export default function StationControl() {
   useEffect(() => {
     if (isEditMode) {
       document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mousemove', handleResizeMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
     
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mousemove', handleResizeMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isEditMode, handleMouseMove, handleMouseUp]);
+  }, [isEditMode, handleMouseMove, handleResizeMove, handleMouseUp]);
+
+  // Initialize local layout from station data
+  useEffect(() => {
+    if (stationData?.configuration?.interfaceLayout) {
+      setLocalLayout(stationData.configuration.interfaceLayout);
+    } else {
+      // Set default layout if none exists
+      setLocalLayout({
+        camera: {
+          position: { x: 5, y: 5 },
+          width: 40,
+          height: 60
+        },
+        controlPanel: {
+          position: { x: 50, y: 5 },
+          width: 45,
+          height: 85
+        }
+      });
+    }
+  }, [stationData]);
 
   // Early returns
   if (stationLoading) {
@@ -215,7 +282,7 @@ export default function StationControl() {
         body: JSON.stringify({ 
           demoStationId: id,
           controls: localControls,
-          layout: {},
+          layout: localLayout || {},
           createdBy: currentUser?.id
         })
       });
