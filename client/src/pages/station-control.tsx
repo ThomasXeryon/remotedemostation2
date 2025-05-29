@@ -626,13 +626,20 @@ export function StationControl() {
 
                   console.log(`Widget ${widget.name} positioned at:`, widget.position, 'size:', widget.size);
 
+                  // Add visual debugging border to see exact positioning
+                  const debugStyle = {
+                    ...widgetStyle,
+                    border: '2px dashed red',
+                    borderRadius: '4px'
+                  };
+
                   switch (widget.type) {
                     case 'button':
                       return (
                         <button
                           key={widget.id}
                           style={{
-                            ...widgetStyle,
+                            ...debugStyle,
                             background: `linear-gradient(135deg, ${widget.style.backgroundColor}f0, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd)`,
                             color: widget.style.textColor,
                             border: `3px solid ${widget.style.borderColor}`,
