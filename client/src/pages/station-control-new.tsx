@@ -81,8 +81,8 @@ export default function StationControl() {
   // Data transformations - moved here to fix declaration order
   const stationData = station ? (Array.isArray(station) ? station[0] : station) : null;
   const layout = stationData?.configuration?.interfaceLayout || {
-    camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
-    controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
+    camera: { width: 50, height: 90, position: { x: 0, y: 5 } },
+    controlPanel: { width: 50, height: 90, position: { x: 50, y: 5 } }
   };
 
   // All callbacks
@@ -621,7 +621,7 @@ export default function StationControl() {
       {/* Main Interface */}
       <div className="flex-1 flex relative bg-gray-50">
         {/* Canvas Boundary */}
-        {isEditMode && showCanvasBorder && (
+        {canvasEditMode && showCanvasBorder && (
           <div 
             className="absolute border-4 border-purple-500 border-dashed pointer-events-none z-20"
             style={{
@@ -642,7 +642,7 @@ export default function StationControl() {
         )}
         
         {/* Grid Overlay */}
-        {isEditMode && showGrid && (
+        {(canvasEditMode || controlsEditMode) && showGrid && (
           <div 
             className="absolute inset-0 pointer-events-none opacity-20 z-10"
             style={{
