@@ -1,19 +1,10 @@
-import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-
-import { VideoFeed } from "@/components/video-feed";
-import { ControlPanel } from "@/components/control-panel";
-import { TelemetrySection } from "@/components/telemetry-section";
-import { useWebSocket } from "@/hooks/use-websocket";
-import { getCurrentUser } from "@/lib/auth";
-import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, Square, AlertTriangle } from "lucide-react";
-import { Link } from "wouter";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Joystick } from "@/components/joystick";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, Link } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Play, Square, ArrowLeft, Settings, Gauge, Zap, Activity } from 'lucide-react';
+import { getCurrentUser } from '@/lib/auth';
+import { useWebSocket } from '@/hooks/use-websocket';
 
 interface DemoStation {
   id: string;
@@ -48,113 +39,106 @@ interface ControlWidget {
   };
 }
 
+function SliderControl({ widget, style, isSessionActive, handleCommand }: {
+  widget: ControlWidget;
+  style: any;
+  isSessionActive: boolean;
+  handleCommand: (command: string, params: any) => void;
+}) {
+  const [value, setValue] = useState(50);
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isSessionActive) return;
+    const newValue = parseInt(e.target.value);
+    setValue(newValue);
+    handleCommand(widget.command, { value: newValue, ...widget.parameters });
+  };
+
+  return (
+    <div
+      style={{
+        ...style,
+        backgroundColor: widget.style.backgroundColor,
+        border: `2px solid ${widget.style.borderColor}`,
+        borderRadius: `${widget.style.borderRadius}px`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '8px'
+      }}
+      className="shadow-sm"
+    >
+      <span style={{ color: widget.style.textColor, fontSize: `${widget.style.fontSize}px` }} className="mb-2 font-medium">
+        {widget.name}
+      </span>
+      <div className="w-full flex flex-col items-center">
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={value}
+          onChange={handleSliderChange}
+          disabled={!isSessionActive}
+          className="w-full h-2 rounded-lg appearance-none cursor-pointer slider"
+          style={{
+            background: `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} ${value}%, #e5e7eb ${value}%, #e5e7eb 100%)`
+          }}
+        />
+        <span style={{ color: widget.style.textColor }} className="text-sm mt-1">{value}%</span>
+      </div>
+    </div>
+  );
+}
+
 function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
   widget: ControlWidget;
   style: any;
   isSessionActive: boolean;
   handleCommand: (command: string, params: any) => void;
 }) {
-  const [isToggled, setIsToggled] = useState(false);
-  
+  const [isOn, setIsOn] = useState(false);
+
+  const handleToggle = () => {
+    if (!isSessionActive) return;
+    const newState = !isOn;
+    setIsOn(newState);
+    handleCommand(widget.command, { state: newState, ...widget.parameters });
+  };
+
   return (
     <div
       style={{
         ...style,
-        background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 2).toString(16)).join('')})`,
-        border: `3px solid ${widget.style.borderColor}`,
+        backgroundColor: widget.style.backgroundColor,
+        border: `2px solid ${widget.style.borderColor}`,
         borderRadius: `${widget.style.borderRadius}px`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '12px',
+        padding: '8px',
         cursor: isSessionActive ? 'pointer' : 'not-allowed',
-        opacity: isSessionActive ? 1 : 0.6,
-        position: 'relative'
+        opacity: isSessionActive ? 1 : 0.6
       }}
-      onClick={() => {
-        if (isSessionActive) {
-          const newToggleState = !isToggled;
-          setIsToggled(newToggleState);
-          handleCommand(widget.command, { value: newToggleState, ...widget.parameters });
-        }
-      }}
-      className="shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+      className="shadow-sm"
+      onClick={handleToggle}
     >
-      {/* Toggle label */}
-      <div 
-        style={{ 
-          color: widget.style.textColor, 
-          fontSize: `${Math.max(10, widget.style.fontSize - 2)}px`,
-          fontWeight: '600',
-          marginBottom: '6px',
-          textAlign: 'center',
-          textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          width: '100%',
-          lineHeight: '1'
-        }}
-      >
+      <span style={{ color: widget.style.textColor, fontSize: `${widget.style.fontSize}px` }} className="mb-2 font-medium">
         {widget.name}
-      </div>
-      
-      {/* Enhanced toggle switch */}
-      <div 
-        className="relative transition-all duration-300 ease-out"
+      </span>
+      <div
+        className="w-12 h-6 rounded-full relative transition-colors duration-200"
         style={{
-          width: '48px',
-          height: '24px',
-          borderRadius: '12px',
-          backgroundColor: isToggled ? widget.style.textColor : '#64748b',
-          boxShadow: isToggled 
-            ? `0 0 12px ${widget.style.textColor}40, inset 0 2px 4px rgba(0,0,0,0.2)` 
-            : 'inset 0 2px 4px rgba(0,0,0,0.3)',
-          border: '2px solid rgba(255,255,255,0.2)'
+          backgroundColor: isOn ? widget.style.textColor : '#e5e7eb'
         }}
       >
-        {/* Toggle knob */}
-        <div 
-          className="absolute top-1 rounded-full transition-all duration-300 ease-out"
+        <div
+          className="w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform duration-200 shadow-sm"
           style={{
-            width: '16px',
-            height: '16px',
-            background: 'linear-gradient(145deg, #ffffff, #f1f5f9)',
-            transform: isToggled ? 'translateX(24px)' : 'translateX(2px)',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)',
-            border: '1px solid #e2e8f0'
+            transform: isOn ? 'translateX(24px)' : 'translateX(2px)'
           }}
-        >
-          {/* Knob highlight */}
-          <div 
-            className="absolute inset-0.5 rounded-full opacity-60"
-            style={{ 
-              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%)'
-            }}
-          />
-        </div>
-        
-        {/* Glow effect when active */}
-        {isToggled && (
-          <div 
-            className="absolute inset-0 rounded-full opacity-40 animate-pulse"
-            style={{
-              background: `radial-gradient(circle, ${widget.style.textColor}60, transparent 70%)`
-            }}
-          />
-        )}
-      </div>
-      
-      {/* State indicator */}
-      <div 
-        className="text-xs font-medium mt-2 transition-colors duration-200"
-        style={{ 
-          color: isToggled ? widget.style.textColor : '#64748b',
-          textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-        }}
-      >
-        {isToggled ? 'ON' : 'OFF'}
+        />
       </div>
     </div>
   );
@@ -169,13 +153,11 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
   const containerRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
-  const [isPressed, setIsPressed] = useState(false);
 
   const handleJoystickStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isSessionActive) return;
     e.preventDefault();
     isDraggingRef.current = true;
-    setIsPressed(true);
     
     const container = containerRef.current;
     const knob = knobRef.current;
@@ -184,8 +166,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     const containerRect = container.getBoundingClientRect();
     const centerX = containerRect.left + containerRect.width / 2;
     const centerY = containerRect.top + containerRect.height / 2;
-    const containerRadius = Math.min(containerRect.width, containerRect.height) / 2;
-    const maxDistance = containerRadius - 20; // Leave some padding from edge
+    const maxDistance = Math.min(containerRect.width, containerRect.height) / 2 + 30;
 
     const handleMove = (moveEvent: MouseEvent | TouchEvent) => {
       if (!isDraggingRef.current) return;
@@ -205,7 +186,6 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
         y = (deltaY / distance) * maxDistance;
       }
       
-      // Move the knob from its center position
       knob.style.left = `calc(50% + ${x}px)`;
       knob.style.top = `calc(50% + ${y}px)`;
       knob.style.transform = 'translate(-50%, -50%)';
@@ -217,7 +197,6 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
 
     const handleEnd = () => {
       isDraggingRef.current = false;
-      setIsPressed(false);
       if (knob) {
         knob.style.left = '50%';
         knob.style.top = '50%';
@@ -242,73 +221,39 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
       ref={containerRef}
       style={{
         ...style,
-        background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 2).toString(16)).join('')})`,
-        border: `3px solid ${widget.style.borderColor}`,
+        backgroundColor: widget.style.backgroundColor,
+        border: `2px solid ${widget.style.borderColor}`,
         borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        cursor: isSessionActive ? 'grab' : 'not-allowed',
-        opacity: isSessionActive ? 1 : 0.6,
-        boxShadow: isPressed 
-          ? 'inset 0 4px 8px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.1)' 
-          : '0 6px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)'
+        cursor: isSessionActive ? 'pointer' : 'not-allowed',
+        opacity: isSessionActive ? 1 : 0.6
       }}
-      className="transition-all duration-150"
+      className="shadow-sm"
       onMouseDown={handleJoystickStart}
       onTouchStart={handleJoystickStart}
     >
-      {/* Crosshair guides */}
-      <div 
-        className="absolute w-full h-0.5 opacity-20"
-        style={{ backgroundColor: widget.style.textColor }}
-      />
-      <div 
-        className="absolute h-full w-0.5 opacity-20"
-        style={{ backgroundColor: widget.style.textColor }}
-      />
-      
-      {/* Center dot */}
-      <div 
-        className="absolute w-2 h-2 rounded-full opacity-30"
-        style={{ backgroundColor: widget.style.textColor }}
-      />
-      
-      {/* Knob */}
       <div
         ref={knobRef}
-        className="absolute rounded-full transition-all duration-150"
+        className="w-8 h-8 bg-white rounded-full absolute shadow-lg transition-all"
         style={{
-          width: '32px',
-          height: '32px',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          background: `linear-gradient(145deg, #ffffff, #f0f0f0)`,
-          border: `2px solid ${widget.style.borderColor}`,
-          boxShadow: isPressed 
-            ? '0 2px 4px rgba(0,0,0,0.2), inset 0 1px 2px rgba(0,0,0,0.1)' 
-            : '0 4px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8)',
-          cursor: isSessionActive ? (isDraggingRef.current ? 'grabbing' : 'grab') : 'not-allowed',
-          transitionDuration: isDraggingRef.current ? '0ms' : '150ms',
+          transitionDuration: isDraggingRef.current ? '0ms' : '200ms',
           zIndex: 10
         }}
-      >
-        {/* Knob inner highlight */}
-        <div 
-          className="absolute inset-1 rounded-full opacity-40"
-          style={{ 
-            background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent 50%)`
-          }}
-        />
-      </div>
+      />
     </div>
   );
 }
 
 export function StationControl() {
   const { id } = useParams();
+  
+  // All hooks must be at the top level
   const [speed, setSpeed] = useState(50);
   const [targetPosition, setTargetPosition] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -327,7 +272,7 @@ export function StationControl() {
   const { data: telemetryData, refetch: refetchTelemetry } = useQuery({
     queryKey: ['/api/demo-stations', id, 'telemetry'],
     enabled: !!id && isSessionActive,
-    refetchInterval: 1000, // Refresh every second when session is active
+    refetchInterval: 1000,
   });
 
   const { 
@@ -336,10 +281,8 @@ export function StationControl() {
     sendCommand 
   } = useWebSocket(id || '', currentUser?.id || 1, isSessionActive ? 1 : 0);
 
-  // Listen for organization changes and refetch data
   useEffect(() => {
     const handleOrganizationChanged = () => {
-      console.log('Station Control: Organization changed, refetching station data');
       refetchStation();
       refetchControls();
       if (isSessionActive) {
@@ -353,22 +296,30 @@ export function StationControl() {
     };
   }, [refetchStation, refetchControls, refetchTelemetry, isSessionActive]);
 
-  // Fix: station comes as an array, get the first element
+  // Now handle early returns after all hooks
+  if (stationLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div>Loading station...</div>
+      </div>
+    );
+  }
+
+  if (!station) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div>Station not found</div>
+      </div>
+    );
+  }
+
   const stationData = Array.isArray(station) ? station[0] : station;
-  
-  console.log('Station data:', stationData);
-  console.log('Station configuration:', stationData?.configuration);
-  
-  // Get saved layout or use default
   const layout = stationData?.configuration?.interfaceLayout || {
     camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
     controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
   };
 
-  console.log('Using layout:', layout);
-
   const handleCommand = (command: string, parameters?: Record<string, any>) => {
-    console.log('Sending command:', command, parameters);
     sendCommand(JSON.stringify({
       type: 'command',
       command,
@@ -399,25 +350,7 @@ export function StationControl() {
     setIsSessionActive(false);
   };
 
-  if (stationLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div>Loading station...</div>
-      </div>
-    );
-  }
-
-  if (!station) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div>Station not found</div>
-      </div>
-    );
-  }
-
-  const demoStation = station as DemoStation;
   const controlWidgets = (controlConfig?.controls && Array.isArray(controlConfig.controls) ? controlConfig.controls : []) as ControlWidget[];
-  
   const isAdmin = currentUser?.role === 'admin';
 
   return (
@@ -432,8 +365,8 @@ export function StationControl() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-xl font-bold">{demoStation.name}</h1>
-            <p className="text-sm text-gray-600">{demoStation.description}</p>
+            <h1 className="text-xl font-bold">{stationData.name}</h1>
+            <p className="text-sm text-gray-600">{stationData.description}</p>
           </div>
         </div>
         <div className="flex items-center space-x-4">
@@ -448,236 +381,149 @@ export function StationControl() {
           ) : (
             <Button onClick={handleStopSession} variant="destructive">
               <Square className="w-4 h-4 mr-2" />
-              Stop Session
+              End Session
             </Button>
           )}
         </div>
       </div>
 
-      {/* Main Control Interface - Exact Layout from Editor */}
-      <div className="flex-1 flex gap-4 p-4">
-        {/* Camera Feed Panel */}
+      {/* Main Interface */}
+      <div className="flex-1 flex relative">
+        {/* Camera Feed */}
         <div 
-          style={{ 
-            width: `${layout.camera.width}%`
+          className="bg-gray-900 rounded-lg m-2 relative overflow-hidden"
+          style={{
+            width: `${layout.camera.width}%`,
+            height: `${layout.camera.height}%`,
+            left: `${layout.camera.position.x}%`,
+            top: `${layout.camera.position.y}%`,
+            position: 'absolute'
           }}
         >
-          <VideoFeed
-            stationName={stationData?.name || 'Demo Station'}
-            telemetry={telemetryData && telemetryData.length > 0 ? telemetryData[0] : null}
-            isRecording={isSessionActive}
-          />
+          <div className="absolute inset-0 flex items-center justify-center text-white">
+            <div className="text-center">
+              <Activity className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">Live Camera Feed</p>
+              <p className="text-sm opacity-75">Hardware: {stationData.hardwareType}</p>
+            </div>
+          </div>
         </div>
 
         {/* Control Panel */}
         <div 
-          className="bg-white border border-gray-200 rounded-lg p-4"
-          style={{ 
-            width: `${layout.controlPanel.width}%`
+          className="bg-white border rounded-lg m-2 relative"
+          style={{
+            width: `${layout.controlPanel.width}%`,
+            height: `${layout.controlPanel.height}%`,
+            left: `${layout.controlPanel.position.x}%`,
+            top: `${layout.controlPanel.position.y}%`,
+            position: 'absolute'
           }}
         >
-          {/* Custom Control Layout - exactly as designed */}
-          {controlConfig?.controls && controlConfig.controls.length > 0 ? (
-            <div>
-              <h3 className="font-semibold mb-3">Hardware Controls</h3>
-              <div className="relative bg-gray-50 rounded-lg p-4 min-h-[400px] border-2 border-dashed border-gray-200 overflow-visible" style={{ position: 'relative' }}>
-                {controlConfig.controls.map((widget: ControlWidget) => {
-                  const style = {
+          <div className="h-full p-4 relative overflow-hidden">
+            <h3 className="text-lg font-semibold mb-4">Hardware Controls</h3>
+            
+            {controlWidgets.length > 0 ? (
+              <div className="relative w-full h-full">
+                {controlWidgets.map((widget: ControlWidget) => {
+                  const widgetStyle = {
                     position: 'absolute' as const,
                     left: `${widget.position.x}px`,
                     top: `${widget.position.y}px`,
                     width: `${widget.size.width}px`,
                     height: `${widget.size.height}px`,
-                    backgroundColor: widget.style?.backgroundColor || '#3b82f6',
-                    color: widget.style?.textColor || '#ffffff',
-                    border: `2px solid ${widget.style?.borderColor || '#2563eb'}`,
-                    borderRadius: widget.style?.borderRadius || 6,
-                    fontSize: widget.style?.fontSize || 14,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                    opacity: isSessionActive ? 1 : 0.6,
-                    transition: 'all 0.2s ease',
-                    fontWeight: 'medium',
-                    userSelect: 'none' as const,
                   };
 
-                  const handleControlClick = () => {
-                    if (isSessionActive) {
-                      handleCommand(widget.command, widget.parameters || {});
-                    }
-                  };
-
-                  if (widget.type === 'button') {
-                    return (
-                      <div
-                        key={widget.id}
-                        style={{
-                          position: 'absolute',
-                          left: `${widget.position.x}px`,
-                          top: `${widget.position.y}px`,
-                          width: `${widget.size.width}px`,
-                          height: `${widget.size.height}px`,
-                          background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 3).toString(16)).join('')})`,
-                          color: widget.style.textColor,
-                          border: `3px solid ${widget.style.borderColor}`,
-                          borderRadius: `${widget.style.borderRadius}px`,
-                          fontSize: `${widget.style.fontSize}px`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: '600',
-                          cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                          opacity: isSessionActive ? 1 : 0.6,
-                          userSelect: 'none',
-                          textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                          overflow: 'hidden'
-                        }}
-                        onClick={handleControlClick}
-                        className="shadow-lg hover:shadow-xl active:scale-95 active:shadow-inner transition-all duration-150 hover:brightness-110"
-                        onMouseDown={(e) => {
-                          if (isSessionActive) {
-                            e.currentTarget.style.transform = 'scale(0.95)';
-                            e.currentTarget.style.boxShadow = 'inset 0 4px 8px rgba(0,0,0,0.3)';
-                          }
-                        }}
-                        onMouseUp={(e) => {
-                          if (isSessionActive) {
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = '';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (isSessionActive) {
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = '';
-                          }
-                        }}
-                      >
-                        {/* Button highlight overlay */}
-                        <div 
-                          className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"
-                          style={{ borderRadius: `${widget.style.borderRadius - 2}px` }}
-                        />
-                        {widget.name}
-                      </div>
-                    );
-                  }
-
-                  if (widget.type === 'slider') {
-                    const [sliderValue, setSliderValue] = useState(50);
-                    
-                    return (
-                      <div
-                        key={widget.id}
-                        style={{
-                          position: 'absolute',
-                          left: `${widget.position.x}px`,
-                          top: `${widget.position.y}px`,
-                          width: `${widget.size.width}px`,
-                          height: `${widget.size.height}px`,
-                          background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 2).toString(16)).join('')})`,
-                          border: `3px solid ${widget.style.borderColor}`,
-                          borderRadius: `${widget.style.borderRadius}px`,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '12px',
-                          cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                          opacity: isSessionActive ? 1 : 0.6,
-                          overflow: 'hidden',
-                          boxSizing: 'border-box'
-                        }}
-                        className="shadow-lg hover:shadow-xl transition-all duration-200"
-                      >
-                        {/* Slider label */}
-                        <div 
-                          style={{ 
-                            color: widget.style.textColor, 
-                            fontSize: `${Math.max(10, widget.style.fontSize - 2)}px`,
-                            fontWeight: '600',
-                            textAlign: 'center',
-                            textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            width: '100%',
-                            lineHeight: '1.2',
-                            flexShrink: 0
+                  switch (widget.type) {
+                    case 'button':
+                      return (
+                        <button
+                          key={widget.id}
+                          style={{
+                            ...widgetStyle,
+                            backgroundColor: widget.style.backgroundColor,
+                            color: widget.style.textColor,
+                            border: `2px solid ${widget.style.borderColor}`,
+                            borderRadius: `${widget.style.borderRadius}px`,
+                            fontSize: `${widget.style.fontSize}px`,
+                            cursor: isSessionActive ? 'pointer' : 'not-allowed',
+                            opacity: isSessionActive ? 1 : 0.6
                           }}
+                          className="font-medium shadow-sm hover:shadow-md transition-all"
+                          onClick={() => isSessionActive && handleCommand(widget.command, widget.parameters)}
+                          disabled={!isSessionActive}
                         >
                           {widget.name}
-                        </div>
-                        
-                        {/* Slider container */}
-                        <div className="flex-1 flex flex-col justify-center items-center w-full">
-                          <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={sliderValue}
-                            className="w-full mb-3"
-                            style={{
-                              accentColor: widget.style.textColor,
-                              cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                              height: '6px'
-                            }}
-                            disabled={!isSessionActive}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              setSliderValue(value);
-                              if (isSessionActive) {
-                                handleCommand(widget.command, { value: value, ...widget.parameters });
-                              }
-                            }}
-                          />
-                          
-                          {/* Value display */}
-                          <div 
-                            className="text-sm font-semibold px-3 py-1 rounded"
-                            style={{ 
-                              color: widget.style.textColor,
-                              backgroundColor: 'rgba(255,255,255,0.25)',
-                              minWidth: '40px',
-                              textAlign: 'center',
-                              border: `1px solid rgba(255,255,255,0.3)`,
-                              textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                              flexShrink: 0
-                            }}
-                          >
-                            {sliderValue}
-                          </div>
-                        </div>
-                      </div>
-                    );
+                        </button>
+                      );
+                    case 'slider':
+                      return (
+                        <SliderControl
+                          key={widget.id}
+                          widget={widget}
+                          style={widgetStyle}
+                          isSessionActive={isSessionActive}
+                          handleCommand={handleCommand}
+                        />
+                      );
+                    case 'toggle':
+                      return (
+                        <ToggleControl
+                          key={widget.id}
+                          widget={widget}
+                          style={widgetStyle}
+                          isSessionActive={isSessionActive}
+                          handleCommand={handleCommand}
+                        />
+                      );
+                    case 'joystick':
+                      return (
+                        <JoystickControl
+                          key={widget.id}
+                          widget={widget}
+                          style={widgetStyle}
+                          isSessionActive={isSessionActive}
+                          handleCommand={handleCommand}
+                        />
+                      );
+                    default:
+                      return null;
                   }
-
-                  if (widget.type === 'toggle') {
-                    return <ToggleControl key={widget.id} widget={widget} style={style} isSessionActive={isSessionActive} handleCommand={handleCommand} />;
-                  }
-
-                  if (widget.type === 'joystick') {
-                    return <JoystickControl key={widget.id} widget={widget} style={style} isSessionActive={isSessionActive} handleCommand={handleCommand} />;
-                  }
-
-                  return null;
                 })}
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <div className="text-sm">No Controls Configured</div>
-              <div className="text-xs mt-1">Configure controls in Station Editor</div>
-            </div>
-          )}
-
-          {/* Hardware Status */}
-          <div className="text-center py-8 text-gray-500">
-            <div className="text-sm">Hardware Status</div>
-            <div className="text-xs mt-1">Status will appear when hardware is connected</div>
+            ) : (
+              <div className="flex items-center justify-center h-32 text-gray-400">
+                <div className="text-center">
+                  <Settings className="w-8 h-8 mx-auto mb-2" />
+                  <p>No controls configured</p>
+                  <p className="text-sm">Add controls in the station editor</p>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
+      </div>
+
+      {/* Status Bar */}
+      <div className="border-t bg-gray-50 p-2 flex items-center justify-between text-sm">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Zap className="w-4 h-4" />
+            <span>Latency: {connectionStats.latency}ms</span>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Gauge className="w-4 h-4" />
+            <span>Speed: {speed}%</span>
+          </div>
+          <span className={`px-2 py-1 rounded text-xs ${isSessionActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+            {isSessionActive ? 'Session Active' : 'Session Inactive'}
+          </span>
         </div>
       </div>
     </div>
