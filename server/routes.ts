@@ -637,27 +637,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/demo-stations/:id/sessions', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const stationId = req.params.id;
+      console.log('Creating session for station:', stationId);
+      console.log('User:', req.user);
+      
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
+        console.log('Station not found or access denied:', station);
         return res.status(404).json({ message: 'Demo station not found' });
       }
 
       // End any existing active session
       const existingSession = await storage.getActiveSession(stationId);
       if (existingSession) {
+        console.log('Ending existing session:', existingSession.id);
         await storage.endSession(existingSession.id);
       }
 
-      const session = await storage.createSession({
+      const sessionData = {
         userId: req.user!.id,
         demoStationId: stationId,
         isActive: true
-      });
+      };
+      console.log('Creating session with data:', sessionData);
 
+      const session = await storage.createSession(sessionData);
+      console.log('Session created successfully:', session);
+      
       res.status(201).json(session);
     } catch (error) {
-      res.status(400).json({ message: 'Failed to start session' });
+      console.error('Session creation error:', error);
+      res.status(400).json({ message: 'Failed to start session', error: error.message });
     }
   });
 
