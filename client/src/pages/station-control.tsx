@@ -575,173 +575,75 @@ export function StationControl() {
                           top: `${widget.position.y}px`,
                           width: `${widget.size.width}px`,
                           height: `${widget.size.height}px`,
-                          background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 3).toString(16)).join('')})`,
-                          border: `3px solid ${widget.style.borderColor}`,
+                          background: `linear-gradient(145deg, ${widget.style.backgroundColor}, #${widget.style.backgroundColor.slice(1).split('').map(c => Math.max(0, parseInt(c, 16) - 2).toString(16)).join('')})`,
+                          border: `2px solid ${widget.style.borderColor}`,
                           borderRadius: `${widget.style.borderRadius}px`,
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          padding: '14px 20px',
-                          overflow: 'hidden',
-                          boxShadow: '0 6px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)'
+                          padding: '12px',
+                          cursor: isSessionActive ? 'pointer' : 'not-allowed',
+                          opacity: isSessionActive ? 1 : 0.6,
+                          position: 'relative'
                         }}
-                        className="shadow-xl"
+                        className="shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                       >
                         {/* Slider label */}
                         <div 
                           style={{ 
                             color: widget.style.textColor, 
-                            fontSize: `${Math.max(10, widget.style.fontSize - 1)}px`,
-                            fontWeight: '700',
-                            marginBottom: '12px',
-                            textShadow: '0 2px 4px rgba(0,0,0,0.4)',
+                            fontSize: `${Math.max(10, widget.style.fontSize - 2)}px`,
+                            fontWeight: '600',
+                            marginBottom: '8px',
                             textAlign: 'center',
-                            lineHeight: '1',
+                            textShadow: '0 1px 2px rgba(0,0,0,0.3)',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            width: '100%',
-                            letterSpacing: '0.5px'
+                            width: '100%'
                           }}
                         >
                           {widget.name}
                         </div>
                         
-                        {/* Enhanced slider container */}
-                        <div className="relative w-full flex flex-col items-center">
-                          {/* Slider track container with enhanced styling */}
-                          <div className="relative w-full h-8 flex items-center px-2">
-                            {/* Custom track background */}
-                            <div 
-                              className="absolute w-full h-4 rounded-full"
-                              style={{
-                                background: 'linear-gradient(145deg, #e2e8f0, #cbd5e1)',
-                                boxShadow: 'inset 0 3px 6px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.8)',
-                                border: '1px solid #94a3b8'
-                              }}
-                            />
-                            
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              defaultValue="50"
-                              className="relative w-full h-4 rounded-full appearance-none cursor-pointer slider-input z-10"
-                              style={{
-                                background: 'transparent',
-                                outline: 'none',
-                                WebkitAppearance: 'none'
-                              }}
-                              disabled={!isSessionActive}
-                              onChange={(e) => {
-                                const value = parseInt(e.target.value);
-                                const percentage = value;
-                                
-                                // Update the progress fill
-                                const progressFill = document.getElementById(`slider-progress-${widget.id}`);
-                                if (progressFill) {
-                                  progressFill.style.width = `${percentage}%`;
-                                }
-                                
-                                // Update value display
-                                const valueDisplay = document.getElementById(`slider-value-${widget.id}`);
-                                if (valueDisplay) {
-                                  valueDisplay.textContent = value.toString();
-                                }
-                                
-                                if (isSessionActive) {
-                                  handleCommand(widget.command, { value: value, ...widget.parameters });
-                                }
-                              }}
-                            />
-                            
-                            {/* Animated progress fill */}
-                            <div 
-                              id={`slider-progress-${widget.id}`}
-                              className="absolute left-2 h-4 rounded-full transition-all duration-200 ease-out pointer-events-none"
-                              style={{
-                                width: '50%',
-                                background: `linear-gradient(90deg, ${widget.style.textColor}, ${widget.style.textColor}dd)`,
-                                boxShadow: `0 0 8px ${widget.style.textColor}60, inset 0 1px 0 rgba(255,255,255,0.3)`,
-                                borderRadius: '9999px'
-                              }}
-                            />
-                            
-                            {/* Track notches for visual feedback */}
-                            <div className="absolute w-full flex justify-between px-2 pointer-events-none">
-                              {[0, 25, 50, 75, 100].map(notch => (
-                                <div 
-                                  key={notch}
-                                  className="w-0.5 h-2 bg-slate-400 opacity-40 rounded-full"
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          
-                          {/* Enhanced value display */}
-                          <div 
-                            className="mt-3 text-sm font-bold px-3 py-1.5 rounded-lg transition-all duration-200"
-                            style={{ 
-                              color: widget.style.backgroundColor,
-                              backgroundColor: 'rgba(255,255,255,0.95)',
-                              border: `2px solid ${widget.style.borderColor}`,
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.9)',
-                              textShadow: 'none',
-                              minWidth: '40px',
-                              textAlign: 'center'
-                            }}
-                            id={`slider-value-${widget.id}`}
-                          >
-                            50
-                          </div>
-                        </div>
+                        {/* Simple slider */}
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          defaultValue="50"
+                          className="w-full mb-2"
+                          style={{
+                            accentColor: widget.style.textColor,
+                            cursor: isSessionActive ? 'pointer' : 'not-allowed'
+                          }}
+                          disabled={!isSessionActive}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            const valueDisplay = document.getElementById(`slider-value-${widget.id}`);
+                            if (valueDisplay) {
+                              valueDisplay.textContent = value.toString();
+                            }
+                            if (isSessionActive) {
+                              handleCommand(widget.command, { value: value, ...widget.parameters });
+                            }
+                          }}
+                        />
                         
-                        <style jsx>{`
-                          .slider-input::-webkit-slider-thumb {
-                            -webkit-appearance: none;
-                            height: 28px;
-                            width: 28px;
-                            border-radius: 50%;
-                            background: linear-gradient(145deg, #ffffff, #f8fafc);
-                            border: 3px solid ${widget.style.borderColor};
-                            cursor: ${isSessionActive ? 'grab' : 'not-allowed'};
-                            box-shadow: 0 4px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.9);
-                            transition: all 0.2s ease;
-                            position: relative;
-                          }
-                          .slider-input::-webkit-slider-thumb:hover {
-                            transform: scale(1.15);
-                            box-shadow: 0 6px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.9);
-                            border-color: ${widget.style.textColor};
-                          }
-                          .slider-input::-webkit-slider-thumb:active {
-                            cursor: ${isSessionActive ? 'grabbing' : 'not-allowed'};
-                            transform: scale(1.05);
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.1);
-                          }
-                          .slider-input::-moz-range-thumb {
-                            height: 28px;
-                            width: 28px;
-                            border-radius: 50%;
-                            background: linear-gradient(145deg, #ffffff, #f8fafc);
-                            border: 3px solid ${widget.style.borderColor};
-                            cursor: ${isSessionActive ? 'grab' : 'not-allowed'};
-                            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-                            transition: all 0.2s ease;
-                            -moz-appearance: none;
-                          }
-                          .slider-input::-moz-range-track {
-                            height: 16px;
-                            border-radius: 8px;
-                            border: none;
-                            background: transparent;
-                          }
-                          .slider-input:disabled::-webkit-slider-thumb {
-                            opacity: 0.6;
-                            cursor: not-allowed;
-                          }
-                        `}</style>
+                        {/* Value display */}
+                        <div 
+                          className="text-sm font-semibold px-2 py-1 rounded"
+                          style={{ 
+                            color: widget.style.textColor,
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            minWidth: '30px',
+                            textAlign: 'center'
+                          }}
+                          id={`slider-value-${widget.id}`}
+                        >
+                          50
+                        </div>
                       </div>
                     );
                   }
