@@ -5,12 +5,14 @@ import { VideoFeed } from "@/components/video-feed";
 import { ControlPanel } from "@/components/control-panel";
 import { TelemetrySection } from "@/components/telemetry-section";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { getCurrentUser } from "@/lib/auth";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, Square } from "lucide-react";
+import { ArrowLeft, Play, Square, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface DemoStation {
   id: string;
@@ -50,6 +52,7 @@ export function StationControl() {
   const [speed, setSpeed] = useState(50);
   const [targetPosition, setTargetPosition] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
+  const currentUser = getCurrentUser();
 
   const { data: station, isLoading: stationLoading, refetch: refetchStation } = useQuery({
     queryKey: ['/api/demo-stations', id],
@@ -154,9 +157,27 @@ export function StationControl() {
 
   const demoStation = station as DemoStation;
   const controlWidgets = (controlConfig?.controls && Array.isArray(controlConfig.controls) ? controlConfig.controls : []) as ControlWidget[];
+  
+  // Check if user is admin
+  const isAdmin = currentUser?.role === 'admin';
+  const stationDisabled = !demoStation.isOnline;
+  
+  // Determine if Start Session button should be shown
+  const showStartButton = !stationDisabled || isAdmin;
+  const canStartSession = isConnected && demoStation.isOnline;
 
   return (
     <div className="h-screen flex flex-col">
+      {/* Station Disabled Banner - only show to non-admins when station is disabled */}
+      {stationDisabled && !isAdmin && (
+        <Alert className="mx-4 mt-4 border-orange-200 bg-orange-50">
+          <AlertTriangle className="h-4 w-4 text-orange-600" />
+          <AlertDescription className="text-orange-800">
+            This demo station is currently disabled and not available for use.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {/* Top Control Bar */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-4">
@@ -175,16 +196,29 @@ export function StationControl() {
           <Badge variant={isConnected ? "default" : "destructive"}>
             {isConnected ? "Connected" : "Disconnected"}
           </Badge>
-          {!isSessionActive ? (
-            <Button onClick={handleStartSession} disabled={!isConnected} className="bg-green-600 hover:bg-green-700">
-              <Play className="w-4 h-4 mr-2" />
-              Start Session
-            </Button>
-          ) : (
-            <Button onClick={handleStopSession} variant="destructive">
-              <Square className="w-4 h-4 mr-2" />
-              Stop Session
-            </Button>
+          {stationDisabled && isAdmin && (
+            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+              Station Disabled
+            </Badge>
+          )}
+          {showStartButton && (
+            <>
+              {!isSessionActive ? (
+                <Button 
+                  onClick={handleStartSession} 
+                  disabled={!canStartSession} 
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Start Session
+                </Button>
+              ) : (
+                <Button onClick={handleStopSession} variant="destructive">
+                  <Square className="w-4 h-4 mr-2" />
+                  Stop Session
+                </Button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -239,7 +273,7 @@ export function StationControl() {
                   };
 
                   const handleControlClick = () => {
-                    if (isSessionActive) {
+                    if (isSessionActive && canStartSession) {
                       handleCommand(widget.command, widget.parameters || {});
                     }
                   };
