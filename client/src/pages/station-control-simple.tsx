@@ -286,10 +286,12 @@ export default function StationControlSimple() {
       {/* Main Content */}
       <div className="flex h-[calc(100vh-5rem)]">
         {/* Canvas Area */}
-        <div className="flex-1 relative overflow-hidden bg-gray-50">
+        <div className="flex-1 relative overflow-auto bg-gray-50">
           <div 
-            className="relative w-full h-full p-8"
+            className="relative p-8"
             style={{ 
+              width: '1920px',
+              height: '1080px',
               backgroundImage: showGrid ? `
                 linear-gradient(to right, #e5e7eb 1px, transparent 1px),
                 linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
