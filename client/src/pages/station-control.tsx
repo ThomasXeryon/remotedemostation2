@@ -58,34 +58,68 @@ function SliderControl({ widget, style, isSessionActive, handleCommand }: {
     <div
       style={{
         ...style,
-        backgroundColor: widget.style.backgroundColor,
-        border: `2px solid ${widget.style.borderColor}`,
-        borderRadius: `${widget.style.borderRadius}px`,
+        background: `linear-gradient(135deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd)`,
+        border: `3px solid ${widget.style.borderColor}`,
+        borderRadius: `${widget.style.borderRadius + 8}px`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '8px'
+        padding: '16px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08)',
+        backdropFilter: 'blur(8px)',
+        cursor: isSessionActive ? 'default' : 'not-allowed',
+        opacity: isSessionActive ? 1 : 0.7,
+        transition: 'all 0.3s ease'
       }}
-      className="shadow-sm"
+      className="hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
     >
-      <span style={{ color: widget.style.textColor, fontSize: `${widget.style.fontSize}px` }} className="mb-2 font-medium">
+      <span 
+        style={{ 
+          color: widget.style.textColor, 
+          fontSize: `${widget.style.fontSize + 2}px`,
+          textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }} 
+        className="mb-3 font-semibold tracking-wide"
+      >
         {widget.name}
       </span>
-      <div className="w-full flex flex-col items-center">
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={value}
-          onChange={handleSliderChange}
-          disabled={!isSessionActive}
-          className="w-full h-2 rounded-lg appearance-none cursor-pointer slider"
-          style={{
-            background: `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} ${value}%, #e5e7eb ${value}%, #e5e7eb 100%)`
-          }}
-        />
-        <span style={{ color: widget.style.textColor }} className="text-sm mt-1">{value}%</span>
+      <div className="w-full flex flex-col items-center space-y-3">
+        <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+          <div 
+            className="absolute top-0 left-0 h-full rounded-full transition-all duration-200 ease-out"
+            style={{
+              width: `${value}%`,
+              background: `linear-gradient(90deg, ${widget.style.textColor}, ${widget.style.textColor}cc)`,
+              boxShadow: `0 0 8px ${widget.style.textColor}40`
+            }}
+          />
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={value}
+            onChange={handleSliderChange}
+            disabled={!isSessionActive}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <div 
+            className="absolute top-1/2 w-5 h-5 bg-white rounded-full shadow-lg border-2 transform -translate-y-1/2 transition-all duration-200"
+            style={{
+              left: `calc(${value}% - 10px)`,
+              borderColor: widget.style.textColor,
+              boxShadow: `0 2px 8px rgba(0,0,0,0.2), 0 0 0 3px ${widget.style.textColor}20`
+            }}
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <span 
+            style={{ color: widget.style.textColor }} 
+            className="text-lg font-bold tracking-wider"
+          >
+            {value}%
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -110,35 +144,70 @@ function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
     <div
       style={{
         ...style,
-        backgroundColor: widget.style.backgroundColor,
-        border: `2px solid ${widget.style.borderColor}`,
-        borderRadius: `${widget.style.borderRadius}px`,
+        background: `linear-gradient(135deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd)`,
+        border: `3px solid ${widget.style.borderColor}`,
+        borderRadius: `${widget.style.borderRadius + 8}px`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '8px',
+        padding: '16px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08)',
+        backdropFilter: 'blur(8px)',
         cursor: isSessionActive ? 'pointer' : 'not-allowed',
-        opacity: isSessionActive ? 1 : 0.6
+        opacity: isSessionActive ? 1 : 0.7,
+        transition: 'all 0.3s ease'
       }}
-      className="shadow-sm"
+      className="hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
       onClick={handleToggle}
     >
-      <span style={{ color: widget.style.textColor, fontSize: `${widget.style.fontSize}px` }} className="mb-2 font-medium">
+      <span 
+        style={{ 
+          color: widget.style.textColor, 
+          fontSize: `${widget.style.fontSize + 2}px`,
+          textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }} 
+        className="mb-4 font-semibold tracking-wide"
+      >
         {widget.name}
       </span>
       <div
-        className="w-12 h-6 rounded-full relative transition-colors duration-200"
+        className="relative p-1 rounded-full transition-all duration-300 ease-out"
         style={{
-          backgroundColor: isOn ? widget.style.textColor : '#e5e7eb'
+          width: '64px',
+          height: '32px',
+          backgroundColor: isOn ? widget.style.textColor : '#cbd5e1',
+          boxShadow: isOn 
+            ? `0 0 20px ${widget.style.textColor}40, inset 0 2px 4px rgba(0,0,0,0.1)` 
+            : 'inset 0 2px 4px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1)'
         }}
       >
         <div
-          className="w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform duration-200 shadow-sm"
+          className="absolute top-1 w-6 h-6 bg-white rounded-full transition-all duration-300 ease-out shadow-lg"
           style={{
-            transform: isOn ? 'translateX(24px)' : 'translateX(2px)'
+            transform: isOn ? 'translateX(32px)' : 'translateX(0px)',
+            boxShadow: isOn 
+              ? `0 4px 12px rgba(0,0,0,0.15), 0 0 8px ${widget.style.textColor}30`
+              : '0 4px 12px rgba(0,0,0,0.15)'
           }}
-        />
+        >
+          <div 
+            className="absolute inset-1 rounded-full transition-all duration-300"
+            style={{
+              background: isOn 
+                ? `radial-gradient(circle, ${widget.style.textColor}20, transparent)`
+                : 'transparent'
+            }}
+          />
+        </div>
+      </div>
+      <div className="mt-2">
+        <span 
+          className="text-xs font-medium tracking-wider uppercase"
+          style={{ color: widget.style.textColor }}
+        >
+          {isOn ? 'ON' : 'OFF'}
+        </span>
       </div>
     </div>
   );
@@ -221,31 +290,62 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
       ref={containerRef}
       style={{
         ...style,
-        backgroundColor: widget.style.backgroundColor,
-        border: `2px solid ${widget.style.borderColor}`,
+        background: `
+          radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 70%),
+          linear-gradient(135deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}aa)
+        `,
+        border: `4px solid ${widget.style.borderColor}`,
         borderRadius: '50%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
         cursor: isSessionActive ? 'pointer' : 'not-allowed',
-        opacity: isSessionActive ? 1 : 0.6
+        opacity: isSessionActive ? 1 : 0.7,
+        boxShadow: `
+          0 12px 32px rgba(0,0,0,0.15), 
+          0 4px 12px rgba(0,0,0,0.1),
+          inset 0 2px 4px rgba(255,255,255,0.1)
+        `,
+        transition: 'all 0.3s ease'
       }}
-      className="shadow-sm"
+      className="hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
       onMouseDown={handleJoystickStart}
       onTouchStart={handleJoystickStart}
     >
       <div
+        className="absolute inset-4 rounded-full border-2 opacity-20"
+        style={{ borderColor: widget.style.textColor }}
+      />
+      <div
         ref={knobRef}
-        className="w-8 h-8 bg-white rounded-full absolute shadow-lg transition-all"
+        className="w-10 h-10 bg-white rounded-full absolute shadow-2xl transition-all"
         style={{
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          transitionDuration: isDraggingRef.current ? '0ms' : '200ms',
-          zIndex: 10
+          transitionDuration: isDraggingRef.current ? '0ms' : '300ms',
+          zIndex: 10,
+          background: `
+            radial-gradient(circle at 30% 30%, #ffffff, #f1f5f9),
+            radial-gradient(circle at 70% 70%, rgba(0,0,0,0.05), transparent)
+          `,
+          border: `2px solid ${widget.style.textColor}30`,
+          boxShadow: `
+            0 6px 20px rgba(0,0,0,0.25),
+            0 2px 8px rgba(0,0,0,0.15),
+            inset 0 1px 2px rgba(255,255,255,0.8),
+            0 0 0 2px ${widget.style.textColor}10
+          `
         }}
-      />
+      >
+        <div 
+          className="absolute inset-2 rounded-full"
+          style={{
+            background: `radial-gradient(circle at 35% 35%, ${widget.style.textColor}15, transparent 60%)`
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -441,17 +541,46 @@ export function StationControl() {
                           key={widget.id}
                           style={{
                             ...widgetStyle,
-                            backgroundColor: widget.style.backgroundColor,
+                            background: `
+                              linear-gradient(145deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd),
+                              radial-gradient(circle at 20% 20%, rgba(255,255,255,0.2), transparent 60%)
+                            `,
                             color: widget.style.textColor,
-                            border: `2px solid ${widget.style.borderColor}`,
-                            borderRadius: `${widget.style.borderRadius}px`,
-                            fontSize: `${widget.style.fontSize}px`,
+                            border: `3px solid ${widget.style.borderColor}`,
+                            borderRadius: `${widget.style.borderRadius + 6}px`,
+                            fontSize: `${widget.style.fontSize + 2}px`,
                             cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                            opacity: isSessionActive ? 1 : 0.6
+                            opacity: isSessionActive ? 1 : 0.7,
+                            boxShadow: `
+                              0 8px 24px rgba(0,0,0,0.12), 
+                              0 4px 8px rgba(0,0,0,0.08),
+                              inset 0 1px 2px rgba(255,255,255,0.1)
+                            `,
+                            textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                            transition: 'all 0.2s ease',
+                            transform: 'translateY(0px)'
                           }}
-                          className="font-medium shadow-sm hover:shadow-md transition-all"
+                          className="font-semibold tracking-wide hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-lg transition-all duration-200"
                           onClick={() => isSessionActive && handleCommand(widget.command, widget.parameters)}
                           disabled={!isSessionActive}
+                          onMouseDown={(e) => {
+                            if (isSessionActive) {
+                              e.currentTarget.style.transform = 'translateY(2px)';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
+                            }
+                          }}
+                          onMouseUp={(e) => {
+                            if (isSessionActive) {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.15), 0 6px 12px rgba(0,0,0,0.1)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (isSessionActive) {
+                              e.currentTarget.style.transform = 'translateY(0px)';
+                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08)';
+                            }
+                          }}
                         >
                           {widget.name}
                         </button>
