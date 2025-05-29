@@ -615,16 +615,28 @@ export function StationControl() {
             {controlWidgets.length > 0 ? (
               <div className="relative w-full" style={{ height: 'calc(100% - 3rem)' }}>
                 {controlWidgets.map((widget: ControlWidget) => {
-                  // Use exact positioning from the control builder
+                  // The editor canvas is 400px height - we need to scale coordinates to match the actual control panel size
+                  const editorCanvasHeight = 400;
+                  const controlPanelElement = document.querySelector('.relative.w-full[style*="calc(100% - 3rem)"]');
+                  const actualHeight = controlPanelElement ? controlPanelElement.clientHeight : editorCanvasHeight;
+                  const actualWidth = controlPanelElement ? controlPanelElement.clientWidth : 600; // approximate canvas width
+                  
+                  // Scale the positions proportionally
+                  const scaleY = actualHeight / editorCanvasHeight;
+                  const scaleX = actualWidth / 600; // approximate editor canvas width
+                  
+                  const scaledX = widget.position.x * scaleX;
+                  const scaledY = widget.position.y * scaleY;
+                  
                   const widgetStyle = {
                     position: 'absolute' as const,
-                    left: `${widget.position.x}px`,
-                    top: `${widget.position.y}px`,
+                    left: `${scaledX}px`,
+                    top: `${scaledY}px`,
                     width: `${widget.size.width}px`,
                     height: `${widget.size.height}px`,
                   };
 
-                  console.log(`Widget ${widget.name} positioned at:`, widget.position, 'size:', widget.size);
+                  console.log(`Widget ${widget.name} - Original: (${widget.position.x}, ${widget.position.y}) -> Scaled: (${scaledX}, ${scaledY}) Scale: ${scaleX.toFixed(2)}x${scaleY.toFixed(2)}`);
 
                   // Add visual debugging border to see exact positioning
                   const debugStyle = {
