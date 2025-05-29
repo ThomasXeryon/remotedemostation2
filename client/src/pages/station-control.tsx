@@ -101,7 +101,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
   isSessionActive: boolean;
   handleCommand: (command: string, params: any) => void;
 }) {
-  const joystickRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
 
@@ -110,14 +110,14 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     e.preventDefault();
     isDraggingRef.current = true;
     
-    const joystick = joystickRef.current;
+    const container = containerRef.current;
     const knob = knobRef.current;
-    if (!joystick || !knob) return;
+    if (!container || !knob) return;
 
-    const rect = joystick.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const maxDistance = 25;
+    const containerRect = container.getBoundingClientRect();
+    const centerX = containerRect.left + containerRect.width / 2;
+    const centerY = containerRect.top + containerRect.height / 2;
+    const maxDistance = Math.min(containerRect.width, containerRect.height) / 2 - 20;
 
     const handleMove = (moveEvent: MouseEvent | TouchEvent) => {
       if (!isDraggingRef.current) return;
@@ -137,7 +137,10 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
         y = (deltaY / distance) * maxDistance;
       }
       
-      knob.style.transform = `translate(${x}px, ${y}px)`;
+      // Move the knob from its center position
+      knob.style.left = `calc(50% + ${x}px)`;
+      knob.style.top = `calc(50% + ${y}px)`;
+      knob.style.transform = 'translate(-50%, -50%)';
       
       const normalizedX = Math.round((x / maxDistance) * 100);
       const normalizedY = Math.round((y / maxDistance) * 100);
@@ -147,7 +150,9 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     const handleEnd = () => {
       isDraggingRef.current = false;
       if (knob) {
-        knob.style.transform = 'translate(0px, 0px)';
+        knob.style.left = '50%';
+        knob.style.top = '50%';
+        knob.style.transform = 'translate(-50%, -50%)';
       }
       handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
       
@@ -165,6 +170,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
 
   return (
     <div
+      ref={containerRef}
       style={{
         ...style,
         backgroundColor: widget.style.backgroundColor,
@@ -173,31 +179,24 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '8px'
+        position: 'relative',
+        cursor: isSessionActive ? 'pointer' : 'not-allowed',
+        opacity: isSessionActive ? 1 : 0.6
       }}
       className="shadow-sm"
+      onMouseDown={handleJoystickStart}
+      onTouchStart={handleJoystickStart}
     >
-      <div 
-        ref={joystickRef}
-        className="w-16 h-16 rounded-full cursor-pointer relative"
+      <div
+        ref={knobRef}
+        className="w-6 h-6 bg-white rounded-full absolute shadow-lg transition-all"
         style={{
-          backgroundColor: widget.style.textColor,
-          position: 'relative'
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          transitionDuration: isDraggingRef.current ? '0ms' : '200ms'
         }}
-        onMouseDown={handleJoystickStart}
-        onTouchStart={handleJoystickStart}
-      >
-        <div
-          ref={knobRef}
-          className="w-4 h-4 bg-white rounded-full absolute shadow-sm transition-transform"
-          style={{
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            transitionDuration: isDraggingRef.current ? '0ms' : '200ms'
-          }}
-        />
-      </div>
+      />
     </div>
   );
 }
