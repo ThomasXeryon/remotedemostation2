@@ -301,10 +301,10 @@ export default function StationControlSimple() {
             {/* Camera Panel */}
             <div className="absolute bg-gray-900 rounded-lg flex items-center justify-center text-white"
                  style={{
-                   left: cameraPanel.x,
-                   top: cameraPanel.y,
-                   width: cameraPanel.width,
-                   height: cameraPanel.height,
+                   left: `${cameraPanel.x}px`,
+                   top: `${cameraPanel.y}px`,
+                   width: `${cameraPanel.width}px`,
+                   height: `${cameraPanel.height}px`,
                    border: isEditMode ? (selectedPanel === 'camera' ? '3px solid #3b82f6' : '2px solid #3b82f6') : 'none'
                  }}
                  onClick={() => isEditMode && setSelectedPanel('camera')}>
@@ -335,10 +335,10 @@ export default function StationControlSimple() {
             {/* Control Panel */}
             <div className="absolute bg-white border-2 border-gray-200 rounded-lg"
                  style={{
-                   left: controlPanel.x,
-                   top: controlPanel.y,
-                   width: controlPanel.width,
-                   height: controlPanel.height,
+                   left: `${controlPanel.x}px`,
+                   top: `${controlPanel.y}px`,
+                   width: `${controlPanel.width}px`,
+                   height: `${controlPanel.height}px`,
                    border: isEditMode ? (selectedPanel === 'control' ? '3px solid #10b981' : '2px solid #10b981') : '2px solid #e5e7eb'
                  }}
                  onClick={() => isEditMode && setSelectedPanel('control')}>
