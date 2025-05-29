@@ -50,6 +50,35 @@ export default function StationControlSimple() {
     enabled: !!id,
   });
 
+  // Fetch saved control configuration
+  const { data: controlConfig } = useQuery({
+    queryKey: ['/api/demo-stations', id, 'controls'],
+    enabled: !!id,
+  });
+
+  // Load saved layout when control config is available
+  useEffect(() => {
+    if (controlConfig?.layout) {
+      const { camera, controlPanel: control } = controlConfig.layout;
+      if (camera) {
+        setCameraPanel({
+          x: camera.position?.x || 40,
+          y: camera.position?.y || 40,
+          width: camera.width || 920,
+          height: camera.height || 540
+        });
+      }
+      if (control) {
+        setControlPanel({
+          x: control.position?.x || 980,
+          y: control.position?.y || 40,
+          width: control.width || 900,
+          height: control.height || 540
+        });
+      }
+    }
+  }, [controlConfig]);
+
   // Dragging functionality for toolbox
   const handleToolboxMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -165,8 +194,16 @@ export default function StationControlSimple() {
           demoStationId: id,
           controls: [],
           layout: {
-            camera: { width: 920, height: 540, position: { x: 40, y: 40 } },
-            controlPanel: { width: 900, height: 540, position: { x: 980, y: 40 } }
+            camera: { 
+              width: cameraPanel.width, 
+              height: cameraPanel.height, 
+              position: { x: cameraPanel.x, y: cameraPanel.y } 
+            },
+            controlPanel: { 
+              width: controlPanel.width, 
+              height: controlPanel.height, 
+              position: { x: controlPanel.x, y: controlPanel.y } 
+            }
           },
           createdBy: currentUser?.id
         }),
