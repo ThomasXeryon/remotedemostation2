@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
@@ -77,7 +78,6 @@ function SliderControl({ widget, style, isSessionActive, handleCommand }: {
         overflow: 'hidden'
       }}
     >
-      {/* Subtle glow effect */}
       <div 
         className="absolute inset-0 rounded-lg opacity-20"
         style={{
@@ -99,7 +99,6 @@ function SliderControl({ widget, style, isSessionActive, handleCommand }: {
       
       <div className="w-full flex flex-col items-center space-y-4 relative z-10">
         <div className="relative w-full h-6 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm border border-white/30">
-          {/* Progress fill */}
           <div 
             className="absolute top-0 left-0 h-full rounded-full transition-all duration-300 ease-out"
             style={{
@@ -109,7 +108,6 @@ function SliderControl({ widget, style, isSessionActive, handleCommand }: {
             }}
           />
           
-          {/* Input slider */}
           <input
             type="range"
             min="0"
@@ -121,7 +119,6 @@ function SliderControl({ widget, style, isSessionActive, handleCommand }: {
             style={{ cursor: isSessionActive ? 'pointer' : 'not-allowed' }}
           />
           
-          {/* Custom thumb */}
           <div 
             className="absolute top-1/2 w-8 h-8 bg-white rounded-full shadow-xl border-3 transform -translate-y-1/2 transition-all duration-300 z-10"
             style={{
@@ -201,7 +198,6 @@ function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
       }}
       onClick={handleToggle}
     >
-      {/* Background glow effect */}
       <div 
         className="absolute inset-0 rounded-lg opacity-20 transition-all duration-500"
         style={{
@@ -237,7 +233,6 @@ function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
           border: isOn ? `2px solid ${widget.style.textColor}40` : '2px solid #94a3b8'
         }}
       >
-        {/* Track highlights */}
         <div 
           className="absolute inset-1 rounded-full transition-all duration-500"
           style={{
@@ -247,7 +242,6 @@ function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
           }}
         />
         
-        {/* Toggle knob */}
         <div
           className="absolute top-1 w-8 h-8 bg-white rounded-full transition-all duration-500 ease-out shadow-xl border-2"
           style={{
@@ -387,7 +381,6 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
       onMouseDown={handleJoystickStart}
       onTouchStart={handleJoystickStart}
     >
-      {/* Outer ring guides */}
       <div
         className="absolute rounded-full border-2 opacity-30 transition-all duration-300"
         style={{ 
@@ -404,7 +397,6 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
         }}
       />
       
-      {/* Center dot */}
       <div 
         className="absolute w-3 h-3 rounded-full"
         style={{
@@ -413,7 +405,6 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
         }}
       />
       
-      {/* Joystick knob */}
       <div
         ref={knobRef}
         className="absolute rounded-full shadow-2xl transition-all border-3"
@@ -431,7 +422,6 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
           cursor: isDraggingRef.current ? 'grabbing' : 'grab'
         }}
       >
-        {/* Knob highlight */}
         <div 
           className="absolute inset-1 rounded-full"
           style={{
@@ -439,7 +429,6 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
           }}
         />
         
-        {/* Central grip texture */}
         <div className="absolute inset-2 rounded-full opacity-40" style={{
           background: `radial-gradient(circle, transparent 30%, ${widget.style.textColor}15 35%, transparent 40%, ${widget.style.textColor}15 45%, transparent 50%)`
         }} />
@@ -450,8 +439,6 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
 
 export function StationControl() {
   const { id } = useParams();
-
-  // All hooks must be at the top level
   const [speed, setSpeed] = useState(50);
   const [targetPosition, setTargetPosition] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
@@ -494,7 +481,6 @@ export function StationControl() {
     };
   }, [refetchStation, refetchControls, refetchTelemetry, isSessionActive]);
 
-  // Now handle early returns after all hooks
   if (stationLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -512,6 +498,8 @@ export function StationControl() {
   }
 
   const stationData = Array.isArray(station) ? station[0] : station;
+  
+  // Use the exact layout configuration from the database
   const layout = stationData?.configuration?.interfaceLayout || {
     camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
     controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
@@ -549,7 +537,6 @@ export function StationControl() {
   };
 
   const controlWidgets = (controlConfig?.controls && Array.isArray(controlConfig.controls) ? controlConfig.controls : []) as ControlWidget[];
-  const isAdmin = currentUser?.role === 'admin';
 
   return (
     <div className="h-screen flex flex-col">
@@ -626,10 +613,10 @@ export function StationControl() {
                 {controlWidgets.map((widget: ControlWidget) => {
                   const widgetStyle = {
                     position: 'absolute' as const,
-                    left: `${Math.max(0, Math.min(widget.position.x, 400))}px`,
-                    top: `${Math.max(0, Math.min(widget.position.y, 300))}px`,
-                    width: `${Math.min(widget.size.width, 200)}px`,
-                    height: `${Math.min(widget.size.height, 100)}px`,
+                    left: `${widget.position.x}px`,
+                    top: `${widget.position.y}px`,
+                    width: `${widget.size.width}px`,
+                    height: `${widget.size.height}px`,
                   };
 
                   switch (widget.type) {
@@ -691,7 +678,6 @@ export function StationControl() {
                             }
                           }}
                         >
-                          {/* Subtle glow effect overlay */}
                           <div 
                             className="absolute inset-0 rounded-lg opacity-20 pointer-events-none"
                             style={{
