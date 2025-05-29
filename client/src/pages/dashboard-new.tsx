@@ -88,19 +88,27 @@ export function Dashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {stations.map((station) => (
-            <Card key={station.id} className="hover:shadow-lg transition-shadow">
+            <Card key={station.id} className={`hover:shadow-lg transition-shadow ${!station.isOnline ? 'opacity-75' : ''}`}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center space-x-2">
                     <Monitor className="w-5 h-5" />
                     <span>{station.name}</span>
                   </CardTitle>
-                  <Badge variant={station.isOnline ? "default" : "secondary"}>
-                    {station.isOnline ? "Online" : "Offline"}
+                  <Badge variant={station.isOnline ? "default" : "destructive"}>
+                    {station.isOnline ? "Enabled" : "Disabled"}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {!station.isOnline && currentUser?.role === 'admin' && (
+                  <Alert className="border-orange-200 bg-orange-50">
+                    <AlertTriangle className="h-4 w-4 text-orange-600" />
+                    <AlertDescription className="text-orange-800 text-sm">
+                      Not visible to users
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {station.description || "No description available"}
                 </p>
