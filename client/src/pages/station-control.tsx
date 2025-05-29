@@ -172,9 +172,6 @@ export function StationControl() {
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          <Badge variant={demoStation.isOnline ? "default" : "secondary"}>
-            {demoStation.isOnline ? "Online" : "Offline"}
-          </Badge>
           <Badge variant={isConnected ? "default" : "destructive"}>
             {isConnected ? "Connected" : "Disconnected"}
           </Badge>
