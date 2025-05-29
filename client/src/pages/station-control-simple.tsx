@@ -30,7 +30,6 @@ export default function StationControlSimple() {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
-  const [showCanvasBorder, setShowCanvasBorder] = useState(false);
   const [toolboxPosition, setToolboxPosition] = useState({ x: 50, y: 100 });
   const [isDraggingToolbox, setIsDraggingToolbox] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -68,17 +67,80 @@ export default function StationControlSimple() {
     setIsDraggingToolbox(false);
   }, []);
 
+  // Panel drag and resize handlers
+  const handlePanelMouseDown = useCallback((e: React.MouseEvent, panelType: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingPanel(panelType);
+    
+    const panel = panelType === 'camera' ? cameraPanel : controlPanel;
+    setDragOffset({
+      x: e.clientX - panel.x,
+      y: e.clientY - panel.y
+    });
+  }, [isEditMode, cameraPanel, controlPanel]);
+
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent, panelType: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizingPanel(panelType);
+  }, [isEditMode]);
+
+  const handlePanelMove = useCallback((e: MouseEvent) => {
+    if (isDraggingPanel) {
+      const newX = Math.max(0, e.clientX - dragOffset.x);
+      const newY = Math.max(0, e.clientY - dragOffset.y);
+      
+      if (isDraggingPanel === 'camera') {
+        setCameraPanel(prev => ({ ...prev, x: newX, y: newY }));
+      } else if (isDraggingPanel === 'control') {
+        setControlPanel(prev => ({ ...prev, x: newX, y: newY }));
+      }
+    }
+    
+    if (isResizingPanel) {
+      const panel = isResizingPanel === 'camera' ? cameraPanel : controlPanel;
+      const newWidth = Math.max(100, e.clientX - panel.x);
+      const newHeight = Math.max(100, e.clientY - panel.y);
+      
+      if (isResizingPanel === 'camera') {
+        setCameraPanel(prev => ({ ...prev, width: newWidth, height: newHeight }));
+      } else if (isResizingPanel === 'control') {
+        setControlPanel(prev => ({ ...prev, width: newWidth, height: newHeight }));
+      }
+    }
+  }, [isDraggingPanel, isResizingPanel, dragOffset, cameraPanel, controlPanel]);
+
   useEffect(() => {
-    if (isDraggingToolbox) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+    if (isDraggingToolbox || isDraggingPanel || isResizingPanel) {
+      const mouseMoveHandler = (e: MouseEvent) => {
+        if (isDraggingToolbox) {
+          setToolboxPosition({
+            x: e.clientX - dragOffset.x,
+            y: e.clientY - dragOffset.y
+          });
+        } else {
+          handlePanelMove(e);
+        }
+      };
+      
+      const mouseUpHandler = () => {
+        setIsDraggingToolbox(false);
+        setIsDraggingPanel(null);
+        setIsResizingPanel(null);
+      };
+      
+      document.addEventListener('mousemove', mouseMoveHandler);
+      document.addEventListener('mouseup', mouseUpHandler);
       
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('mousemove', mouseMoveHandler);
+        document.removeEventListener('mouseup', mouseUpHandler);
       };
     }
-  }, [isDraggingToolbox, handleMouseMove, handleMouseUp]);
+  }, [isDraggingToolbox, isDraggingPanel, isResizingPanel, dragOffset, handlePanelMove]);
 
   // Save functionality
   const handleSave = async () => {
@@ -186,35 +248,75 @@ export default function StationControlSimple() {
                 linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
               ` : 'none',
               backgroundSize: showGrid ? '20px 20px' : 'auto',
-              border: showCanvasBorder ? '2px dashed #8b5cf6' : 'none',
+              border: showGrid ? '2px dashed #8b5cf6' : 'none',
             }}
           >
             {/* Camera Panel */}
             <div className="absolute bg-gray-900 rounded-lg flex items-center justify-center text-white"
                  style={{
-                   left: 40,
-                   top: 40,
-                   width: 920,
-                   height: 540,
+                   left: cameraPanel.x,
+                   top: cameraPanel.y,
+                   width: cameraPanel.width,
+                   height: cameraPanel.height,
                    border: isEditMode ? '2px solid #3b82f6' : 'none'
                  }}>
               <Monitor className="w-8 h-8 mr-2" />
               <span>Live Camera Feed</span>
+              
+              {/* Drag Handle */}
+              {isEditMode && (
+                <div 
+                  className="absolute top-2 left-2 w-6 h-6 bg-blue-500 rounded cursor-move flex items-center justify-center"
+                  onMouseDown={(e) => handlePanelMouseDown(e, 'camera')}
+                >
+                  <Move className="w-4 h-4 text-white" />
+                </div>
+              )}
+              
+              {/* Resize Handle */}
+              {isEditMode && (
+                <div 
+                  className="absolute bottom-2 right-2 w-6 h-6 bg-blue-500 rounded cursor-nw-resize flex items-center justify-center"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 'camera')}
+                >
+                  <div className="w-3 h-3 border-r-2 border-b-2 border-white"></div>
+                </div>
+              )}
             </div>
 
             {/* Control Panel */}
             <div className="absolute bg-white border-2 border-gray-200 rounded-lg"
                  style={{
-                   left: 980,
-                   top: 40,
-                   width: 900,
-                   height: 540,
+                   left: controlPanel.x,
+                   top: controlPanel.y,
+                   width: controlPanel.width,
+                   height: controlPanel.height,
                    border: isEditMode ? '2px solid #10b981' : '2px solid #e5e7eb'
                  }}>
               <div className="p-4">
                 <h3 className="text-lg font-semibold mb-4">Controls</h3>
                 <p className="text-gray-600">Control widgets will appear here</p>
               </div>
+              
+              {/* Drag Handle */}
+              {isEditMode && (
+                <div 
+                  className="absolute top-2 left-2 w-6 h-6 bg-green-500 rounded cursor-move flex items-center justify-center"
+                  onMouseDown={(e) => handlePanelMouseDown(e, 'control')}
+                >
+                  <Move className="w-4 h-4 text-white" />
+                </div>
+              )}
+              
+              {/* Resize Handle */}
+              {isEditMode && (
+                <div 
+                  className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded cursor-nw-resize flex items-center justify-center"
+                  onMouseDown={(e) => handleResizeMouseDown(e, 'control')}
+                >
+                  <div className="w-3 h-3 border-r-2 border-b-2 border-white"></div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -262,17 +364,7 @@ export default function StationControlSimple() {
                       checked={showGrid}
                       onChange={(e) => setShowGrid(e.target.checked)}
                     />
-                    <label htmlFor="showGrid" className="text-sm">Show Grid</label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
-                      id="showBorder" 
-                      checked={showCanvasBorder}
-                      onChange={(e) => setShowCanvasBorder(e.target.checked)}
-                    />
-                    <label htmlFor="showBorder" className="text-sm">Show Canvas Border</label>
+                    <label htmlFor="showGrid" className="text-sm">Show Grid & Border</label>
                   </div>
                 </div>
               </div>
