@@ -807,8 +807,12 @@ export function StationControl() {
                             overflow: 'hidden'
                           }}
                           className="select-none"
-                          onClick={() => isSessionActive && handleCommand(widget.command, widget.parameters)}
-                          disabled={!isSessionActive}
+                          onClick={() => {
+                            if (isEditMode) return; // Prevent command execution in edit mode
+                            if (isSessionActive) handleCommand(widget.command, widget.parameters);
+                          }}
+                          onMouseDown={(e) => handleMouseDown(e, widget.id)}
+                          disabled={!isSessionActive && !isEditMode}
                           onMouseEnter={(e) => {
                             if (isSessionActive) {
                               e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
