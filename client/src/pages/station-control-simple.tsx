@@ -50,33 +50,12 @@ export default function StationControlSimple() {
     enabled: !!id,
   });
 
-  // Fetch saved control configuration
-  const { data: controlConfig, error: controlConfigError, isLoading: controlConfigLoading } = useQuery({
-    queryKey: ['/api/demo-stations', id, 'controls'],
-    enabled: !!id && !!stationData,
-    retry: 3,
-  });
-
-  // Debug API fetch
+  // Load saved layout from station configuration
   useEffect(() => {
-    console.log('Debug info:', {
-      id,
-      stationData: !!stationData,
-      controlConfigLoading,
-      controlConfigError,
-      controlConfig
-    });
-    if (controlConfigError) {
-      console.error('Error fetching control config:', controlConfigError);
-    }
-  }, [id, stationData, controlConfigLoading, controlConfigError, controlConfig]);
-
-  // Load saved layout when control config is available
-  useEffect(() => {
-    console.log('Control config loaded:', controlConfig);
-    if (controlConfig?.layout) {
-      console.log('Layout found:', controlConfig.layout);
-      const { camera, controlPanel: control } = controlConfig.layout;
+    console.log('Station data loaded:', stationData);
+    if (stationData?.configuration?.interfaceLayout) {
+      console.log('Layout found in station config:', stationData.configuration.interfaceLayout);
+      const { camera, controlPanel: control } = stationData.configuration.interfaceLayout;
       if (camera) {
         console.log('Setting camera panel:', camera);
         setCameraPanel({
@@ -96,7 +75,7 @@ export default function StationControlSimple() {
         });
       }
     }
-  }, [controlConfig]);
+  }, [stationData]);
 
   // Dragging functionality for toolbox
   const handleToolboxMouseDown = useCallback((e: React.MouseEvent) => {
