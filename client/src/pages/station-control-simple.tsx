@@ -58,9 +58,12 @@ export default function StationControlSimple() {
 
   // Load saved layout when control config is available
   useEffect(() => {
+    console.log('Control config loaded:', controlConfig);
     if (controlConfig?.layout) {
+      console.log('Layout found:', controlConfig.layout);
       const { camera, controlPanel: control } = controlConfig.layout;
       if (camera) {
+        console.log('Setting camera panel:', camera);
         setCameraPanel({
           x: camera.position?.x || 40,
           y: camera.position?.y || 40,
@@ -69,6 +72,7 @@ export default function StationControlSimple() {
         });
       }
       if (control) {
+        console.log('Setting control panel:', control);
         setControlPanel({
           x: control.position?.x || 980,
           y: control.position?.y || 40,
