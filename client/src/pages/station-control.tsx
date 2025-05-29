@@ -717,7 +717,7 @@ export function StationControl() {
                         <SliderControl
                           key={widget.id}
                           widget={widget}
-                          style={widgetStyle}
+                          style={finalStyle}
                           isSessionActive={isSessionActive}
                           handleCommand={handleCommand}
                         />
@@ -727,7 +727,7 @@ export function StationControl() {
                         <ToggleControl
                           key={widget.id}
                           widget={widget}
-                          style={widgetStyle}
+                          style={finalStyle}
                           isSessionActive={isSessionActive}
                           handleCommand={handleCommand}
                         />
@@ -737,7 +737,7 @@ export function StationControl() {
                         <JoystickControl
                           key={widget.id}
                           widget={widget}
-                          style={widgetStyle}
+                          style={finalStyle}
                           isSessionActive={isSessionActive}
                           handleCommand={handleCommand}
                         />
