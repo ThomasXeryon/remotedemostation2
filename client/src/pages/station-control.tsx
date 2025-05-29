@@ -227,7 +227,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
     if (!isSessionActive) return;
     e.preventDefault();
     isDraggingRef.current = true;
-    
+
     const container = containerRef.current;
     const knob = knobRef.current;
     if (!container || !knob) return;
@@ -239,26 +239,26 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
 
     const handleMove = (moveEvent: MouseEvent | TouchEvent) => {
       if (!isDraggingRef.current) return;
-      
+
       const clientX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
       const clientY = 'touches' in moveEvent ? moveEvent.touches[0].clientY : moveEvent.clientY;
-      
+
       const deltaX = clientX - centerX;
       const deltaY = clientY - centerY;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      
+
       let x = deltaX;
       let y = deltaY;
-      
+
       if (distance > maxDistance) {
         x = (deltaX / distance) * maxDistance;
         y = (deltaY / distance) * maxDistance;
       }
-      
+
       knob.style.left = `calc(50% + ${x}px)`;
       knob.style.top = `calc(50% + ${y}px)`;
       knob.style.transform = 'translate(-50%, -50%)';
-      
+
       const normalizedX = Math.round((x / maxDistance) * 100);
       const normalizedY = Math.round((y / maxDistance) * 100);
       handleCommand(widget.command, { x: normalizedX, y: normalizedY, ...widget.parameters });
@@ -272,7 +272,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
         knob.style.transform = 'translate(-50%, -50%)';
       }
       handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
-      
+
       document.removeEventListener('mousemove', handleMove as EventListener);
       document.removeEventListener('mouseup', handleEnd);
       document.removeEventListener('touchmove', handleMove as EventListener);
@@ -352,7 +352,7 @@ function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
 
 export function StationControl() {
   const { id } = useParams();
-  
+
   // All hooks must be at the top level
   const [speed, setSpeed] = useState(50);
   const [targetPosition, setTargetPosition] = useState(0);
@@ -522,7 +522,7 @@ export function StationControl() {
         >
           <div className="h-full p-4 relative overflow-hidden">
             <h3 className="text-lg font-semibold mb-4">Hardware Controls</h3>
-            
+
             {controlWidgets.length > 0 ? (
               <div className="relative w-full h-full">
                 {controlWidgets.map((widget: ControlWidget) => {
@@ -542,43 +542,108 @@ export function StationControl() {
                           style={{
                             ...widgetStyle,
                             background: `
-                              linear-gradient(145deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd),
-                              radial-gradient(circle at 20% 20%, rgba(255,255,255,0.2), transparent 60%)
+                              linear-gradient(145deg, ${widget.style.backgroundColor}f8, ${widget.style.backgroundColor}e8, ${widget.style.backgroundColor}f0),
+                              radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 80%),
+                              radial-gradient(circle at 70% 70%, ${widget.style.borderColor}20, transparent 60%)
                             `,
                             color: widget.style.textColor,
-                            border: `3px solid ${widget.style.borderColor}`,
-                            borderRadius: `${widget.style.borderRadius + 6}px`,
-                            fontSize: `${widget.style.fontSize + 2}px`,
+                            border: `3px solid transparent`,
+                            borderImage: `linear-gradient(135deg, ${widget.style.borderColor}80, ${widget.style.borderColor}40, ${widget.style.borderColor}80) 1`,
+                            borderRadius: `${widget.style.borderRadius + 8}px`,
+                            fontSize: `${widget.style.fontSize}px`,
+                            fontWeight: '700',
                             cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                            opacity: isSessionActive ? 1 : 0.7,
-                            boxShadow: `
-                              0 8px 24px rgba(0,0,0,0.12), 
-                              0 4px 8px rgba(0,0,0,0.08),
-                              inset 0 1px 2px rgba(255,255,255,0.1)
+                            opacity: isSessionActive ? 1 : 0.5,
+                            boxShadow: isSessionActive 
+                              ? `
+                                0 12px 40px rgba(0,0,0,0.12), 
+                                0 6px 20px rgba(0,0,0,0.08),
+                                0 2px 8px rgba(0,0,0,0.06),
+                                inset 0 2px 4px rgba(255,255,255,0.3),
+                                inset 0 -2px 4px rgba(0,0,0,0.05),
+                                0 0 0 1px ${widget.style.borderColor}30
+                              `
+                              : `0 4px 15px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)`,
+                            textShadow: `
+                              0 1px 3px rgba(0,0,0,0.3),
+                              0 0 8px ${widget.style.textColor}20
                             `,
-                            textShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                            transition: 'all 0.2s ease',
-                            transform: 'translateY(0px)'
+                            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                            transform: 'translateZ(0) scale(1)',
+                            letterSpacing: '0.8px',
+                            textTransform: 'uppercase' as const,
+                            backdropFilter: 'blur(8px)',
+                            position: 'relative' as const,
+                            overflow: 'hidden' as const
                           }}
-                          className="font-semibold tracking-wide hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-lg transition-all duration-200"
+                          className="select-none font-bold tracking-wider relative overflow-hidden"
                           onClick={() => isSessionActive && handleCommand(widget.command, widget.parameters)}
                           disabled={!isSessionActive}
-                          onMouseDown={(e) => {
+                          onMouseEnter={(e) => {
                             if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(2px)';
-                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)';
-                            }
-                          }}
-                          onMouseUp={(e) => {
-                            if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(-2px)';
-                              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.15), 0 6px 12px rgba(0,0,0,0.1)';
+                              e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
+                              e.currentTarget.style.boxShadow = `
+                                0 20px 60px rgba(0,0,0,0.15), 
+                                0 8px 25px rgba(0,0,0,0.1),
+                                0 0 0 2px ${widget.style.borderColor}60,
+                                inset 0 2px 6px rgba(255,255,255,0.4)
+                              `;
+                              // Add subtle glow
+                              e.currentTarget.style.filter = `drop-shadow(0 0 12px ${widget.style.textColor}30)`;
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (isSessionActive) {
-                              e.currentTarget.style.transform = 'translateY(0px)';
-                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08)';
+                              e.currentTarget.style.transform = 'translateY(0px) scale(1)';
+                              e.currentTarget.style.boxShadow = `
+                                0 12px 40px rgba(0,0,0,0.12), 
+                                0 6px 20px rgba(0,0,0,0.08),
+                                0 2px 8px rgba(0,0,0,0.06),
+                                inset 0 2px 4px rgba(255,255,255,0.3),
+                                inset 0 -2px 4px rgba(0,0,0,0.05),
+                                0 0 0 1px ${widget.style.borderColor}30
+                              `;
+                              e.currentTarget.style.filter = 'none';
+                            }
+                          }}
+                          onMouseDown={(e) => {
+                            if (isSessionActive) {
+                              e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
+                              e.currentTarget.style.boxShadow = `
+                                0 6px 20px rgba(0,0,0,0.2), 
+                                0 2px 8px rgba(0,0,0,0.15),
+                                inset 0 3px 8px rgba(0,0,0,0.1),
+                                inset 0 -1px 3px rgba(255,255,255,0.2)
+                              `;
+                              // Add ripple effect
+                              const ripple = document.createElement('div');
+                              ripple.style.cssText = `
+                                position: absolute;
+                                border-radius: 50%;
+                                background: rgba(255,255,255,0.6);
+                                transform: scale(0);
+                                animation: ripple 0.6s linear;
+                                pointer-events: none;
+                                left: 50%;
+                                top: 50%;
+                                width: 20px;
+                                height: 20px;
+                                margin-left: -10px;
+                                margin-top: -10px;
+                              `;
+                              e.currentTarget.appendChild(ripple);
+                              setTimeout(() => ripple.remove(), 600);
+                            }
+                          }}
+                          onMouseUp={(e) => {
+                            if (isSessionActive) {
+                              e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
+                              e.currentTarget.style.boxShadow = `
+                                0 20px 60px rgba(0,0,0,0.15), 
+                                0 8px 25px rgba(0,0,0,0.1),
+                                0 0 0 2px ${widget.style.borderColor}60,
+                                inset 0 2px 6px rgba(255,255,255,0.4)
+                              `;
                             }
                           }}
                         >
