@@ -272,6 +272,11 @@ export default function StationControlSimple() {
     setSelectedControl(newControl.id);
   };
 
+  const handleDeleteControl = (controlId: string) => {
+    setControls(prev => prev.filter(c => c.id !== controlId));
+    setSelectedControl(null);
+  };
+
   // Render individual control
   const renderControl = (control: any) => {
     const commonStyle = {

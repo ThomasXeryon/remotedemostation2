@@ -286,10 +286,8 @@ export default function StationEditor() {
       {/* Configuration Tabs */}
       <div className="border rounded-lg">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic">Basic Settings</TabsTrigger>
-            <TabsTrigger value="controls">Controls</TabsTrigger>
-            <TabsTrigger value="layout">Interface Layout</TabsTrigger>
             <TabsTrigger value="safety">Safety</TabsTrigger>
             <TabsTrigger value="network">Network</TabsTrigger>
           </TabsList>
@@ -368,115 +366,7 @@ export default function StationEditor() {
             </Card>
           </TabsContent>
 
-          {/* Controls Tab */}
-          <TabsContent value="controls" className="space-y-6 p-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Gamepad2 className="w-5 h-5" />
-                    <span>UI Controls Builder</span>
-                  </div>
-                  <Button onClick={() => setIsControlBuilderOpen(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Open Control Builder
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {controls.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <Gamepad2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg font-medium">No controls configured yet</p>
-                      <p className="text-sm mb-4">Use the drag-and-drop control builder to create custom UI controls</p>
-                      <Button onClick={() => setIsControlBuilderOpen(true)} variant="outline">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Start Building Controls
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-600">
-                          {controls.length} control{controls.length !== 1 ? 's' : ''} configured
-                        </p>
-                        <Button onClick={() => setIsControlBuilderOpen(true)} variant="outline" size="sm">
-                          Edit Layout
-                        </Button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {controls.map((control) => (
-                          <Card key={control.id} className="border-gray-200">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between mb-2">
-                                <Badge variant="outline" className="capitalize">{control.type}</Badge>
-                                <div className="w-4 h-4 rounded" style={{ backgroundColor: control.style?.backgroundColor || '#3b82f6' }} />
-                              </div>
-                              <h4 className="font-medium text-sm mb-1">{control.name}</h4>
-                              <p className="text-xs text-gray-500 mb-2">{control.command || 'No command set'}</p>
-                              <div className="flex justify-between text-xs text-gray-400">
-                                <span>{control.size?.width || 120}×{control.size?.height || 40}px</span>
-                                <span>({control.position?.x || 0}, {control.position?.y || 0})</span>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Layout Tab */}
-          <TabsContent value="layout" className="space-y-6 p-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Settings className="w-5 h-5" />
-                    <span>Interface Layout Designer</span>
-                  </div>
-                  <Button onClick={() => setIsLayoutEditorOpen(true)}>
-                    <Settings className="w-4 h-4 mr-2" />
-                    Open Layout Editor
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center py-12 text-gray-500">
-                    <Settings className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium">Customize Your Interface Layout</p>
-                    <p className="text-sm mb-4">Drag and resize camera and control panel areas to create the perfect interface</p>
-                    <Button onClick={() => setIsLayoutEditorOpen(true)} variant="outline">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Start Layout Design
-                    </Button>
-                  </div>
-                  
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium mb-2">Current Layout Settings</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="font-medium text-gray-700">Camera Area</p>
-                        <p>Size: {layout.camera.width}% × {layout.camera.height}%</p>
-                        <p>Position: ({Math.round(layout.camera.position.x)}%, {Math.round(layout.camera.position.y)}%)</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-700">Control Panel</p>
-                        <p>Size: {layout.controlPanel.width}% × {layout.controlPanel.height}%</p>
-                        <p>Position: ({Math.round(layout.controlPanel.position.x)}%, {Math.round(layout.controlPanel.position.y)}%)</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Safety Tab */}
           <TabsContent value="safety" className="space-y-6 p-6">
