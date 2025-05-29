@@ -48,6 +48,155 @@ interface ControlWidget {
   };
 }
 
+function ToggleControl({ widget, style, isSessionActive, handleCommand }: {
+  widget: ControlWidget;
+  style: any;
+  isSessionActive: boolean;
+  handleCommand: (command: string, params: any) => void;
+}) {
+  const [isToggled, setIsToggled] = useState(false);
+  
+  return (
+    <div
+      style={{
+        ...style,
+        backgroundColor: widget.style.backgroundColor,
+        border: `2px solid ${widget.style.borderColor}`,
+        borderRadius: `${widget.style.borderRadius}px`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '8px',
+        cursor: isSessionActive ? 'pointer' : 'not-allowed',
+        opacity: isSessionActive ? 1 : 0.6
+      }}
+      onClick={() => {
+        if (isSessionActive) {
+          const newToggleState = !isToggled;
+          setIsToggled(newToggleState);
+          handleCommand(widget.command, { value: newToggleState, ...widget.parameters });
+        }
+      }}
+      className="shadow-sm"
+    >
+      <div 
+        className="w-8 h-4 rounded-full relative transition-colors"
+        style={{backgroundColor: isToggled ? widget.style.textColor : widget.style.borderColor}}
+      >
+        <div 
+          className="w-3 h-3 rounded-full absolute top-0.5 transition-transform duration-200"
+          style={{
+            backgroundColor: '#ffffff',
+            transform: isToggled ? 'translateX(16px)' : 'translateX(2px)'
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function JoystickControl({ widget, style, isSessionActive, handleCommand }: {
+  widget: ControlWidget;
+  style: any;
+  isSessionActive: boolean;
+  handleCommand: (command: string, params: any) => void;
+}) {
+  const joystickRef = useRef<HTMLDivElement>(null);
+  const knobRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+
+  const handleJoystickStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isSessionActive) return;
+    e.preventDefault();
+    isDraggingRef.current = true;
+    
+    const joystick = joystickRef.current;
+    const knob = knobRef.current;
+    if (!joystick || !knob) return;
+
+    const rect = joystick.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const maxDistance = 18;
+
+    const handleMove = (moveEvent: MouseEvent | TouchEvent) => {
+      if (!isDraggingRef.current) return;
+      
+      const clientX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
+      const clientY = 'touches' in moveEvent ? moveEvent.touches[0].clientY : moveEvent.clientY;
+      
+      const deltaX = clientX - centerX;
+      const deltaY = clientY - centerY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      
+      let x = deltaX;
+      let y = deltaY;
+      
+      if (distance > maxDistance) {
+        x = (deltaX / distance) * maxDistance;
+        y = (deltaY / distance) * maxDistance;
+      }
+      
+      knob.style.transform = `translate(${x}px, ${y}px)`;
+      
+      const normalizedX = Math.round((x / maxDistance) * 100);
+      const normalizedY = Math.round((y / maxDistance) * 100);
+      handleCommand(widget.command, { x: normalizedX, y: normalizedY, ...widget.parameters });
+    };
+
+    const handleEnd = () => {
+      isDraggingRef.current = false;
+      if (knob) {
+        knob.style.transform = 'translate(0px, 0px)';
+      }
+      handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
+      
+      document.removeEventListener('mousemove', handleMove as EventListener);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleMove as EventListener);
+      document.removeEventListener('touchend', handleEnd);
+    };
+
+    document.addEventListener('mousemove', handleMove as EventListener);
+    document.addEventListener('mouseup', handleEnd);
+    document.addEventListener('touchmove', handleMove as EventListener);
+    document.addEventListener('touchend', handleEnd);
+  };
+
+  return (
+    <div
+      style={{
+        ...style,
+        backgroundColor: widget.style.backgroundColor,
+        border: `2px solid ${widget.style.borderColor}`,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '8px'
+      }}
+      className="shadow-sm"
+    >
+      <div 
+        ref={joystickRef}
+        className="w-12 h-12 rounded-full cursor-pointer"
+        style={{
+          backgroundColor: widget.style.textColor,
+          position: 'relative'
+        }}
+        onMouseDown={handleJoystickStart}
+        onTouchStart={handleJoystickStart}
+      >
+        <div
+          ref={knobRef}
+          className="w-6 h-6 bg-white rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-sm transition-transform"
+          style={{transitionDuration: isDraggingRef.current ? '0ms' : '200ms'}}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function StationControl() {
   const { id } = useParams();
   const [speed, setSpeed] = useState(50);
@@ -250,216 +399,83 @@ export function StationControl() {
                     }
                   };
 
-                  switch (widget.type) {
-                    case 'button':
-                      return (
-                        <div
-                          key={widget.id}
-                          style={{
-                            ...style,
-                            backgroundColor: widget.style.backgroundColor,
-                            color: widget.style.textColor,
-                            border: `2px solid ${widget.style.borderColor}`,
-                            borderRadius: `${widget.style.borderRadius}px`,
-                            fontSize: `${widget.style.fontSize}px`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: '500',
-                            cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                            opacity: isSessionActive ? 1 : 0.6,
-                            userSelect: 'none'
-                          }}
-                          onClick={handleControlClick}
-                          className="shadow-sm hover:shadow-md active:scale-95 transition-all"
-                        >
-                          {widget.name}
-                        </div>
-                      );
+                  if (widget.type === 'button') {
+                    return (
+                      <div
+                        key={widget.id}
+                        style={{
+                          ...style,
+                          backgroundColor: widget.style.backgroundColor,
+                          color: widget.style.textColor,
+                          border: `2px solid ${widget.style.borderColor}`,
+                          borderRadius: `${widget.style.borderRadius}px`,
+                          fontSize: `${widget.style.fontSize}px`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: '500',
+                          cursor: isSessionActive ? 'pointer' : 'not-allowed',
+                          opacity: isSessionActive ? 1 : 0.6,
+                          userSelect: 'none'
+                        }}
+                        onClick={handleControlClick}
+                        className="shadow-sm hover:shadow-md active:scale-95 transition-all"
+                      >
+                        {widget.name}
+                      </div>
+                    );
+                  }
 
-                    case 'slider':
-                      return (
-                        <div
-                          key={widget.id}
+                  if (widget.type === 'slider') {
+                    return (
+                      <div
+                        key={widget.id}
+                        style={{
+                          ...style,
+                          backgroundColor: widget.style.backgroundColor,
+                          border: `2px solid ${widget.style.borderColor}`,
+                          borderRadius: `${widget.style.borderRadius}px`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '8px'
+                        }}
+                        className="shadow-sm"
+                      >
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          defaultValue="50"
+                          className="w-full h-2 rounded-full appearance-none cursor-pointer"
                           style={{
-                            ...style,
-                            backgroundColor: widget.style.backgroundColor,
-                            border: `2px solid ${widget.style.borderColor}`,
-                            borderRadius: `${widget.style.borderRadius}px`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '8px'
+                            background: `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} 50%, #e5e7eb 50%, #e5e7eb 100%)`,
+                            outline: 'none'
                           }}
-                          className="shadow-sm"
-                        >
-                          <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            defaultValue="50"
-                            className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                            style={{
-                              background: `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} 50%, #e5e7eb 50%, #e5e7eb 100%)`,
-                              outline: 'none'
-                            }}
-                            disabled={!isSessionActive}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              const percentage = value + '%';
-                              e.target.style.background = `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} ${percentage}, #e5e7eb ${percentage}, #e5e7eb 100%)`;
-                              
-                              if (isSessionActive) {
-                                handleCommand(widget.command, { value: value, ...widget.parameters });
-                              }
-                            }}
-                          />
-                        </div>
-                      );
-
-                    case 'toggle': {
-                      const [isToggled, setIsToggled] = useState(false);
-                      return (
-                        <div
-                          key={widget.id}
-                          style={{
-                            ...style,
-                            backgroundColor: widget.style.backgroundColor,
-                            border: `2px solid ${widget.style.borderColor}`,
-                            borderRadius: `${widget.style.borderRadius}px`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '8px',
-                            cursor: isSessionActive ? 'pointer' : 'not-allowed',
-                            opacity: isSessionActive ? 1 : 0.6
-                          }}
-                          onClick={() => {
+                          disabled={!isSessionActive}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            const percentage = value + '%';
+                            e.target.style.background = `linear-gradient(to right, ${widget.style.textColor} 0%, ${widget.style.textColor} ${percentage}, #e5e7eb ${percentage}, #e5e7eb 100%)`;
+                            
                             if (isSessionActive) {
-                              const newToggleState = !isToggled;
-                              setIsToggled(newToggleState);
-                              handleCommand(widget.command, { value: newToggleState, ...widget.parameters });
+                              handleCommand(widget.command, { value: value, ...widget.parameters });
                             }
                           }}
-                          className="shadow-sm"
-                        >
-                          <div 
-                            className="w-8 h-4 rounded-full relative transition-colors"
-                            style={{backgroundColor: isToggled ? widget.style.textColor : widget.style.borderColor}}
-                          >
-                            <div 
-                              className="w-3 h-3 rounded-full absolute top-0.5 transition-transform duration-200"
-                              style={{
-                                backgroundColor: '#ffffff',
-                                transform: isToggled ? 'translateX(16px)' : 'translateX(2px)'
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    case 'joystick': {
-                      const joystickRef = useRef<HTMLDivElement>(null);
-                      const knobRef = useRef<HTMLDivElement>(null);
-                      const isDraggingRef = useRef(false);
-
-                      const handleJoystickStart = (e: React.MouseEvent | React.TouchEvent) => {
-                        if (!isSessionActive) return;
-                        e.preventDefault();
-                        isDraggingRef.current = true;
-                        
-                        const joystick = joystickRef.current;
-                        const knob = knobRef.current;
-                        if (!joystick || !knob) return;
-
-                        const rect = joystick.getBoundingClientRect();
-                        const centerX = rect.left + rect.width / 2;
-                        const centerY = rect.top + rect.height / 2;
-                        const maxDistance = 18;
-
-                        const handleMove = (moveEvent: MouseEvent | TouchEvent) => {
-                          if (!isDraggingRef.current) return;
-                          
-                          const clientX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
-                          const clientY = 'touches' in moveEvent ? moveEvent.touches[0].clientY : moveEvent.clientY;
-                          
-                          const deltaX = clientX - centerX;
-                          const deltaY = clientY - centerY;
-                          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                          
-                          let x = deltaX;
-                          let y = deltaY;
-                          
-                          if (distance > maxDistance) {
-                            x = (deltaX / distance) * maxDistance;
-                            y = (deltaY / distance) * maxDistance;
-                          }
-                          
-                          knob.style.transform = `translate(${x}px, ${y}px)`;
-                          
-                          const normalizedX = Math.round((x / maxDistance) * 100);
-                          const normalizedY = Math.round((y / maxDistance) * 100);
-                          handleCommand(widget.command, { x: normalizedX, y: normalizedY, ...widget.parameters });
-                        };
-
-                        const handleEnd = () => {
-                          isDraggingRef.current = false;
-                          if (knob) {
-                            knob.style.transform = 'translate(0px, 0px)';
-                          }
-                          handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
-                          
-                          document.removeEventListener('mousemove', handleMove as EventListener);
-                          document.removeEventListener('mouseup', handleEnd);
-                          document.removeEventListener('touchmove', handleMove as EventListener);
-                          document.removeEventListener('touchend', handleEnd);
-                        };
-
-                        document.addEventListener('mousemove', handleMove as EventListener);
-                        document.addEventListener('mouseup', handleEnd);
-                        document.addEventListener('touchmove', handleMove as EventListener);
-                        document.addEventListener('touchend', handleEnd);
-                      };
-
-                      return (
-                        <div
-                          key={widget.id}
-                          style={{
-                            ...style,
-                            backgroundColor: widget.style.backgroundColor,
-                            border: `2px solid ${widget.style.borderColor}`,
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '8px'
-                          }}
-                          className="shadow-sm"
-                        >
-                          <div 
-                            ref={joystickRef}
-                            className="w-12 h-12 rounded-full cursor-pointer"
-                            style={{
-                              backgroundColor: widget.style.textColor,
-                              position: 'relative'
-                            }}
-                            onMouseDown={handleJoystickStart}
-                            onTouchStart={handleJoystickStart}
-                          >
-                            <div
-                              ref={knobRef}
-                              className="w-6 h-6 bg-white rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-sm transition-transform"
-                              style={{transitionDuration: isDraggingRef.current ? '0ms' : '200ms'}}
-                            />
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    default:
-                      return null;
+                        />
+                      </div>
+                    );
                   }
+
+                  if (widget.type === 'toggle') {
+                    return <ToggleControl key={widget.id} widget={widget} style={style} isSessionActive={isSessionActive} handleCommand={handleCommand} />;
+                  }
+
+                  if (widget.type === 'joystick') {
+                    return <JoystickControl key={widget.id} widget={widget} style={style} isSessionActive={isSessionActive} handleCommand={handleCommand} />;
+                  }
+
+                  return null;
                 })}
               </div>
             </div>
