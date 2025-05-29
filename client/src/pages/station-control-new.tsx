@@ -656,7 +656,7 @@ export default function StationControl() {
         )}
         {/* Camera Feed */}
         <div 
-          className={`bg-gray-900 rounded-lg relative overflow-hidden border-2 ${isEditMode ? 'border-blue-400 cursor-move' : 'border-transparent'}`}
+          className={`bg-gray-900 rounded-lg relative overflow-hidden border-2 ${canvasEditMode ? 'border-blue-400 cursor-move' : 'border-transparent'}`}
           style={{
             width: localLayout ? `${localLayout.camera?.width || 800}px` : '800px',
             height: localLayout ? `${localLayout.camera?.height || 600}px` : '600px',
@@ -675,14 +675,14 @@ export default function StationControl() {
           </div>
           
           {/* Drag handle for camera */}
-          {isEditMode && (
+          {canvasEditMode && (
             <div className="absolute top-1 left-1 w-6 h-6 bg-blue-500 rounded cursor-move opacity-70 hover:opacity-100 flex items-center justify-center">
               <div className="w-3 h-3 bg-white rounded-sm"></div>
             </div>
           )}
           
           {/* Resize handle for camera */}
-          {isEditMode && (
+          {canvasEditMode && (
             <div
               className="absolute bottom-1 right-1 w-4 h-4 bg-blue-500 cursor-se-resize opacity-70 hover:opacity-100 rounded-tl z-20"
               onMouseDown={(e) => handleResizeStart(e, 'camera')}
@@ -693,7 +693,7 @@ export default function StationControl() {
 
         {/* Control Panel */}
         <div 
-          className={`bg-white border rounded-lg relative border-2 ${isEditMode ? 'border-green-400 cursor-move' : 'border-gray-200'}`}
+          className={`bg-white border rounded-lg relative border-2 ${canvasEditMode ? 'border-green-400 cursor-move' : 'border-gray-200'}`}
           style={{
             width: localLayout ? `${localLayout.controlPanel?.width || 600}px` : '600px',
             height: localLayout ? `${localLayout.controlPanel?.height || 700}px` : '700px',
@@ -705,7 +705,7 @@ export default function StationControl() {
         >
           <div className="h-full p-4 relative overflow-hidden">
             {/* Drag handle for control panel */}
-            {isEditMode && (
+            {canvasEditMode && (
               <div className="absolute top-1 left-1 w-6 h-6 bg-green-500 rounded cursor-move opacity-70 hover:opacity-100 flex items-center justify-center">
                 <div className="w-3 h-3 bg-white rounded-sm"></div>
               </div>
@@ -714,7 +714,7 @@ export default function StationControl() {
             <h3 className="text-lg font-semibold mb-4">Hardware Controls</h3>
 
             {/* Add Controls Panel - only show in edit mode */}
-            {isEditMode && (
+            {controlsEditMode && (
               <div className="mb-4 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                 <h4 className="text-sm font-semibold mb-3">Add Controls</h4>
                 <div className="flex space-x-2">
