@@ -54,7 +54,7 @@ export default function StationControl() {
   const [resizing, setResizing] = useState<string | null>(null);
   const [draggingPanel, setDraggingPanel] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(false);
-  const [canvasSize, setCanvasSize] = useState({ width: 1920, height: 1080 });
+  const [canvasSize, setCanvasSize] = useState({ width: 1920, height: 1080 }); // Default to 1080p
   const [showCanvasBorder, setShowCanvasBorder] = useState(false);
   const [showCanvasDropdown, setShowCanvasDropdown] = useState(false);
   const [showControlsDropdown, setShowControlsDropdown] = useState(false);
@@ -743,10 +743,10 @@ export default function StationControl() {
                     top: `${widget.position.y}px`,
                     width: `${widget.size.width}px`,
                     height: `${widget.size.height}px`,
-                    cursor: isEditMode ? 'move' : 'pointer',
-                    outline: isEditMode ? '2px dashed #3b82f6' : 'none',
-                    outlineOffset: isEditMode ? '4px' : '0px',
-                    opacity: isEditMode ? 0.8 : 1,
+                    cursor: controlsEditMode ? 'move' : 'pointer',
+                    outline: controlsEditMode ? '2px dashed #3b82f6' : 'none',
+                    outlineOffset: controlsEditMode ? '4px' : '0px',
+                    opacity: controlsEditMode ? 0.8 : 1,
                   };
 
                   return (
@@ -766,16 +766,16 @@ export default function StationControl() {
                       }}
                       className="select-none"
                       onClick={() => {
-                        if (isEditMode) return;
+                        if (controlsEditMode) return;
                         if (isSessionActive) handleCommand(widget.command, widget.parameters);
                       }}
                       onMouseDown={(e) => {
-                        if (isEditMode) {
+                        if (controlsEditMode) {
                           handleMouseDown(e, widget.id);
                           return;
                         }
                       }}
-                      disabled={!isSessionActive && !isEditMode}
+                      disabled={!isSessionActive && !controlsEditMode}
                     >
                       {widget.name}
                     </button>
@@ -792,7 +792,7 @@ export default function StationControl() {
             )}
           </div>
           {/* Resize handle for control panel */}
-          {isEditMode && (
+          {canvasEditMode && (
             <div
               className="absolute bottom-1 right-1 w-4 h-4 bg-blue-500 cursor-se-resize opacity-70 hover:opacity-100 rounded-tl z-20"
               onMouseDown={(e) => handleResizeStart(e, 'controlPanel')}
