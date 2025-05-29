@@ -484,14 +484,15 @@ export default function StationControl() {
         )}
         {/* Camera Feed */}
         <div 
-          className="bg-gray-900 rounded-lg m-2 relative overflow-hidden"
+          className={`bg-gray-900 rounded-lg relative overflow-hidden border-2 ${isEditMode ? 'border-blue-400 cursor-move' : 'border-transparent'}`}
           style={{
-            width: localLayout ? `${localLayout.camera?.width || 45}%` : `${layout.camera.width}%`,
-            height: localLayout ? `${localLayout.camera?.height || 60}%` : `${layout.camera.height}%`,
-            left: localLayout ? `${localLayout.camera?.position?.x || 2}%` : `${layout.camera.position.x}%`,
-            top: localLayout ? `${localLayout.camera?.position?.y || 2}%` : `${layout.camera.position.y}%`,
+            width: localLayout ? `${localLayout.camera?.width || 640}px` : '640px',
+            height: localLayout ? `${localLayout.camera?.height || 480}px` : '480px',
+            left: localLayout ? `${localLayout.camera?.position?.x || 20}px` : '20px',
+            top: localLayout ? `${localLayout.camera?.position?.y || 20}px` : '20px',
             position: 'absolute'
           }}
+          onMouseDown={(e) => handlePanelDragStart(e, 'camera')}
         >
           <div className="absolute inset-0 flex items-center justify-center text-white">
             <div className="text-center">
@@ -500,6 +501,14 @@ export default function StationControl() {
               <p className="text-sm opacity-75">Hardware: {stationData.hardwareType}</p>
             </div>
           </div>
+          
+          {/* Drag handle for camera */}
+          {isEditMode && (
+            <div className="absolute top-1 left-1 w-6 h-6 bg-blue-500 rounded cursor-move opacity-70 hover:opacity-100 flex items-center justify-center">
+              <div className="w-3 h-3 bg-white rounded-sm"></div>
+            </div>
+          )}
+          
           {/* Resize handle for camera */}
           {isEditMode && (
             <div
@@ -512,16 +521,24 @@ export default function StationControl() {
 
         {/* Control Panel */}
         <div 
-          className="bg-white border rounded-lg m-2 relative"
+          className={`bg-white border rounded-lg relative border-2 ${isEditMode ? 'border-green-400 cursor-move' : 'border-gray-200'}`}
           style={{
-            width: localLayout ? `${localLayout.controlPanel?.width || 45}%` : `${layout.controlPanel.width}%`,
-            height: localLayout ? `${localLayout.controlPanel?.height || 85}%` : `${layout.controlPanel.height}%`,
-            left: localLayout ? `${localLayout.controlPanel?.position?.x || 50}%` : `${layout.controlPanel.position.x}%`,
-            top: localLayout ? `${localLayout.controlPanel?.position?.y || 2}%` : `${layout.controlPanel.position.y}%`,
+            width: localLayout ? `${localLayout.controlPanel?.width || 400}px` : '400px',
+            height: localLayout ? `${localLayout.controlPanel?.height || 600}px` : '600px',
+            left: localLayout ? `${localLayout.controlPanel?.position?.x || 680}px` : '680px',
+            top: localLayout ? `${localLayout.controlPanel?.position?.y || 20}px` : '20px',
             position: 'absolute'
           }}
+          onMouseDown={(e) => handlePanelDragStart(e, 'controlPanel')}
         >
           <div className="h-full p-4 relative overflow-hidden">
+            {/* Drag handle for control panel */}
+            {isEditMode && (
+              <div className="absolute top-1 left-1 w-6 h-6 bg-green-500 rounded cursor-move opacity-70 hover:opacity-100 flex items-center justify-center">
+                <div className="w-3 h-3 bg-white rounded-sm"></div>
+              </div>
+            )}
+            
             <h3 className="text-lg font-semibold mb-4">Hardware Controls</h3>
 
             {/* Add Controls Panel - only show in edit mode */}
