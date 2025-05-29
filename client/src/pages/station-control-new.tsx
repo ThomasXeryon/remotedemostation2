@@ -186,7 +186,26 @@ export default function StationControl() {
     };
   }, [isEditMode, handleMouseMove, handleResizeMove, handleMouseUp]);
 
-
+  // Initialize local layout from station data
+  useEffect(() => {
+    if (stationData?.configuration?.interfaceLayout) {
+      setLocalLayout(stationData.configuration.interfaceLayout);
+    } else {
+      // Set default layout if none exists
+      setLocalLayout({
+        camera: {
+          position: { x: 5, y: 5 },
+          width: 40,
+          height: 60
+        },
+        controlPanel: {
+          position: { x: 50, y: 5 },
+          width: 45,
+          height: 85
+        }
+      });
+    }
+  }, [stationData]);
 
   // Early returns
   if (stationLoading) {
@@ -204,12 +223,6 @@ export default function StationControl() {
       </div>
     );
   }
-
-  const stationData = station ? (Array.isArray(station) ? station[0] : station) : null;
-  const layout = stationData?.configuration?.interfaceLayout || {
-    camera: { width: 45, height: 90, position: { x: 5, y: 5 } },
-    controlPanel: { width: 50, height: 90, position: { x: 45, y: 5 } }
-  };
 
   // Regular functions (not hooks)
   const handleCommand = (command: string, parameters?: Record<string, any>) => {
