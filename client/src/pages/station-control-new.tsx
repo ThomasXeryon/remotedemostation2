@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Play, Square, ArrowLeft, Edit3, Save, Activity, Grid, Monitor, Settings } from 'lucide-react';
+import { Play, Square, ArrowLeft, Edit3, Save, Activity, Grid, Monitor, Settings, ChevronDown, Plus, Move, Camera, Layout } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { useWebSocket } from '@/hooks/use-websocket';
 
@@ -45,7 +45,8 @@ export default function StationControl() {
   
   // All state hooks
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [canvasEditMode, setCanvasEditMode] = useState(false);
+  const [controlsEditMode, setControlsEditMode] = useState(false);
   const [localControls, setLocalControls] = useState<ControlWidget[]>([]);
   const [draggedControl, setDraggedControl] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -53,8 +54,10 @@ export default function StationControl() {
   const [resizing, setResizing] = useState<string | null>(null);
   const [draggingPanel, setDraggingPanel] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(false);
-  const [canvasSize, setCanvasSize] = useState({ width: 1920, height: 1080 }); // Default HD resolution
+  const [canvasSize, setCanvasSize] = useState({ width: 1920, height: 1080 });
   const [showCanvasBorder, setShowCanvasBorder] = useState(false);
+  const [showCanvasDropdown, setShowCanvasDropdown] = useState(false);
+  const [showControlsDropdown, setShowControlsDropdown] = useState(false);
   
   // Grid configuration
   const GRID_SIZE = 20; // 20px grid squares
@@ -84,7 +87,7 @@ export default function StationControl() {
 
   // All callbacks
   const handleMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
-    if (!isEditMode) return;
+    if (!controlsEditMode) return;
     e.preventDefault();
     
     const control = localControls.find(c => c.id === controlId);
@@ -101,10 +104,10 @@ export default function StationControl() {
     }
     
     setDraggedControl(controlId);
-  }, [isEditMode, localControls]);
+  }, [controlsEditMode, localControls]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!draggedControl || !isEditMode) return;
+    if (!draggedControl || !controlsEditMode) return;
     
     const container = document.querySelector('.relative.w-full[style*="calc(100% - 3rem)"]') as HTMLElement;
     if (!container) return;
@@ -118,7 +121,7 @@ export default function StationControl() {
         ? { ...control, position: { x: newX, y: newY } }
         : control
     ));
-  }, [draggedControl, dragOffset, isEditMode]);
+  }, [draggedControl, dragOffset, controlsEditMode]);
 
   const handleMouseUp = useCallback(() => {
     setDraggedControl(null);
@@ -128,14 +131,14 @@ export default function StationControl() {
 
   // Handle resizing of camera and control panels
   const handleResizeStart = useCallback((e: React.MouseEvent, element: string) => {
-    if (!isEditMode) return;
+    if (!canvasEditMode) return;
     e.preventDefault();
     e.stopPropagation();
     setResizing(element);
-  }, [isEditMode]);
+  }, [canvasEditMode]);
 
   const handleResizeMove = useCallback((e: MouseEvent) => {
-    if (!resizing || !isEditMode || !localLayout) return;
+    if (!resizing || !canvasEditMode || !localLayout) return;
     
     const container = document.querySelector('.flex-1.flex.relative') as HTMLElement;
     if (!container) return;
@@ -167,11 +170,11 @@ export default function StationControl() {
       
       return newLayout;
     });
-  }, [resizing, isEditMode, localLayout, snapToGrid]);
+  }, [resizing, canvasEditMode, localLayout, snapToGrid]);
 
   // Handle panel dragging
   const handlePanelDragStart = useCallback((e: React.MouseEvent, panelType: string) => {
-    if (!isEditMode) return;
+    if (!canvasEditMode) return;
     e.preventDefault();
     e.stopPropagation();
     setDraggingPanel(panelType);
@@ -187,10 +190,10 @@ export default function StationControl() {
       x: e.clientX - panelRect.left,
       y: e.clientY - panelRect.top
     });
-  }, [isEditMode]);
+  }, [canvasEditMode]);
 
   const handlePanelDragMove = useCallback((e: MouseEvent) => {
-    if (!draggingPanel || !isEditMode || !localLayout) return;
+    if (!draggingPanel || !canvasEditMode || !localLayout) return;
     
     const container = document.querySelector('.flex-1.flex.relative') as HTMLElement;
     if (!container) return;
@@ -216,7 +219,7 @@ export default function StationControl() {
       
       return newLayout;
     });
-  }, [draggingPanel, isEditMode, localLayout, dragOffset, snapToGrid]);
+  }, [draggingPanel, canvasEditMode, localLayout, dragOffset, snapToGrid]);
 
   // All effects
   useEffect(() => {
