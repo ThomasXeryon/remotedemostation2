@@ -106,13 +106,16 @@ export default function StationControlSimple() {
     const deltaY = controlPanel.y - previousControlPanel.y;
     
     if (deltaX !== 0 || deltaY !== 0) {
-      setControls(prev => prev.map(control => ({
-        ...control,
-        position: {
-          x: control.position.x + deltaX,
-          y: control.position.y + deltaY
-        }
-      })));
+      setControls(prev => prev.map(control => {
+        if (!control.position) return control;
+        return {
+          ...control,
+          position: {
+            x: (control.position.x || 0) + deltaX,
+            y: (control.position.y || 0) + deltaY
+          }
+        };
+      }));
       
       setPreviousControlPanel({ x: controlPanel.x, y: controlPanel.y });
     }
