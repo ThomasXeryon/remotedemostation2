@@ -287,10 +287,14 @@ export default function StationControlSimple() {
       return null;
     }
 
+    // Position controls relative to the control panel
+    const relativeX = (control.position.x || 0) - controlPanel.x;
+    const relativeY = (control.position.y || 0) - controlPanel.y;
+    
     const commonStyle = {
       position: 'absolute' as const,
-      left: control.position.x || 0,
-      top: control.position.y || 0,
+      left: relativeX,
+      top: relativeY,
       width: control.size.width || 100,
       height: control.size.height || 40,
       backgroundColor: control.style.backgroundColor || '#3b82f6',
