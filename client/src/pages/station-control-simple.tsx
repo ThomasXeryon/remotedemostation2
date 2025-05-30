@@ -37,6 +37,7 @@ export default function StationControlSimple() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [cameraPanel, setCameraPanel] = useState({ x: 40, y: 40, width: 920, height: 540 });
   const [controlPanel, setControlPanel] = useState({ x: 980, y: 40, width: 900, height: 540 });
+  const [previousControlPanel, setPreviousControlPanel] = useState({ x: 980, y: 40 });
   const [isDraggingPanel, setIsDraggingPanel] = useState<string | null>(null);
   const [isResizingPanel, setIsResizingPanel] = useState<string | null>(null);
   const [selectedPanel, setSelectedPanel] = useState<string | null>(null);
@@ -98,6 +99,24 @@ export default function StationControlSimple() {
       setControls(station.configuration.controls);
     }
   }, [stationData]);
+
+  // Move controls when control panel moves
+  useEffect(() => {
+    const deltaX = controlPanel.x - previousControlPanel.x;
+    const deltaY = controlPanel.y - previousControlPanel.y;
+    
+    if (deltaX !== 0 || deltaY !== 0) {
+      setControls(prev => prev.map(control => ({
+        ...control,
+        position: {
+          x: control.position.x + deltaX,
+          y: control.position.y + deltaY
+        }
+      })));
+      
+      setPreviousControlPanel({ x: controlPanel.x, y: controlPanel.y });
+    }
+  }, [controlPanel.x, controlPanel.y, previousControlPanel]);
 
   // Control drag handlers
   const handleControlMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
