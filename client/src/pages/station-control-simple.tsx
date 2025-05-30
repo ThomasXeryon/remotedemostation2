@@ -280,31 +280,36 @@ export default function StationControlSimple() {
 
   // Render individual control
   const renderControl = (control: any) => {
+    // Safety checks for control properties
+    if (!control || !control.position || !control.size || !control.style) {
+      return null;
+    }
+
     const commonStyle = {
       position: 'absolute' as const,
-      left: control.position.x,
-      top: control.position.y,
-      width: control.size.width,
-      height: control.size.height,
-      backgroundColor: control.style.backgroundColor,
-      color: control.style.textColor,
-      borderRadius: control.style.borderRadius,
-      fontSize: control.style.fontSize,
-      border: `2px solid ${control.style.borderColor}`,
+      left: control.position.x || 0,
+      top: control.position.y || 0,
+      width: control.size.width || 100,
+      height: control.size.height || 40,
+      backgroundColor: control.style.backgroundColor || '#3b82f6',
+      color: control.style.textColor || '#ffffff',
+      borderRadius: control.style.borderRadius || 8,
+      fontSize: control.style.fontSize || 14,
+      border: `2px solid ${control.style.borderColor || '#1e40af'}`,
       cursor: isEditMode ? 'move' : 'pointer',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       fontWeight: 'bold',
       userSelect: 'none' as const,
-      zIndex: selectedControl === control.id ? 20 : 10,
-      boxShadow: selectedControl === control.id ? '0 0 0 3px rgba(59, 130, 246, 0.5)' : undefined
+      zIndex: selectedControl?.id === control.id ? 20 : 10,
+      boxShadow: selectedControl?.id === control.id ? '0 0 0 3px rgba(59, 130, 246, 0.5)' : undefined
     };
 
     const handleControlClick = (e: React.MouseEvent) => {
       e.stopPropagation();
       if (isEditMode) {
-        setSelectedControl(control.id);
+        setSelectedControl(selectedControl?.id === control.id ? null : control);
       } else {
         // Handle control interaction in non-edit mode
         console.log(`Control ${control.name} activated`);
