@@ -38,6 +38,7 @@ export default function StationControlSimple() {
   const [cameraPanel, setCameraPanel] = useState({ x: 40, y: 40, width: 920, height: 540 });
   const [controlPanel, setControlPanel] = useState({ x: 980, y: 40, width: 900, height: 540 });
   const [previousControlPanel, setPreviousControlPanel] = useState({ x: 980, y: 40 });
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [isDraggingPanel, setIsDraggingPanel] = useState<string | null>(null);
   const [isResizingPanel, setIsResizingPanel] = useState<string | null>(null);
   const [selectedPanel, setSelectedPanel] = useState<string | null>(null);
@@ -87,6 +88,12 @@ export default function StationControlSimple() {
           width: control.width || 900,
           height: control.height || 540
         });
+        
+        // Update previous control panel position to prevent automatic movement
+        setPreviousControlPanel({
+          x: control.position?.x || 980,
+          y: control.position?.y || 40
+        });
       }
     }
   }, [stationData]);
@@ -100,12 +107,14 @@ export default function StationControlSimple() {
     }
   }, [stationData]);
 
-  // Move controls when control panel moves
+  // Move controls when control panel moves (only during user interaction, not data loading)
   useEffect(() => {
+    if (isLoadingData) return;
+    
     const deltaX = controlPanel.x - previousControlPanel.x;
     const deltaY = controlPanel.y - previousControlPanel.y;
     
-    if (deltaX !== 0 || deltaY !== 0) {
+    if (deltaX !== 0 || deltaY !== 0 && isDraggingPanel === 'control') {
       setControls(prev => prev.map(control => {
         if (!control.position) return control;
         return {
@@ -119,7 +128,7 @@ export default function StationControlSimple() {
       
       setPreviousControlPanel({ x: controlPanel.x, y: controlPanel.y });
     }
-  }, [controlPanel.x, controlPanel.y, previousControlPanel]);
+  }, [controlPanel.x, controlPanel.y, previousControlPanel, isLoadingData, isDraggingPanel]);
 
   // Control drag handlers
   const handleControlMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
