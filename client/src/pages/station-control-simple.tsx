@@ -119,16 +119,15 @@ export default function StationControlSimple() {
   const handleControlMove = useCallback((e: MouseEvent) => {
     if (!isDraggingControl) return;
     
-    // Calculate new position relative to the control panel
-    const newX = snapToGrid(e.clientX - dragOffset.x + controlPanel.x);
-    const newY = snapToGrid(e.clientY - dragOffset.y + controlPanel.y);
+    const newX = snapToGrid(e.clientX - dragOffset.x);
+    const newY = snapToGrid(e.clientY - dragOffset.y);
     
     setControls(prev => prev.map(control => 
       control.id === isDraggingControl 
         ? { ...control, position: { x: newX, y: newY } }
         : control
     ));
-  }, [isDraggingControl, dragOffset, snapToGrid, controlPanel]);
+  }, [isDraggingControl, dragOffset, snapToGrid]);
 
   const handleControlMouseUp = useCallback(() => {
     setIsDraggingControl(null);
@@ -288,14 +287,10 @@ export default function StationControlSimple() {
       return null;
     }
 
-    // Position controls relative to the control panel
-    const relativeX = (control.position.x || 0) - controlPanel.x;
-    const relativeY = (control.position.y || 0) - controlPanel.y;
-    
     const commonStyle = {
       position: 'absolute' as const,
-      left: relativeX,
-      top: relativeY,
+      left: control.position.x || 0,
+      top: control.position.y || 0,
       width: control.size.width || 100,
       height: control.size.height || 40,
       backgroundColor: control.style.backgroundColor || '#3b82f6',
