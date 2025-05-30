@@ -119,15 +119,16 @@ export default function StationControlSimple() {
   const handleControlMove = useCallback((e: MouseEvent) => {
     if (!isDraggingControl) return;
     
-    const newX = snapToGrid(e.clientX - dragOffset.x);
-    const newY = snapToGrid(e.clientY - dragOffset.y);
+    // Calculate new position relative to the control panel
+    const newX = snapToGrid(e.clientX - dragOffset.x + controlPanel.x);
+    const newY = snapToGrid(e.clientY - dragOffset.y + controlPanel.y);
     
     setControls(prev => prev.map(control => 
       control.id === isDraggingControl 
         ? { ...control, position: { x: newX, y: newY } }
         : control
     ));
-  }, [isDraggingControl, dragOffset, snapToGrid]);
+  }, [isDraggingControl, dragOffset, snapToGrid, controlPanel]);
 
   const handleControlMouseUp = useCallback(() => {
     setIsDraggingControl(null);
