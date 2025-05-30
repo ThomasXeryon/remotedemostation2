@@ -1,95 +1,64 @@
-import { Switch, Route, Redirect } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { Router, Route, Link } from "wouter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Layout } from "@/components/layout";
-import { isAuthenticated } from "@/lib/auth";
-import Login from "@/pages/login";
-import { Dashboard } from "@/pages/dashboard-new";
-import Organizations from "@/pages/organizations";
-import Settings from "@/pages/settings";
-import Analytics from "@/pages/analytics";
-import TeamMembers from "@/pages/team-members";
-import NotFound from "@/pages/not-found";
-import Stations from "./pages/stations";
-import StationEditor from "./pages/station-editor";
-import StationControl from "./pages/station-control-simple";
-import { CustomerLogin } from "./pages/customer-login";
+import { ThemeProvider } from "@/components/theme-provider";
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  if (!isAuthenticated()) {
-    return <Redirect to="/login" />;
-  }
-  return <Layout>{children}</Layout>;
-}
+// Import pages
+import HomePage from "@/pages/home";
+import ForCreators from "@/pages/for-creators";
+import StartCreating from "@/pages/start-creating";
+import CreatorResources from "@/pages/creator-resources";
+import SuccessStories from "@/pages/success-stories";
+import CreatorGuidelines from "@/pages/creator-guidelines";
+import BrowseCreators from "@/pages/browse-creators";
+import HowItWorks from "@/pages/how-it-works";
+import GiftMemberships from "@/pages/gift-memberships";
+import MobileApp from "@/pages/mobile-app";
+import HelpCenter from "@/pages/help-center";
+import ContactUs from "@/pages/contact-us";
+import PrivacyPolicy from "@/pages/privacy-policy";
+import TermsOfService from "@/pages/terms-of-service";
 
-function Router() {
-  return (
-    <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/organizations">
-        <ProtectedRoute>
-          <Organizations />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/dashboard">
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/stations">
-        <ProtectedRoute>
-          <Stations />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/stations/:id/edit">
-        <ProtectedRoute>
-          <StationEditor />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/stations/:id/control">
-        <ProtectedRoute>
-          <StationControl />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/stations/:id/customer-login" component={({ params }) => (
-        <CustomerLogin 
-          stationId={params.id} 
-          organizationName="Demo Organization" 
-          stationName="Demo Station" 
-        />
-      )} />
-      <Route path="/settings">
-        <ProtectedRoute>
-          <Settings />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/analytics">
-        <ProtectedRoute>
-          <Analytics />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/team-members">
-        <ProtectedRoute>
-          <TeamMembers />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/">
-        {isAuthenticated() ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
+// Navigation component
+import Navigation from "@/components/navigation";
+import Footer from "@/components/footer";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+      <ThemeProvider defaultTheme="light" storageKey="lovecreator-theme">
+        <Router>
+          <div className="min-h-screen bg-background">
+            <Navigation />
+            <main>
+              <Route path="/" component={HomePage} />
+              <Route path="/for-creators" component={ForCreators} />
+              <Route path="/start-creating" component={StartCreating} />
+              <Route path="/creator-resources" component={CreatorResources} />
+              <Route path="/success-stories" component={SuccessStories} />
+              <Route path="/creator-guidelines" component={CreatorGuidelines} />
+              <Route path="/browse-creators" component={BrowseCreators} />
+              <Route path="/how-it-works" component={HowItWorks} />
+              <Route path="/gift-memberships" component={GiftMemberships} />
+              <Route path="/mobile-app" component={MobileApp} />
+              <Route path="/help-center" component={HelpCenter} />
+              <Route path="/contact-us" component={ContactUs} />
+              <Route path="/privacy-policy" component={PrivacyPolicy} />
+              <Route path="/terms-of-service" component={TermsOfService} />
+            </main>
+            <Footer />
+          </div>
+        </Router>
         <Toaster />
-        <Router />
-      </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
