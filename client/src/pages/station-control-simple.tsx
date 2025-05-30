@@ -104,6 +104,9 @@ export default function StationControlSimple() {
     if (station?.configuration?.controls) {
       console.log('Loading saved controls:', station.configuration.controls);
       setControls(station.configuration.controls);
+    } else {
+      // Reset controls if no saved controls exist
+      setControls([]);
     }
   }, [stationData]);
 
