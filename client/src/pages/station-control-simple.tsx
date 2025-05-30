@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { Play, Edit2, Save, X, Monitor, Move, Grid3X3, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface DemoStation {
   id: string;
@@ -26,6 +27,7 @@ interface DemoStation {
 export default function StationControlSimple() {
   const { id } = useParams<{ id: string }>();
   const currentUser = getCurrentUser();
+  const { toast } = useToast();
   
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -395,14 +397,32 @@ export default function StationControlSimple() {
 
       if (response.ok) {
         console.log('Layout saved successfully');
-        alert('Layout saved successfully!');
+        
+        // Exit edit mode and hide all editing UI
+        setIsEditMode(false);
+        setShowGrid(false);
+        setSelectedControl(null);
+        
+        // Show success toast
+        toast({
+          title: "Saved",
+          description: "Controls and layout saved successfully",
+        });
       } else {
         console.error('Save failed:', await response.json());
-        alert('Failed to save layout');
+        toast({
+          title: "Error",
+          description: "Failed to save layout",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Save failed:', error);
-      alert('Failed to save layout');
+      toast({
+        title: "Error", 
+        description: "Failed to save layout",
+        variant: "destructive",
+      });
     }
   };
 
