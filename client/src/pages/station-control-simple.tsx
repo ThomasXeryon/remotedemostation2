@@ -104,13 +104,13 @@ export default function StationControlSimple() {
     e.stopPropagation();
     
     const control = controls.find(c => c.id === controlId);
-    if (!control) return;
+    if (!control || !control.position) return;
     
     setIsDraggingControl(controlId);
-    setSelectedControl(controlId);
+    setSelectedControl(control);
     setDragOffset({
-      x: e.clientX - control.position.x,
-      y: e.clientY - control.position.y
+      x: e.clientX - (control.position.x || 0),
+      y: e.clientY - (control.position.y || 0)
     });
   }, [isEditMode, controls]);
 
