@@ -111,21 +111,33 @@ function App() {
     if (token) {
       console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
       
-      // Completely clear all authentication data
+      // Completely clear all authentication data - be very aggressive
       localStorage.clear();
       sessionStorage.clear();
       
-      // Store the new token
-      authStorage.setToken(token);
-      console.log('New token stored, auth state:', isAuthenticated());
-      console.log('Stored token:', authStorage.getToken()?.substring(0, 20) + '...');
+      // Try to clear any possible cached data
+      try {
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            names.forEach(name => {
+              caches.delete(name);
+            });
+          });
+        }
+      } catch (e) {
+        console.log('Cache clearing not supported');
+      }
       
-      // Remove token from URL and force a page reload to completely refresh the app state
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
+      // Store the new token directly
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('token', token);
       
-      console.log('Forcing page reload to refresh authentication state');
-      window.location.reload();
+      console.log('New token stored directly');
+      console.log('Stored token:', localStorage.getItem('auth_token')?.substring(0, 20) + '...');
+      
+      // Redirect to dashboard directly with hard refresh
+      console.log('Redirecting to dashboard with hard refresh');
+      window.location.href = '/dashboard';
       return;
     }
   }, []);
