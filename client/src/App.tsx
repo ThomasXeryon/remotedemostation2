@@ -110,16 +110,21 @@ function App() {
     
     if (token) {
       console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
-      // Store the token in localStorage
-      authStorage.setToken(token);
-      console.log('Token stored, new auth state:', isAuthenticated());
       
-      // Remove token from URL and stay on the current page
+      // Clear any existing auth data first
+      authStorage.removeToken();
+      authStorage.removeUser();
+      
+      // Store the new token
+      authStorage.setToken(token);
+      console.log('New token stored, auth state:', isAuthenticated());
+      
+      // Remove token from URL and force a page reload to completely refresh the app state
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
       
-      // Don't redirect, just let the router handle it naturally
-      console.log('Token processed, letting router handle navigation');
+      console.log('Forcing page reload to refresh authentication state');
+      window.location.reload();
       return;
     }
   }, []);
