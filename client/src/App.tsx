@@ -20,9 +20,16 @@ import { CustomerLogin } from "./pages/customer-login";
 import { useEffect } from "react";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  if (!isAuthenticated()) {
+  const authenticated = isAuthenticated();
+  console.log('ProtectedRoute - isAuthenticated:', authenticated);
+  console.log('ProtectedRoute - token:', authStorage.getToken());
+  
+  if (!authenticated) {
+    console.log('ProtectedRoute - Redirecting to login');
     return <Redirect to="/login" />;
   }
+  
+  console.log('ProtectedRoute - Rendering protected content');
   return <Layout>{children}</Layout>;
 }
 
