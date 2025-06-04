@@ -5,6 +5,10 @@ import { storage, generateStationId } from "./storage";
 import { db } from "./db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
 import { insertUserSchema, insertOrganizationSchema, insertDemoStationSchema, insertControlConfigurationSchema, userOrganizations, organizations, demoStations } from "@shared/schema";
 import { eq, and, sql } from "drizzle-orm";
 
@@ -51,8 +55,229 @@ function broadcastToStation(stationId: number, data: any) {
   }
 }
 
+// Session configuration
+function setupSession(app: Express) {
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: true,
+    ttl: 7 * 24 * 60 * 60 * 1000, // 1 week
+  });
+
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-session-secret',
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+    },
+  }));
+}
+
+// Passport configuration
+function setupPassport() {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    callbackURL: "/auth/google/callback"
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      // Check if user exists
+      let user = await storage.getUserByEmail(profile.emails?.[0]?.value || '');
+      
+      if (!user) {
+        // Create new user
+        user = await storage.createUser({
+          email: profile.emails?.[0]?.value || '',
+          username: profile.emails?.[0]?.value || '',
+          firstName: profile.name?.givenName || '',
+          lastName: profile.name?.familyName || '',
+          password: '', // No password needed for Google auth
+          isActive: true
+        });
+
+        // Create default organization for new user
+        const org = await storage.createOrganization({
+          name: `${user.firstName}'s Organization`,
+          slug: `${user.username}-org-${Date.now()}`,
+          primaryColor: '#3b82f6',
+          secondaryColor: '#1e293b'
+        });
+
+        // Add user to organization as admin
+        await storage.addUserToOrganization({
+          userId: user.id,
+          organizationId: org.id,
+          role: 'admin'
+        });
+      }
+
+      return done(null, user);
+    } catch (error) {
+      return done(error, null);
+    }
+  }));
+
+  passport.serializeUser((user: any, done) => {
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      const user = await storage.getUser(id);
+      done(null, user);
+    } catch (error) {
+      done(error, null);
+    }
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
+
+  // Setup session and passport
+  setupSession(app);
+  app.use(passport.initialize());
+  app.use(passport.session());
+  setupPassport();
+
+  // Authentication routes
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const { username, email, password, firstName, lastName } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: 'User already exists' });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user
+      const user = await storage.createUser({
+        username,
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        isActive: true
+      });
+
+      // Create default organization for new user
+      const org = await storage.createOrganization({
+        name: `${user.firstName}'s Organization`,
+        slug: `${user.username}-org-${Date.now()}`,
+        primaryColor: '#3b82f6',
+        secondaryColor: '#1e293b'
+      });
+
+      // Add user to organization as admin
+      await storage.addUserToOrganization({
+        userId: user.id,
+        organizationId: org.id,
+        role: 'admin'
+      });
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user.id, organizationId: org.id, role: 'admin' },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({ token, user: { ...user, password: undefined } });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ message: 'Registration failed' });
+    }
+  });
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      // Find user
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      // Check password
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      // Get user's organization
+      const userOrgs = await storage.getUserOrganizations(user.id);
+      const defaultOrg = userOrgs[0];
+
+      if (!defaultOrg) {
+        return res.status(400).json({ message: 'No organization found' });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user.id, organizationId: defaultOrg.organizationId, role: defaultOrg.role },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({ token, user: { ...user, password: undefined } });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: 'Login failed' });
+    }
+  });
+
+  // Google OAuth routes
+  app.get('/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+
+  app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    async (req, res) => {
+      try {
+        const user = req.user as any;
+        
+        // Get user's organization
+        const userOrgs = await storage.getUserOrganizations(user.id);
+        const defaultOrg = userOrgs[0];
+
+        if (!defaultOrg) {
+          return res.redirect('/login?error=no-organization');
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+          { id: user.id, organizationId: defaultOrg.organizationId, role: defaultOrg.role },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+
+        // Redirect to frontend with token
+        res.redirect(`/?token=${token}`);
+      } catch (error) {
+        console.error('Google auth callback error:', error);
+        res.redirect('/login?error=auth-failed');
+      }
+    }
+  );
+
+  app.post('/api/auth/logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Logout failed' });
+      }
+      res.json({ message: 'Logged out successfully' });
+    });
+  });
 
   // WebSocket server
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });

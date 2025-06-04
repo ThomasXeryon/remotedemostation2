@@ -13,23 +13,35 @@ import { apiRequest } from "@/lib/queryClient";
 import { FcGoogle } from "react-icons/fc";
 import { Eye, EyeOff } from "lucide-react";
 
-const loginSchema = z.object({
+const signupSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(1, "Please confirm your password"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type SignupFormData = z.infer<typeof signupSchema>;
 
-export default function Login() {
+export default function Signup() {
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
 
-  const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
+      username: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
@@ -42,8 +54,8 @@ export default function Login() {
     if (token) {
       localStorage.setItem('token', token);
       toast({
-        title: "Login successful",
-        description: "Welcome back!",
+        title: "Account created successfully",
+        description: "Welcome to Remote Demo Station!",
       });
       setLocation('/');
     } else if (error) {
@@ -54,18 +66,19 @@ export default function Login() {
         errorMessage = "Google authentication failed";
       }
       toast({
-        title: "Login failed",
+        title: "Signup failed",
         description: errorMessage,
         variant: "destructive",
       });
     }
   }, [setLocation, toast]);
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginFormData) => {
-      return await apiRequest('/api/auth/login', {
+  const signupMutation = useMutation({
+    mutationFn: async (data: SignupFormData) => {
+      const { confirmPassword, ...registerData } = data;
+      return await apiRequest('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(registerData),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -74,25 +87,25 @@ export default function Login() {
     onSuccess: (data) => {
       localStorage.setItem('token', data.token);
       toast({
-        title: "Login successful",
-        description: "Welcome back!",
+        title: "Account created successfully",
+        description: "Welcome to Remote Demo Station!",
       });
       setLocation('/');
     },
     onError: (error: any) => {
       toast({
-        title: "Login failed",
-        description: error.message || "Invalid email or password",
+        title: "Signup failed",
+        description: error.message || "Failed to create account",
         variant: "destructive",
       });
     },
   });
 
-  const onSubmit = (data: LoginFormData) => {
-    loginMutation.mutate(data);
+  const onSubmit = (data: SignupFormData) => {
+    signupMutation.mutate(data);
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleSignup = () => {
     window.location.href = '/auth/google';
   };
 
@@ -100,16 +113,16 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
           <CardDescription className="text-center">
-            Access your Remote Demo Station platform
+            Join the Remote Demo Station platform
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button
             variant="outline"
             className="w-full"
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleSignup}
             type="button"
           >
             <FcGoogle className="w-4 h-4 mr-2" />
@@ -129,6 +142,59 @@ export default function Login() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="John"
+                          disabled={signupMutation.isPending}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Doe"
+                          disabled={signupMutation.isPending}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Enter a username"
+                        disabled={signupMutation.isPending}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -140,7 +206,7 @@ export default function Login() {
                         {...field}
                         type="email"
                         placeholder="Enter your email"
-                        disabled={loginMutation.isPending}
+                        disabled={signupMutation.isPending}
                       />
                     </FormControl>
                     <FormMessage />
@@ -158,8 +224,8 @@ export default function Login() {
                         <Input
                           {...field}
                           type={showPassword ? "text" : "password"}
-                          placeholder="Enter your password"
-                          disabled={loginMutation.isPending}
+                          placeholder="Create a password"
+                          disabled={signupMutation.isPending}
                         />
                         <Button
                           type="button"
@@ -180,25 +246,58 @@ export default function Login() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm your password"
+                          disabled={signupMutation.isPending}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <Button
                 type="submit"
                 className="w-full"
-                disabled={loginMutation.isPending}
+                disabled={signupMutation.isPending}
               >
-                {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                {signupMutation.isPending ? "Creating account..." : "Create Account"}
               </Button>
             </form>
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <div className="text-sm text-center text-muted-foreground">
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <Button
               variant="link"
               className="p-0 h-auto font-normal"
-              onClick={() => setLocation('/signup')}
+              onClick={() => setLocation('/login')}
             >
-              Sign up
+              Sign in
             </Button>
           </div>
         </CardFooter>

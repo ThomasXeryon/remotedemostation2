@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
 import { isAuthenticated } from "@/lib/auth";
 import Login from "@/pages/login";
+import Signup from "@/pages/signup";
 import { Dashboard } from "@/pages/dashboard-new";
 import Organizations from "@/pages/organizations";
 import Settings from "@/pages/settings";
