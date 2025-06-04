@@ -152,14 +152,16 @@ function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
+    const newAuth = urlParams.get('new_auth');
     
     console.log('App useEffect - Current URL:', window.location.href);
     console.log('App useEffect - Token from URL:', token);
+    console.log('App useEffect - New auth flag:', newAuth);
     console.log('App useEffect - Current auth token:', authStorage.getToken());
     console.log('App useEffect - isAuthenticated:', isAuthenticated());
     
-    if (token) {
-      console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
+    if (token && newAuth === '1') {
+      console.log('Processing NEW OAuth token from URL:', token.substring(0, 20) + '...');
       
       // Completely clear existing auth data first
       localStorage.clear();
@@ -169,21 +171,15 @@ function App() {
       localStorage.setItem('auth_token', token);
       localStorage.setItem('token', token);
       
-      console.log('New token stored, clearing URL parameters');
+      console.log('New OAuth token stored successfully');
+      console.log('Verification - stored token:', localStorage.getItem('auth_token')?.substring(0, 20) + '...');
       
-      // Clear the token from URL and force complete refresh
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // Clear the URL parameters without redirect
+      window.history.replaceState({}, document.title, '/dashboard');
       
-      // Fetch user data with the new token
-      refreshUserData().then(() => {
-        console.log('User data refreshed, redirecting to dashboard');
-        setLocation('/dashboard');
-      }).catch(error => {
-        console.error('Failed to refresh user data:', error);
-        // Still redirect to dashboard, the user data will be fetched by the dashboard component
-        setLocation('/dashboard');
-      });
-      
+      console.log('OAuth authentication completed - forcing page reload');
+      // Force a complete page reload to ensure clean authentication state
+      window.location.reload();
       return;
     }
   }, [setLocation]);
