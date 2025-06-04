@@ -365,7 +365,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { expiresIn: '24h' }
         );
 
-        console.log('Generated JWT token, setting as cookie and redirecting to dashboard');
+        const redirectUrl = `/dashboard?new_auth=1&token=${token}`;
+        console.log('Generated JWT token, redirecting to:', redirectUrl);
         
         // Set token as HTTP-only cookie
         res.cookie('auth_token', token, {
@@ -376,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         // Also redirect with token in URL for immediate frontend processing
-        res.redirect(`/dashboard?new_auth=1&token=${token}`);
+        res.redirect(redirectUrl);
       } catch (error) {
         console.error('Google auth callback error:', error);
         res.redirect('/login?error=auth-failed');
