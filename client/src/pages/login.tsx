@@ -93,6 +93,10 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
+    // Clear all cached authentication data before OAuth
+    localStorage.clear();
+    sessionStorage.clear();
+    console.log('Cleared auth cache, initiating Google OAuth');
     window.location.href = '/auth/google';
   };
 
