@@ -26,8 +26,10 @@ interface DemoStation {
 }
 
 export function Dashboard() {
-  const { data: demoStations, isLoading, refetch } = useQuery({
+  const { data: demoStations, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/demo-stations'],
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const currentUser = getCurrentUser();
@@ -49,6 +51,30 @@ export function Dashboard() {
     return (
       <div className="flex items-center justify-center h-64">
         <div>Loading demo stations...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error('Dashboard error:', error);
+    return (
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex justify-between items-start">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight">Demo Station Dashboard</h1>
+            <p className="text-muted-foreground">Overview of available demo stations</p>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+              <h3 className="text-lg font-medium mb-2">Unable to Load Dashboard</h3>
+              <p className="text-muted-foreground mb-4">There was an error loading the demo stations.</p>
+              <Button onClick={() => refetch()}>Try Again</Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

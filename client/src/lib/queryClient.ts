@@ -75,14 +75,23 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
-    },
-    mutations: {
-      retry: false,
+      queryFn: async ({ queryKey, signal }) => {
+        try {
+          const response = await apiRequest(queryKey[0] as string, { signal });
+          return response;
+        } catch (error) {
+          console.error('Query error for', queryKey[0], ':', error);
+          throw error;
+        }
+      },
+      retry: (failureCount, error) => {
+        // Don't retry on auth errors
+        if (error?.status === 401 || error?.status === 403) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
     },
   },
 });
