@@ -18,6 +18,8 @@ import StationEditor from "./pages/station-editor";
 import StationControl from "./pages/station-control-simple";
 import { CustomerLogin } from "./pages/customer-login";
 import { useEffect } from "react";
+import { useLocation } from "wouter";
+import { refreshUserData } from "@/lib/auth";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const authenticated = isAuthenticated();
@@ -98,6 +100,8 @@ function Router() {
 }
 
 function App() {
+  const [, setLocation] = useLocation();
+  
   // Handle OAuth token from URL parameter
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -132,7 +136,7 @@ function App() {
       
       return;
     }
-  }, []);
+  }, [setLocation]);
 
   return (
     <QueryClientProvider client={queryClient}>
