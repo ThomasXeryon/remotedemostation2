@@ -92,16 +92,23 @@ function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     
+    console.log('App useEffect - Current URL:', window.location.href);
+    console.log('App useEffect - Token from URL:', token);
+    console.log('App useEffect - Current auth token:', authStorage.getToken());
+    console.log('App useEffect - isAuthenticated:', isAuthenticated());
+    
     if (token) {
-      console.log('Processing OAuth token from URL');
+      console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
       // Store the token in localStorage
       authStorage.setToken(token);
+      console.log('Token stored, new auth state:', isAuthenticated());
       
       // Remove token from URL without triggering a page reload
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
       
       // Redirect to dashboard instead of reloading
+      console.log('Redirecting to dashboard...');
       window.location.href = '/dashboard';
       return;
     }
