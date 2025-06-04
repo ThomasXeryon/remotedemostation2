@@ -106,10 +106,14 @@ function setupPassport() {
     callbackURL: callbackURL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
+      console.log('Google OAuth profile:', JSON.stringify(profile, null, 2));
+      
       // Check if user exists
       let user = await storage.getUserByEmail(profile.emails?.[0]?.value || '');
+      console.log('Existing user found:', user);
       
       if (!user) {
+        console.log('Creating new user for Google OAuth');
         // Create new user
         user = await storage.createUser({
           email: profile.emails?.[0]?.value || '',
@@ -119,6 +123,7 @@ function setupPassport() {
           password: '', // No password needed for Google auth
           isActive: true
         });
+        console.log('Created new user:', user);
 
         // Create default organization for new user
         const org = await storage.createOrganization({
@@ -127,6 +132,7 @@ function setupPassport() {
           primaryColor: '#3b82f6',
           secondaryColor: '#1e293b'
         });
+        console.log('Created organization:', org);
 
         // Add user to organization as admin
         await storage.addUserToOrganization({
@@ -134,6 +140,7 @@ function setupPassport() {
           organizationId: org.id,
           role: 'admin'
         });
+        console.log('Added user to organization');
       }
 
       return done(null, user);
@@ -329,12 +336,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const user = req.user as any;
+        console.log('Google OAuth callback - User:', user);
         
         // Get user's organization
         const userOrgs = await storage.getUserOrganizations(user.id);
+        console.log('User organizations:', userOrgs);
         const defaultOrg = userOrgs[0];
 
         if (!defaultOrg) {
+          console.log('No organization found for user, redirecting to login');
           return res.redirect('/login?error=no-organization');
         }
 
@@ -345,6 +355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { expiresIn: '24h' }
         );
 
+        console.log('Generated JWT token, redirecting to /?token=...');
         // Redirect to frontend with token
         res.redirect(`/?token=${token}`);
       } catch (error) {
