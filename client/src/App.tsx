@@ -161,13 +161,17 @@ function App() {
     if (token) {
       console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
       
-      // Store the new token using the auth storage utility
-      authStorage.setToken(token);
+      // Completely clear existing auth data first
+      localStorage.clear();
+      sessionStorage.clear();
       
-      console.log('New token stored');
-      console.log('Stored token:', authStorage.getToken()?.substring(0, 20) + '...');
+      // Store the new token directly
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('token', token);
       
-      // Clear the token from URL to prevent re-processing
+      console.log('New token stored, clearing URL parameters');
+      
+      // Clear the token from URL and force complete refresh
       window.history.replaceState({}, document.title, window.location.pathname);
       
       // Fetch user data with the new token
