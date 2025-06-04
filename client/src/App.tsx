@@ -111,33 +111,25 @@ function App() {
     if (token) {
       console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
       
-      // Completely clear all authentication data - be very aggressive
-      localStorage.clear();
-      sessionStorage.clear();
+      // Store the new token using the auth storage utility
+      authStorage.setToken(token);
       
-      // Try to clear any possible cached data
-      try {
-        if ('caches' in window) {
-          caches.keys().then(names => {
-            names.forEach(name => {
-              caches.delete(name);
-            });
-          });
-        }
-      } catch (e) {
-        console.log('Cache clearing not supported');
-      }
+      console.log('New token stored');
+      console.log('Stored token:', authStorage.getToken()?.substring(0, 20) + '...');
       
-      // Store the new token directly
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('token', token);
+      // Clear the token from URL to prevent re-processing
+      window.history.replaceState({}, document.title, window.location.pathname);
       
-      console.log('New token stored directly');
-      console.log('Stored token:', localStorage.getItem('auth_token')?.substring(0, 20) + '...');
+      // Fetch user data with the new token
+      refreshUserData().then(() => {
+        console.log('User data refreshed, redirecting to dashboard');
+        setLocation('/dashboard');
+      }).catch(error => {
+        console.error('Failed to refresh user data:', error);
+        // Still redirect to dashboard, the user data will be fetched by the dashboard component
+        setLocation('/dashboard');
+      });
       
-      // Redirect to dashboard directly with hard refresh
-      console.log('Redirecting to dashboard with hard refresh');
-      window.location.href = '/dashboard';
       return;
     }
   }, []);
