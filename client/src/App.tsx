@@ -93,6 +93,7 @@ function App() {
     const token = urlParams.get('token');
     
     if (token) {
+      console.log('Processing OAuth token from URL');
       // Store the token in localStorage
       authStorage.setToken(token);
       
@@ -100,8 +101,9 @@ function App() {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
       
-      // Force a page refresh to trigger authentication state update
-      window.location.reload();
+      // Redirect to dashboard instead of reloading
+      window.location.href = '/dashboard';
+      return;
     }
   }, []);
 
