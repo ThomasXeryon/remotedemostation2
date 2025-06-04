@@ -237,10 +237,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, email, password, firstName, lastName } = req.body;
       
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(email);
-      if (existingUser) {
-        return res.status(400).json({ message: 'User already exists' });
+      // Check if user already exists by email
+      const existingUserByEmail = await storage.getUserByEmail(email);
+      if (existingUserByEmail) {
+        return res.status(400).json({ message: 'An account with this email already exists' });
+      }
+
+      // Check if user already exists by username
+      const existingUserByUsername = await storage.getUserByUsername(username);
+      if (existingUserByUsername) {
+        return res.status(400).json({ message: 'This username is already taken' });
       }
 
       // Hash password
@@ -281,6 +287,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ token, user: { ...user, password: undefined } });
     } catch (error) {
       console.error('Registration error:', error);
+      if (error.code === '23505') {
+        if (error.detail.includes('username')) {
+          return res.status(400).json({ message: 'This username is already taken' });
+        } else if (error.detail.includes('email')) {
+          return res.status(400).json({ message: 'An account with this email already exists' });
+        }
+      }
       res.status(500).json({ message: 'Registration failed' });
     }
   });
