@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, authStorage } from "@/lib/auth";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import { Dashboard } from "@/pages/dashboard-new";
@@ -17,6 +17,7 @@ import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
 import StationControl from "./pages/station-control-simple";
 import { CustomerLogin } from "./pages/customer-login";
+import { useEffect } from "react";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated()) {
@@ -86,6 +87,24 @@ function Router() {
 }
 
 function App() {
+  // Handle OAuth token from URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      // Store the token in localStorage
+      authStorage.setToken(token);
+      
+      // Remove token from URL without triggering a page reload
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+      
+      // Force a page refresh to trigger authentication state update
+      window.location.reload();
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
