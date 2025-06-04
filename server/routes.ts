@@ -27,14 +27,28 @@ function authenticateToken(req: AuthenticatedRequest, res: Express.Response, nex
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
+  // Development bypass for testing
+  if (process.env.NODE_ENV === 'development' && req.headers['x-debug-user']) {
+    console.log('Debug mode: bypassing authentication');
+    req.user = {
+      id: 1,
+      organizationId: 1,
+      role: 'admin'
+    };
+    return next();
+  }
+
   if (!token) {
+    console.log('No token provided, headers:', req.headers);
     return res.status(401).json({ message: 'Access token required' });
   }
 
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
     if (err) {
+      console.log('JWT verification failed:', err.message);
       return res.status(403).json({ message: 'Invalid token' });
     }
+    console.log('JWT verified successfully for user:', user.id);
     req.user = user;
     next();
   });
@@ -143,6 +157,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
   setupPassport();
+
+  // Development login route for testing
+  app.post('/api/auth/dev-login', async (req, res) => {
+    if (process.env.NODE_ENV !== 'development') {
+      return res.status(404).json({ message: 'Not found' });
+    }
+
+    try {
+      // Use existing admin user or create one
+      let user = await storage.getUserByEmail('admin@acmerobotics.com');
+      
+      if (!user) {
+        // Create admin user if not exists
+        user = await storage.createUser({
+          username: 'admin',
+          email: 'admin@acmerobotics.com',
+          password: await bcrypt.hash('admin', 10),
+          firstName: 'Admin',
+          lastName: 'User',
+          isActive: true
+        });
+
+        // Create organization
+        const org = await storage.createOrganization({
+          name: 'Acme Robotics',
+          slug: 'acme-robotics',
+          primaryColor: '#3b82f6',
+          secondaryColor: '#1e293b'
+        });
+
+        // Add user to organization
+        await storage.addUserToOrganization({
+          userId: user.id,
+          organizationId: org.id,
+          role: 'admin'
+        });
+      }
+
+      // Get user's organization
+      const userOrgs = await storage.getUserOrganizations(user.id);
+      const defaultOrg = userOrgs[0];
+
+      if (!defaultOrg) {
+        return res.status(400).json({ message: 'No organization found' });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user.id, organizationId: defaultOrg.organizationId, role: defaultOrg.role },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({ 
+        token, 
+        user: { ...user, password: undefined },
+        message: 'Development login successful'
+      });
+    } catch (error) {
+      console.error('Dev login error:', error);
+      res.status(500).json({ message: 'Dev login failed' });
+    }
+  });
 
   // Authentication routes
   app.post('/api/auth/register', async (req, res) => {
