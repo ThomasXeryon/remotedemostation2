@@ -93,10 +93,17 @@ function setupSession(app: Express) {
 
 // Passport configuration
 function setupPassport() {
+  // Determine the correct callback URL based on environment
+  const baseURL = process.env.NODE_ENV === 'production' 
+    ? 'https://app.remotedemostation.com'
+    : `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:5000'}`;
+  
+  const callbackURL = `${baseURL}/auth/google/callback`;
+  
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: "/auth/google/callback"
+    callbackURL: callbackURL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user exists
