@@ -111,13 +111,14 @@ function App() {
     if (token) {
       console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
       
-      // Clear any existing auth data first
-      authStorage.removeToken();
-      authStorage.removeUser();
+      // Completely clear all authentication data
+      localStorage.clear();
+      sessionStorage.clear();
       
       // Store the new token
       authStorage.setToken(token);
       console.log('New token stored, auth state:', isAuthenticated());
+      console.log('Stored token:', authStorage.getToken()?.substring(0, 20) + '...');
       
       // Remove token from URL and force a page reload to completely refresh the app state
       const newUrl = window.location.pathname;
