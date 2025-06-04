@@ -14,7 +14,7 @@ import { useWebSocket } from '@/hooks/use-websocket';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, logout, refreshUserData } from '@/lib/auth';
 import { apiRequest } from '@/lib/queryClient';
-import type { DemoStation, Session, TelemetryData, ControlConfiguration } from '@shared/schema';
+import type { DemoStation, Session, ControlConfiguration } from '@shared/schema';
 import { useLocation } from 'wouter';
 
 interface User {
@@ -46,7 +46,7 @@ interface TelemetryData {
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [currentUser, setCurrentUser] = useState<User | null>(getCurrentUser());
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [selectedStation, setSelectedStation] = useState<DemoStation | null>(null);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [controlConfig, setControlConfig] = useState<ControlConfiguration | null>(null);
@@ -60,16 +60,23 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   // Query for user data that gets refreshed when organization changes
-  const { data: userData } = useQuery({
+  const { data: userData, error: userError } = useQuery({
     queryKey: ['/api/users/me'],
-    enabled: !!currentUser,
   });
 
   // Demo stations query
-  const { data: demoStations = [], isLoading: isDemoStationsLoading } = useQuery({
+  const { data: demoStations = [], isLoading: isDemoStationsLoading, error: stationsError } = useQuery<DemoStation[]>({
     queryKey: ['/api/demo-stations'],
-    enabled: !!currentUser,
   });
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Dashboard - userData:', userData);
+    console.log('Dashboard - userError:', userError);
+    console.log('Dashboard - demoStations:', demoStations);
+    console.log('Dashboard - stationsError:', stationsError);
+    console.log('Dashboard - currentUser:', currentUser);
+  }, [userData, userError, demoStations, stationsError, currentUser]);
 
   // Update current user when userData changes
   useEffect(() => {
@@ -102,7 +109,7 @@ export default function Dashboard() {
 
   // Load user data
   useEffect(() => {
-    if (currentUser && demoStations.length > 0) {
+    if (currentUser && demoStations && demoStations.length > 0) {
       if (!selectedStation) {
         setSelectedStation(demoStations[0]);
       }
@@ -144,7 +151,7 @@ export default function Dashboard() {
         method: 'GET',
       })
         .then((config) => setControlConfig(config))
-        .catch(() => setControlConfig({}));
+        .catch(() => setControlConfig(null));
     }
   }, [selectedStation]);
 
