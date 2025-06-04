@@ -93,9 +93,9 @@ function setupSession(app: Express) {
 
 // Passport configuration
 function setupPassport() {
-  // Use a simple callback URL that works with both domains
-  const callbackURL = '/auth/google/callback';
-  console.log('OAuth callback URL configured as relative:', callbackURL);
+  // Use the correct absolute URL for the current environment
+  const callbackURL = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:5000'}/auth/google/callback`;
+  console.log('OAuth callback URL configured as:', callbackURL);
   
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
