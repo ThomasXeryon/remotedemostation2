@@ -96,6 +96,36 @@ export default function Login() {
     window.location.href = '/auth/google';
   };
 
+  const devLoginMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/auth/dev-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    },
+    onSuccess: (data) => {
+      localStorage.setItem('token', data.token);
+      toast({
+        title: "Development login successful",
+        description: "Logged in as admin user",
+      });
+      setLocation('/');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Development login failed",
+        description: error.message || "Failed to login",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDevLogin = () => {
+    devLoginMutation.mutate();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -191,6 +221,18 @@ export default function Login() {
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
+          {/* Development login button - only in development mode */}
+          {process.env.NODE_ENV === 'development' && (
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={handleDevLogin}
+              disabled={devLoginMutation.isPending}
+            >
+              {devLoginMutation.isPending ? "Logging in..." : "🔧 Development Login (Admin)"}
+            </Button>
+          )}
+          
           <div className="text-sm text-center text-muted-foreground">
             Don't have an account?{" "}
             <Button
