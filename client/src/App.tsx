@@ -86,7 +86,11 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/">
-        {isAuthenticated() ? <Redirect to="/dashboard" /> : <Redirect to="/login" />}
+        {(() => {
+          const authenticated = isAuthenticated();
+          console.log('Root route - isAuthenticated:', authenticated);
+          return authenticated ? <Redirect to="/dashboard" /> : <Redirect to="/login" />;
+        })()}
       </Route>
       <Route component={NotFound} />
     </Switch>
@@ -110,13 +114,12 @@ function App() {
       authStorage.setToken(token);
       console.log('Token stored, new auth state:', isAuthenticated());
       
-      // Remove token from URL without triggering a page reload
+      // Remove token from URL and stay on the current page
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
       
-      // Redirect to dashboard instead of reloading
-      console.log('Redirecting to dashboard...');
-      window.location.href = '/dashboard';
+      // Don't redirect, just let the router handle it naturally
+      console.log('Token processed, letting router handle navigation');
       return;
     }
   }, []);
