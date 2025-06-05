@@ -1,4 +1,5 @@
 import { Switch, Route } from "wouter";
+import { useRef, useEffect, Component, type ReactNode, type ErrorInfo } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -15,7 +16,6 @@ import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
 import StationControl from "./pages/station-control-simple";
 import { CustomerLogin } from "./pages/customer-login";
-import { Component, ErrorInfo, ReactNode, useState, useEffect, useRef } from "react";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -126,7 +126,7 @@ function AuthWrapper() {
             <Route path="/stations/:id/control" component={StationControl} />
             <Route path="/customer-login/:stationId" component={({ params }) => (
               <CustomerLogin 
-                stationId={params?.stationId || ''} 
+                stationId={params!.stationId} 
                 organizationName="Demo Organization" 
                 stationName="Demo Station" 
               />
