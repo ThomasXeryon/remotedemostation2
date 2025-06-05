@@ -1,7 +1,7 @@
-import { getCurrentUser, logout } from '@/lib/auth';
 import { Sidebar } from '@/components/sidebar';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import type { DemoStation } from '@/types';
 
 interface LayoutProps {
@@ -9,27 +9,28 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  const currentUser = getCurrentUser();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const [, setLocation] = useLocation();
 
   const { data: demoStations = [] } = useQuery<DemoStation[]>({
     queryKey: ['/api/demo-stations'],
-    enabled: !!currentUser,
+    enabled: !!user,
   });
 
   const handleLogout = async () => {
-    await logout();
-    setLocation('/login');
+    await signOut();
+    setLocation('/');
   };
 
-  if (!currentUser) {
+  if (!user) {
     return null;
   }
 
   return (
     <div className="app-container flex h-screen">
       <Sidebar
-        user={currentUser}
+        user={user}
         demoStations={demoStations}
         onLogout={handleLogout}
         onStationSelect={() => {

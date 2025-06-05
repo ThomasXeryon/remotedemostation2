@@ -14,10 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { OrganizationSwitcher } from '@/components/organization-switcher';
-import { User, DemoStation } from '@/types';
+import { DemoStation } from '@/types';
 
 interface SidebarProps {
-  user: User;
+  user: any; // Clerk user object
   demoStations: DemoStation[];
   activeDemoStation?: DemoStation;
   onLogout: () => void;
@@ -34,34 +34,16 @@ export function Sidebar({
   onCreateStation
 }: SidebarProps) {
   const [location] = useLocation();
-  const [currentOrganization, setCurrentOrganization] = useState(user.organization);
+  const [currentOrganization, setCurrentOrganization] = useState(null);
 
-  // Listen for organization changes
+  // Simplified organization handling for Clerk
   useEffect(() => {
-    const handleOrganizationChanged = (event: any) => {
-      console.log('Organization changed event received:', event.detail);
-      // Update current organization from the event or refresh user data
-      if (event.detail?.organization) {
-        setCurrentOrganization(event.detail.organization);
-      } else {
-        // Fallback: get updated user data from localStorage
-        const updatedUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
-        if (updatedUser.organization) {
-          setCurrentOrganization(updatedUser.organization);
-        }
-      }
-    };
-
-    window.addEventListener('organizationChanged', handleOrganizationChanged);
-    return () => {
-      window.removeEventListener('organizationChanged', handleOrganizationChanged);
-    };
-  }, []);
-
-  // Also update when user prop changes
-  useEffect(() => {
-    setCurrentOrganization(user.organization);
-  }, [user.organization]);
+    // For now, use a default organization structure
+    setCurrentOrganization({
+      name: "Demo Organization",
+      slug: "demo-org"
+    });
+  }, [user]);
 
   const navItems = [
     { 
@@ -145,17 +127,17 @@ export function Sidebar({
       <div className="p-4 border-t border-slate-200">
         <div className="flex items-center space-x-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.firstName} ${user.lastName}`} />
+            <AvatarImage src={user.imageUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user.firstName || 'User'}`} />
             <AvatarFallback>
-              {user.firstName[0]}{user.lastName[0]}
+              {(user.firstName?.[0] || 'U')}{(user.lastName?.[0] || '')}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-slate-900 truncate">
-              {user.firstName} {user.lastName}
+              {user.firstName || user.fullName || 'User'} {user.lastName || ''}
             </p>
             <p className="text-xs text-slate-500 capitalize">
-              {user.role}
+              Admin
             </p>
           </div>
           <Button
