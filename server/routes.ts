@@ -94,7 +94,14 @@ function setupSession(app: Express) {
 // Passport configuration
 function setupPassport() {
   // Use the correct absolute URL for the current environment
-  const callbackURL = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:5000'}/auth/google/callback`;
+  let callbackURL;
+  if (process.env.NODE_ENV === 'production') {
+    // In production, use the deployment domain
+    callbackURL = `https://${process.env.REPLIT_DEPLOYMENT_DOMAIN || process.env.REPL_SLUG}.replit.app/auth/google/callback`;
+  } else {
+    // In development, use the dev domain
+    callbackURL = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:5000'}/auth/google/callback`;
+  }
   console.log('OAuth callback URL configured as:', callbackURL);
   
   passport.use(new GoogleStrategy({
