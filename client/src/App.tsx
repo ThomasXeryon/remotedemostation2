@@ -5,6 +5,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline, Alert, Snackbar } from "@mui/material";
 import { materialTheme } from "./theme/material-theme";
+import { DndProvider } from 'react-dnd';
+import { MultiBackend, HTML5toTouch } from './lib/dnd-backend';
 import { Layout } from "@/components/layout";
 import { ClerkProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Dashboard } from "@/pages/dashboard-new";
@@ -20,6 +22,7 @@ import { CustomerLogin } from "./pages/customer-login";
 import ControlsDemo from "./pages/controls-demo";
 import ShadcnControlsDemo from "./pages/shadcn-controls-demo";
 import MaterialUIDemo from "./pages/material-ui-demo";
+import ReactDndDemo from "./pages/react-dnd-demo";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -142,6 +145,7 @@ function AuthWrapper() {
             <Route path="/stations/:id/control" component={StationControl} />
             <Route path="/shadcn-controls-demo" component={ShadcnControlsDemo} />
             <Route path="/material-ui-demo" component={MaterialUIDemo} />
+            <Route path="/react-dnd-demo" component={ReactDndDemo} />
             <Route path="/customer-login/:stationId" component={({ params }) => (
               <CustomerLogin 
                 stationId={params!.stationId} 
@@ -171,24 +175,26 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={materialTheme}>
         <CssBaseline />
-        <ErrorBoundary>
-          <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-            <Switch>
-              <Route path="/demo" component={ControlsDemo} />
-              <Route>
-                <ClerkProvider 
-                  publishableKey={clerkPublishableKey}
-                  signInUrl="/sign-in"
-                  signUpUrl="/sign-up"
-                  afterSignInUrl="/"
-                  afterSignUpUrl="/"
-                >
-                  <AuthWrapper />
-                </ClerkProvider>
-              </Route>
-            </Switch>
-          </div>
-        </ErrorBoundary>
+        <DndProvider backend={MultiBackend} options={HTML5toTouch}>
+          <ErrorBoundary>
+            <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+              <Switch>
+                <Route path="/demo" component={ControlsDemo} />
+                <Route>
+                  <ClerkProvider 
+                    publishableKey={clerkPublishableKey}
+                    signInUrl="/sign-in"
+                    signUpUrl="/sign-up"
+                    afterSignInUrl="/"
+                    afterSignUpUrl="/"
+                  >
+                    <AuthWrapper />
+                  </ClerkProvider>
+                </Route>
+              </Switch>
+            </div>
+          </ErrorBoundary>
+        </DndProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
