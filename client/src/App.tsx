@@ -163,33 +163,22 @@ function AuthWrapper() {
 }
 
 function App() {
-
-  if (!clerkPublishableKey) {
-    throw new Error("Missing Clerk Publishable Key");
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={materialTheme}>
         <CssBaseline />
         <DndProvider backend={MultiBackend} options={HTML5toTouch}>
           <ErrorBoundary>
-            <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-              <Switch>
-                <Route path="/demo" component={ControlsDemo} />
-                <Route>
-                  <ClerkProvider 
-                    publishableKey={clerkPublishableKey}
-                    signInUrl="/sign-in"
-                    signUpUrl="/sign-up"
-                    afterSignInUrl="/"
-                    afterSignUpUrl="/"
-                  >
+            <AuthProvider>
+              <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+                <Switch>
+                  <Route path="/demo" component={ControlsDemo} />
+                  <Route>
                     <AuthWrapper />
-                  </ClerkProvider>
-                </Route>
-              </Switch>
-            </div>
+                  </Route>
+                </Switch>
+              </div>
+            </AuthProvider>
           </ErrorBoundary>
         </DndProvider>
       </ThemeProvider>
