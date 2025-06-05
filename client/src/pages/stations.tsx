@@ -13,9 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { getCurrentUser } from '@/lib/auth';
+import { useUser } from '@clerk/clerk-react';
 import type { DemoStation } from '@shared/schema';
-import { PageLayout } from '@/components/page-layout';
 
 interface CreateStationForm {
   name: string;
@@ -28,7 +27,7 @@ interface CreateStationForm {
 export default function StationsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const currentUser = getCurrentUser();
+  const { user, isLoaded } = useUser();
   const [, setLocation] = useLocation();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -45,7 +44,7 @@ export default function StationsPage() {
   // Fetch demo stations
   const { data: demoStations = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/demo-stations'],
-    enabled: !!currentUser,
+    enabled: isLoaded && !!user,
   });
 
   // Listen for organization changes and refetch data
@@ -60,6 +59,19 @@ export default function StationsPage() {
       window.removeEventListener('organizationChanged', handleOrganizationChanged);
     };
   }, [refetch]);
+
+  // Check authentication state
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <div>Authentication required</div>;
+  }
 
   // Create station mutation
   const createStationMutation = useMutation({
