@@ -162,7 +162,7 @@ function App() {
     console.log('App useEffect - Current auth token:', authStorage.getToken());
     console.log('App useEffect - isAuthenticated:', isAuthenticated());
 
-    // Basic token validation - only remove if completely malformed
+    // Only clear completely malformed tokens
     const currentToken = authStorage.getToken();
     if (currentToken) {
       try {
@@ -170,18 +170,10 @@ function App() {
         if (parts.length !== 3) {
           console.log('Malformed token detected, clearing authentication');
           authStorage.clearAll();
-          if (currentPath === '/dashboard') {
-            window.location.href = '/login';
-            return;
-          }
         }
       } catch (e) {
         console.log('Token parsing error, clearing authentication');
         authStorage.clearAll();
-        if (currentPath === '/dashboard') {
-          window.location.href = '/login';
-          return;
-        }
       }
     }
 

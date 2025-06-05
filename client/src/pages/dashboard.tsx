@@ -69,13 +69,21 @@ export default function Dashboard() {
     queryKey: ['/api/demo-stations'],
   });
 
-  // Debug logging
+  // Debug logging and error handling
   useEffect(() => {
     console.log('Dashboard - userData:', userData);
     console.log('Dashboard - userError:', userError);
     console.log('Dashboard - demoStations:', demoStations);
     console.log('Dashboard - stationsError:', stationsError);
     console.log('Dashboard - currentUser:', currentUser);
+    
+    // Handle errors gracefully
+    if (userError) {
+      console.error('User data error:', userError);
+    }
+    if (stationsError) {
+      console.error('Stations data error:', stationsError);
+    }
   }, [userData, userError, demoStations, stationsError, currentUser]);
 
   // Update current user when userData changes
@@ -109,7 +117,7 @@ export default function Dashboard() {
 
   // Load user data
   useEffect(() => {
-    if (currentUser && demoStations && demoStations.length > 0) {
+    if (currentUser && Array.isArray(demoStations) && demoStations.length > 0) {
       if (!selectedStation) {
         setSelectedStation(demoStations[0]);
       }
@@ -259,10 +267,40 @@ export default function Dashboard() {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Handle errors first
+  if (userError) {
+    console.error('Dashboard error:', userError);
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Unable to load user data</h2>
+          <p className="text-muted-foreground mb-4">Please try refreshing the page.</p>
+          <Button onClick={() => window.location.reload()}>Refresh</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (stationsError) {
+    console.error('Dashboard error:', stationsError);
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Unable to load stations</h2>
+          <p className="text-muted-foreground mb-4">Please try refreshing the page.</p>
+          <Button onClick={() => window.location.reload()}>Refresh</Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
   if (!currentUser && !userData) {
-    return <div className="flex items-center justify-center h-64">
-      <div>Loading user data...</div>
-    </div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div>Loading user data...</div>
+      </div>
+    );
   }
 
   return (
