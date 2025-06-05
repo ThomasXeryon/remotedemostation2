@@ -114,8 +114,12 @@ function Router() {
 }
 
 function App() {
+  const clerkPublishableKey = import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 
+                               (globalThis as any).CLERK_PUBLISHABLE_KEY || 
+                               "pk_test_cHJvdmVuLWh1bXBiYWNrLTE4LmNsZXJrLmFjY291bnRzLmRldiQ";
+
   return (
-    <ClerkProvider publishableKey={import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={clerkPublishableKey}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ErrorBoundary>
