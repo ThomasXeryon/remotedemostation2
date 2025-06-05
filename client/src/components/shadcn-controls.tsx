@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { Joystick } from 'react-joystick-component';
+import { Range } from 'react-range';
 
 interface ControlWidget {
   id: string;
@@ -69,46 +71,92 @@ export function ShadcnSlider({ widget, style, isSessionActive, handleCommand, on
     <div
       style={{
         ...style,
-        backgroundColor: widget.style.backgroundColor,
-        border: `2px solid ${widget.style.borderColor}`,
-        borderRadius: `${widget.style.borderRadius}px`,
+        background: `linear-gradient(135deg, ${widget.style.backgroundColor}f0, ${widget.style.backgroundColor})`,
+        border: `3px solid ${widget.style.borderColor}`,
+        borderRadius: `${widget.style.borderRadius + 8}px`,
         opacity: isSessionActive ? 1 : 0.6,
-        padding: '16px',
+        padding: '20px 16px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '12px'
+        justifyContent: 'space-between',
+        boxShadow: isSessionActive 
+          ? `0 8px 32px ${widget.style.borderColor}30, 0 4px 16px rgba(0,0,0,0.1)` 
+          : '0 4px 16px rgba(0,0,0,0.05)',
+        transition: 'all 0.3s ease',
+        position: 'relative',
+        overflow: 'hidden'
       }}
       onMouseDown={onMouseDown}
-      className="transition-all hover:shadow-lg"
     >
       <span 
         style={{ 
           color: widget.style.textColor, 
-          fontSize: `${widget.style.fontSize}px`,
-          fontWeight: '600'
-        }}
+          fontSize: `${widget.style.fontSize + 3}px`,
+          textShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          fontWeight: '700'
+        }} 
+        className="mb-4 tracking-wider uppercase"
       >
         {widget.name}
       </span>
       
-      <div className="w-full px-2">
-        <Slider
-          value={value}
-          onValueChange={handleValueChange}
-          disabled={!isSessionActive}
-          max={100}
+      <div className="w-full flex flex-col items-center space-y-4">
+        <Range
           step={1}
-          className="w-full"
+          min={0}
+          max={100}
+          values={value}
+          onChange={handleValueChange}
+          disabled={!isSessionActive}
+          renderTrack={({ props, children }) => (
+            <div
+              {...props}
+              className="w-full h-6 rounded-full relative"
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: '1px solid rgba(255,255,255,0.3)'
+              }}
+            >
+              <div 
+                className="absolute top-0 left-0 h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${value[0]}%`,
+                  background: `linear-gradient(90deg, ${widget.style.textColor}, ${widget.style.textColor}dd)`,
+                  boxShadow: `0 0 16px ${widget.style.textColor}60`
+                }}
+              />
+              {children}
+            </div>
+          )}
+          renderThumb={({ props }) => (
+            <div
+              {...props}
+              className="w-8 h-8 bg-white rounded-full shadow-xl border-3 transition-all duration-300"
+              style={{
+                borderColor: widget.style.textColor,
+                boxShadow: `0 4px 16px rgba(0,0,0,0.2), 0 0 0 4px ${widget.style.textColor}30`,
+                transform: isSessionActive ? 'scale(1)' : 'scale(0.9)'
+              }}
+            />
+          )}
         />
+        
+        <div 
+          className="px-4 py-2 rounded-lg border-2 bg-white/90"
+          style={{ 
+            borderColor: widget.style.textColor,
+            boxShadow: `0 4px 12px ${widget.style.textColor}20`
+          }}
+        >
+          <span 
+            style={{ color: widget.style.textColor }} 
+            className="text-xl font-bold tracking-wider"
+          >
+            {value[0]}%
+          </span>
+        </div>
       </div>
-      
-      <span 
-        style={{ color: widget.style.textColor }}
-        className="text-lg font-bold"
-      >
-        {value[0]}%
-      </span>
     </div>
   );
 }
@@ -157,101 +205,49 @@ export function ShadcnToggle({ widget, style, isSessionActive, handleCommand, on
 }
 
 export function ShadcnJoystick({ widget, style, isSessionActive, handleCommand, onMouseDown }: ControlProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const knobRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMove = (stick: any) => {
     if (!isSessionActive) return;
-    if (onMouseDown) onMouseDown(e);
-    setIsDragging(true);
+    
+    // Convert stick position to normalized values (-100 to 100)
+    const x = Math.round(stick.x * 100);
+    const y = Math.round(stick.y * 100);
+    
+    handleCommand(widget.command, { x, y, ...widget.parameters });
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !isSessionActive || !containerRef.current || !knobRef.current) return;
-    
-    const container = containerRef.current;
-    const rect = container.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const maxDistance = Math.min(rect.width, rect.height) / 2 - 20;
-    
-    const deltaX = e.clientX - centerX;
-    const deltaY = e.clientY - centerY;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    
-    let x = deltaX;
-    let y = deltaY;
-    
-    if (distance > maxDistance) {
-      x = (deltaX / distance) * maxDistance;
-      y = (deltaY / distance) * maxDistance;
-    }
-    
-    setPosition({ x, y });
-    
-    const normalizedX = Math.round((x / maxDistance) * 100);
-    const normalizedY = Math.round((y / maxDistance) * 100);
-    handleCommand(widget.command, { x: normalizedX, y: normalizedY, ...widget.parameters });
+  const handleStop = () => {
+    if (!isSessionActive) return;
+    handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
   };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setPosition({ x: 0, y: 0 });
-    if (isSessionActive) {
-      handleCommand(widget.command, { x: 0, y: 0, ...widget.parameters });
-    }
-  };
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging]);
 
   return (
     <div
-      ref={containerRef}
       style={{
         ...style,
-        backgroundColor: widget.style.backgroundColor,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: `linear-gradient(145deg, ${widget.style.backgroundColor}, ${widget.style.backgroundColor}dd)`,
         border: `3px solid ${widget.style.borderColor}`,
         borderRadius: '50%',
         opacity: isSessionActive ? 1 : 0.6,
-        position: 'relative',
-        cursor: isSessionActive ? 'grab' : 'not-allowed'
+        filter: isSessionActive ? 'none' : 'grayscale(50%)',
+        boxShadow: isSessionActive 
+          ? `0 8px 32px ${widget.style.borderColor}30, 0 4px 16px rgba(0,0,0,0.1)` 
+          : '0 4px 16px rgba(0,0,0,0.05)',
+        transition: 'all 0.3s ease'
       }}
-      onMouseDown={handleMouseDown}
-      className="transition-all hover:shadow-lg"
+      onMouseDown={onMouseDown}
     >
-      {/* Center crosshairs */}
-      <div 
-        className="absolute top-1/2 left-0 right-0 h-px opacity-30"
-        style={{ backgroundColor: widget.style.textColor }}
-      />
-      <div 
-        className="absolute left-1/2 top-0 bottom-0 w-px opacity-30"
-        style={{ backgroundColor: widget.style.textColor }}
-      />
-      
-      {/* Moveable knob */}
-      <div
-        ref={knobRef}
-        className="absolute w-8 h-8 rounded-full border-2 bg-white transition-all"
-        style={{
-          left: `calc(50% + ${position.x}px)`,
-          top: `calc(50% + ${position.y}px)`,
-          transform: 'translate(-50%, -50%)',
-          borderColor: widget.style.textColor,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-          cursor: isDragging ? 'grabbing' : 'grab'
-        }}
+      <Joystick
+        size={Math.min((style.width as number) - 20, (style.height as number) - 20)}
+        sticky={false}
+        baseColor={widget.style.backgroundColor}
+        stickColor={widget.style.textColor}
+        move={handleMove}
+        stop={handleStop}
+        disabled={!isSessionActive}
+        throttle={50}
       />
     </div>
   );

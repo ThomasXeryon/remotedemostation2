@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Controls Demo - Remote Demo Station</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .joystick-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border: 3px solid #1d4ed8;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+        }
+        .joystick-knob {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: white;
+            border: 2px solid #1d4ed8;
+            border-radius: 50%;
+            cursor: grab;
+            transition: transform 0.1s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .joystick-knob.dragging {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        .control-button {
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
+            border: 3px solid #1d4ed8;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .control-button:active {
+            transform: scale(0.95);
+        }
+        .control-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .slider-container {
+            background: linear-gradient(135deg, #3b82f6f0, #3b82f6);
+            border: 3px solid #1d4ed8;
+            border-radius: 16px;
+            padding: 20px;
+            width: 200px;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .slider-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+        }
+        .slider-fill {
+            height: 100%;
+            background: white;
+            border-radius: 3px;
+            transition: width 0.1s ease;
+        }
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border: 2px solid #1d4ed8;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .slider-thumb:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        .toggle-container {
+            background: linear-gradient(135deg, #3b82f6f0, #3b82f6);
+            border: 3px solid #1d4ed8;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+        .toggle-switch {
+            width: 48px;
+            height: 24px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 12px;
+            position: relative;
+            transition: background 0.2s ease;
+        }
+        .toggle-switch.active {
+            background: white;
+        }
+        .toggle-knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #1d4ed8;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+        .toggle-switch.active .toggle-knob {
+            transform: translateX(24px);
+            background: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto p-6">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Professional Controls Demo</h1>
+            <p class="text-gray-600">Showcasing shadcn/ui style hardware control components</p>
+            <div class="mt-4 flex items-center gap-4">
+                <button id="sessionToggle" class="control-button">
+                    Enable Session
+                </button>
+                <span id="sessionStatus" class="px-3 py-1 rounded text-sm bg-gray-100 text-gray-600">
+                    Session Inactive
+                </span>
+            </div>
+        </div>
+
+        <div class="flex gap-6">
+            <!-- Controls Canvas -->
+            <div class="flex-1 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Hardware Controls</h2>
+                <div class="relative bg-gray-50 rounded-lg p-8 min-h-96 border-2 border-dashed border-gray-200">
+                    
+                    <!-- Button Control -->
+                    <div class="absolute" style="left: 50px; top: 50px;">
+                        <button id="demoButton" class="control-button" disabled>
+                            Emergency Stop
+                        </button>
+                    </div>
+
+                    <!-- Slider Control -->
+                    <div class="absolute" style="left: 250px; top: 50px;">
+                        <div class="slider-container">
+                            <span class="text-white font-semibold text-sm">Speed Control</span>
+                            <div class="slider-track" id="sliderTrack">
+                                <div class="slider-fill" id="sliderFill" style="width: 50%"></div>
+                                <div class="slider-thumb" id="sliderThumb" style="left: 50%"></div>
+                            </div>
+                            <span class="text-white font-bold" id="sliderValue">50%</span>
+                        </div>
+                    </div>
+
+                    <!-- Joystick Control -->
+                    <div class="absolute" style="left: 500px; top: 50px;">
+                        <div class="joystick-container" id="joystickContainer">
+                            <div class="absolute w-full h-px bg-white opacity-30 top-1/2"></div>
+                            <div class="absolute h-full w-px bg-white opacity-30 left-1/2"></div>
+                            <div class="joystick-knob" id="joystickKnob"></div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Control -->
+                    <div class="absolute" style="left: 50px; top: 200px;">
+                        <div class="toggle-container" id="toggleContainer">
+                            <div class="toggle-switch" id="toggleSwitch">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span class="text-white font-semibold">Motor Enable</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Command Log -->
+            <div class="w-80 bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Command Log</h3>
+                <div id="commandLog" class="space-y-2 max-h-96 overflow-y-auto mb-4">
+                    <p class="text-gray-500 text-sm">No commands yet. Enable session and interact with controls!</p>
+                </div>
+                <button id="clearLog" class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Clear Log
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isSessionActive = false;
+        let commandLog = [];
+        let sliderValue = 50;
+        let joystickPosition = { x: 0, y: 0 };
+        let toggleState = false;
+        let isDraggingSlider = false;
+        let isDraggingJoystick = false;
+
+        // Elements
+        const sessionToggleBtn = document.getElementById('sessionToggle');
+        const sessionStatus = document.getElementById('sessionStatus');
+        const demoButton = document.getElementById('demoButton');
+        const sliderTrack = document.getElementById('sliderTrack');
+        const sliderFill = document.getElementById('sliderFill');
+        const sliderThumb = document.getElementById('sliderThumb');
+        const sliderValueDisplay = document.getElementById('sliderValue');
+        const joystickContainer = document.getElementById('joystickContainer');
+        const joystickKnob = document.getElementById('joystickKnob');
+        const toggleContainer = document.getElementById('toggleContainer');
+        const toggleSwitch = document.getElementById('toggleSwitch');
+        const commandLogDiv = document.getElementById('commandLog');
+        const clearLogBtn = document.getElementById('clearLog');
+
+        // Utility functions
+        function logCommand(command, params) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${command}: ${JSON.stringify(params)}`;
+            commandLog.unshift(logEntry);
+            if (commandLog.length > 10) commandLog.pop();
+            
+            commandLogDiv.innerHTML = commandLog.map(log => 
+                `<div class="bg-gray-50 p-2 rounded text-xs font-mono border">${log}</div>`
+            ).join('');
+        }
+
+        function updateSessionState() {
+            if (isSessionActive) {
+                sessionToggleBtn.textContent = 'Disable Session';
+                sessionToggleBtn.classList.add('bg-red-600');
+                sessionStatus.textContent = 'Session Active';
+                sessionStatus.classList.remove('bg-gray-100', 'text-gray-600');
+                sessionStatus.classList.add('bg-green-100', 'text-green-800');
+                demoButton.disabled = false;
+            } else {
+                sessionToggleBtn.textContent = 'Enable Session';
+                sessionToggleBtn.classList.remove('bg-red-600');
+                sessionStatus.textContent = 'Session Inactive';
+                sessionStatus.classList.remove('bg-green-100', 'text-green-800');
+                sessionStatus.classList.add('bg-gray-100', 'text-gray-600');
+                demoButton.disabled = true;
+            }
+        }
+
+        // Session toggle
+        sessionToggleBtn.addEventListener('click', () => {
+            isSessionActive = !isSessionActive;
+            updateSessionState();
+            logCommand('session_toggle', { active: isSessionActive });
+        });
+
+        // Button control
+        demoButton.addEventListener('click', () => {
+            if (!isSessionActive) return;
+            logCommand('emergency_stop', { pressed: true });
+        });
+
+        // Slider control
+        function updateSlider(clientX) {
+            if (!isSessionActive) return;
+            const rect = sliderTrack.getBoundingClientRect();
+            const percentage = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+            sliderValue = Math.round(percentage);
+            
+            sliderFill.style.width = `${sliderValue}%`;
+            sliderThumb.style.left = `${sliderValue}%`;
+            sliderValueDisplay.textContent = `${sliderValue}%`;
+            
+            logCommand('speed_control', { value: sliderValue });
+        }
+
+        sliderTrack.addEventListener('mousedown', (e) => {
+            if (!isSessionActive) return;
+            isDraggingSlider = true;
+            updateSlider(e.clientX);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDraggingSlider) {
+                updateSlider(e.clientX);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDraggingSlider = false;
+        });
+
+        // Joystick control
+        joystickContainer.addEventListener('mousedown', (e) => {
+            if (!isSessionActive) return;
+            isDraggingJoystick = true;
+            joystickKnob.classList.add('dragging');
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDraggingJoystick || !isSessionActive) return;
+            
+            const rect = joystickContainer.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const maxDistance = (rect.width / 2) - 20;
+            
+            const deltaX = e.clientX - centerX;
+            const deltaY = e.clientY - centerY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            let x = deltaX;
+            let y = deltaY;
+            
+            if (distance > maxDistance) {
+                x = (deltaX / distance) * maxDistance;
+                y = (deltaY / distance) * maxDistance;
+            }
+            
+            joystickKnob.style.left = `calc(50% + ${x}px)`;
+            joystickKnob.style.top = `calc(50% + ${y}px)`;
+            
+            const normalizedX = Math.round((x / maxDistance) * 100);
+            const normalizedY = Math.round((y / maxDistance) * 100);
+            joystickPosition = { x: normalizedX, y: normalizedY };
+            
+            logCommand('joystick_move', joystickPosition);
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDraggingJoystick) {
+                isDraggingJoystick = false;
+                joystickKnob.classList.remove('dragging');
+                joystickKnob.style.left = '50%';
+                joystickKnob.style.top = '50%';
+                joystickPosition = { x: 0, y: 0 };
+                if (isSessionActive) {
+                    logCommand('joystick_release', joystickPosition);
+                }
+            }
+        });
+
+        // Toggle control
+        toggleContainer.addEventListener('click', () => {
+            if (!isSessionActive) return;
+            toggleState = !toggleState;
+            if (toggleState) {
+                toggleSwitch.classList.add('active');
+            } else {
+                toggleSwitch.classList.remove('active');
+            }
+            logCommand('motor_enable', { enabled: toggleState });
+        });
+
+        // Clear log
+        clearLogBtn.addEventListener('click', () => {
+            commandLog = [];
+            commandLogDiv.innerHTML = '<p class="text-gray-500 text-sm">Log cleared. Interact with controls to see commands!</p>';
+        });
+
+        // Initialize
+        updateSessionState();
+    </script>
+</body>
+</html>

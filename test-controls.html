@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Control Libraries - RDS Integration Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-joystick-component@1.0.6/dist/index.js"></script>
+    <script src="https://unpkg.com/react-range@1.8.14/lib/index.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto p-6">
+        <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">🎮 Professional Control Libraries Integration</h1>
+            <p class="text-gray-600 text-lg">Remote Demo Station now uses react-joystick-component and react-range instead of custom implementations</p>
+            
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-900">📦 react-joystick-component</h3>
+                    <p class="text-blue-700 text-sm">Professional joystick with smooth mechanics and customizable styling</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-green-900">📦 react-range</h3>
+                    <p class="text-green-700 text-sm">Advanced range slider with custom rendering and precise control</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Joystick Demo -->
+            <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-6 text-white shadow-lg">
+                <h2 class="text-xl font-bold mb-4 text-center">Professional Joystick</h2>
+                <div id="joystick-demo" class="flex justify-center"></div>
+                <div id="joystick-values" class="text-center mt-4 font-mono text-sm bg-white/20 rounded p-2"></div>
+            </div>
+
+            <!-- Range Slider Demo -->
+            <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl p-6 text-white shadow-lg">
+                <h2 class="text-xl font-bold mb-4 text-center">Professional Range Slider</h2>
+                <div id="range-demo" class="px-4"></div>
+                <div id="range-values" class="text-center mt-4 font-mono text-sm bg-white/20 rounded p-2"></div>
+            </div>
+
+            <!-- Combined Control -->
+            <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl p-6 text-white shadow-lg">
+                <h2 class="text-xl font-bold mb-4 text-center">Combined Controls</h2>
+                <div id="combined-demo"></div>
+                <div id="combined-status" class="text-center mt-4 font-mono text-xs bg-white/20 rounded p-2"></div>
+            </div>
+        </div>
+
+        <!-- Real-time Command Log -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-900">🔧 Hardware Command Stream</h3>
+                <button onclick="clearCommandLog()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                    Clear Log
+                </button>
+            </div>
+            <div id="command-log" class="bg-gray-900 text-green-400 rounded-lg p-4 h-64 overflow-y-auto font-mono text-sm">
+                <div class="text-gray-500">// Waiting for control interactions...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+
+        let commandHistory = [];
+
+        function logCommand(device, action, data) {
+            const timestamp = new Date().toISOString();
+            const command = {
+                timestamp,
+                device,
+                action,
+                data: JSON.stringify(data)
+            };
+            
+            commandHistory.unshift(command);
+            if (commandHistory.length > 50) commandHistory.pop();
+            
+            updateCommandLog();
+        }
+
+        function updateCommandLog() {
+            const logElement = document.getElementById('command-log');
+            const formattedCommands = commandHistory.map((cmd, index) => 
+                `<div class="mb-1 ${index === 0 ? 'text-yellow-400' : 'text-green-400'}">
+                    [${cmd.timestamp.split('T')[1].split('.')[0]}] ${cmd.device}.${cmd.action}(${cmd.data})
+                </div>`
+            ).join('');
+            
+            logElement.innerHTML = formattedCommands || '<div class="text-gray-500">// No commands yet</div>';
+            logElement.scrollTop = 0;
+        }
+
+        function clearCommandLog() {
+            commandHistory = [];
+            updateCommandLog();
+        }
+
+        // Professional Joystick Component
+        function ProfessionalJoystick() {
+            const [position, setPosition] = useState({ x: 0, y: 0 });
+
+            const handleMove = (stick) => {
+                const newPos = { 
+                    x: parseFloat(stick.x?.toFixed(3)) || 0, 
+                    y: parseFloat(stick.y?.toFixed(3)) || 0 
+                };
+                setPosition(newPos);
+                logCommand('joystick', 'move', newPos);
+            };
+
+            const handleStop = () => {
+                setPosition({ x: 0, y: 0 });
+                logCommand('joystick', 'stop', { x: 0, y: 0 });
+            };
+
+            useEffect(() => {
+                document.getElementById('joystick-values').innerHTML = 
+                    `X: ${position.x.toFixed(3)}<br>Y: ${position.y.toFixed(3)}`;
+            }, [position]);
+
+            return React.createElement(window.ReactJoystickComponent.Joystick, {
+                size: 120,
+                sticky: false,
+                baseColor: '#1e40af',
+                stickColor: '#ffffff',
+                move: handleMove,
+                stop: handleStop,
+                throttle: 50
+            });
+        }
+
+        // Professional Range Component
+        function ProfessionalRange() {
+            const [values, setValues] = useState([50]);
+
+            const handleChange = (newValues) => {
+                setValues(newValues);
+                logCommand('range_slider', 'change', { value: newValues[0] });
+            };
+
+            useEffect(() => {
+                document.getElementById('range-values').innerHTML = 
+                    `Value: ${values[0]}%<br>Normalized: ${(values[0]/100).toFixed(2)}`;
+            }, [values]);
+
+            return React.createElement('div', { className: 'space-y-4' }, [
+                React.createElement('div', { 
+                    key: 'display',
+                    className: 'text-center text-2xl font-bold' 
+                }, `${values[0]}%`),
+                React.createElement(window.ReactRange.Range, {
+                    key: 'range',
+                    step: 1,
+                    min: 0,
+                    max: 100,
+                    values: values,
+                    onChange: handleChange,
+                    renderTrack: ({ props, children }) => 
+                        React.createElement('div', {
+                            ...props,
+                            style: {
+                                ...props.style,
+                                height: '8px',
+                                width: '100%',
+                                backgroundColor: 'rgba(255,255,255,0.3)',
+                                borderRadius: '4px',
+                                position: 'relative'
+                            }
+                        }, [
+                            React.createElement('div', {
+                                key: 'fill',
+                                style: {
+                                    position: 'absolute',
+                                    left: 0,
+                                    top: 0,
+                                    height: '100%',
+                                    width: `${values[0]}%`,
+                                    backgroundColor: 'white',
+                                    borderRadius: '4px',
+                                    transition: 'width 0.1s ease'
+                                }
+                            }),
+                            children
+                        ]),
+                    renderThumb: ({ props }) =>
+                        React.createElement('div', {
+                            ...props,
+                            style: {
+                                ...props.style,
+                                height: '24px',
+                                width: '24px',
+                                backgroundColor: 'white',
+                                borderRadius: '50%',
+                                border: '3px solid #1e40af',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                cursor: 'grab'
+                            }
+                        })
+                })
+            ]);
+        }
+
+        // Combined Control Demo
+        function CombinedDemo() {
+            const [joystickData, setJoystickData] = useState({ x: 0, y: 0 });
+            const [sliderData, setSliderData] = useState([25]);
+
+            const handleJoystickMove = (stick) => {
+                const data = { x: stick.x || 0, y: stick.y || 0 };
+                setJoystickData(data);
+                logCommand('combined_joystick', 'position_update', data);
+            };
+
+            const handleSliderChange = (values) => {
+                setSliderData(values);
+                logCommand('combined_slider', 'value_update', { intensity: values[0] });
+            };
+
+            useEffect(() => {
+                document.getElementById('combined-status').innerHTML = 
+                    `Joystick: (${joystickData.x.toFixed(2)}, ${joystickData.y.toFixed(2)})<br>
+                     Intensity: ${sliderData[0]}%<br>
+                     Vector Magnitude: ${Math.sqrt(joystickData.x**2 + joystickData.y**2).toFixed(2)}`;
+            }, [joystickData, sliderData]);
+
+            return React.createElement('div', { className: 'space-y-4' }, [
+                React.createElement('div', { 
+                    key: 'joystick',
+                    className: 'flex justify-center' 
+                }, React.createElement(window.ReactJoystickComponent.Joystick, {
+                    size: 80,
+                    sticky: false,
+                    baseColor: '#7c3aed',
+                    stickColor: '#ffffff',
+                    move: handleJoystickMove,
+                    stop: () => {
+                        setJoystickData({ x: 0, y: 0 });
+                        logCommand('combined_joystick', 'released', { x: 0, y: 0 });
+                    }
+                })),
+                React.createElement('div', {
+                    key: 'slider',
+                    className: 'px-2'
+                }, React.createElement(window.ReactRange.Range, {
+                    step: 5,
+                    min: 0,
+                    max: 100,
+                    values: sliderData,
+                    onChange: handleSliderChange,
+                    renderTrack: ({ props, children }) => 
+                        React.createElement('div', {
+                            ...props,
+                            style: {
+                                ...props.style,
+                                height: '6px',
+                                width: '100%',
+                                backgroundColor: 'rgba(255,255,255,0.3)',
+                                borderRadius: '3px'
+                            }
+                        }, children),
+                    renderThumb: ({ props }) =>
+                        React.createElement('div', {
+                            ...props,
+                            style: {
+                                ...props.style,
+                                height: '18px',
+                                width: '18px',
+                                backgroundColor: 'white',
+                                borderRadius: '50%',
+                                border: '2px solid #7c3aed'
+                            }
+                        })
+                }))
+            ]);
+        }
+
+        // Initialize all components
+        createRoot(document.getElementById('joystick-demo')).render(
+            React.createElement(ProfessionalJoystick)
+        );
+
+        createRoot(document.getElementById('range-demo')).render(
+            React.createElement(ProfessionalRange)
+        );
+
+        createRoot(document.getElementById('combined-demo')).render(
+            React.createElement(CombinedDemo)
+        );
+
+        // Log initialization
+        logCommand('system', 'initialized', { 
+            libraries: ['react-joystick-component@1.0.6', 'react-range@1.8.14'],
+            timestamp: new Date().toISOString()
+        });
+    </script>
+</body>
+</html>
