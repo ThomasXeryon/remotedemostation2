@@ -104,7 +104,7 @@ function AutoLogin() {
           Redirecting to authentication...
         </p>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <SignInButton mode="modal">
+        <SignInButton>
           <button ref={buttonRef} style={{ display: 'none' }}>
             Sign In
           </button>
@@ -149,7 +149,7 @@ function AuthWrapper() {
             <Route path="/react-dnd-demo" component={ReactDndDemo} />
             <Route path="/customer-login/:stationId" component={({ params }) => (
               <CustomerLogin 
-                stationId={params!.stationId} 
+                stationId={params?.stationId || ''} 
                 organizationName="Demo Organization" 
                 stationName="Demo Station" 
               />
