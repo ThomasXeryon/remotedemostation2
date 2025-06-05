@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Save, Plus, Trash2, Settings, Gamepad2, Sliders, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { getCurrentUser } from '@/lib/auth';
+import { useUser } from '@clerk/clerk-react';
 import { ControlBuilderModal, type ControlWidget } from '@/components/control-builder-modal';
 import { LayoutEditorModal, type LayoutConfig } from '@/components/layout-editor-modal';
 import type { DemoStation } from '@shared/schema';
@@ -44,7 +44,7 @@ export default function StationEditor() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const currentUser = getCurrentUser();
+  const { user, isLoaded } = useUser();
   const [activeTab, setActiveTab] = useState('basic');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isControlBuilderOpen, setIsControlBuilderOpen] = useState(false);
@@ -88,13 +88,13 @@ export default function StationEditor() {
   // Fetch station data
   const { data: station, isLoading, refetch: refetchStation } = useQuery<DemoStation>({
     queryKey: [`/api/demo-stations/${id}`],
-    enabled: !!id,
+    enabled: isLoaded && !!user && !!id,
   });
 
   // Fetch control configuration
   const { data: controlConfig, refetch: refetchControls } = useQuery({
     queryKey: [`/api/demo-stations/${id}/controls`],
-    enabled: !!id,
+    enabled: isLoaded && !!user && !!id,
   });
 
   // Listen for organization changes and refetch data
@@ -234,6 +234,22 @@ export default function StationEditor() {
     };
     handleConfigChange(updatedConfig);
   };
+
+  if (!isLoaded) {
+    return (
+      <div className="flex-1 space-y-6 p-6">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex-1 space-y-6 p-6">
+        <div className="text-center">Authentication required</div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
