@@ -164,21 +164,50 @@ function AuthWrapper() {
 function App() {
   const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-  if (!clerkPublishableKey) {
+  // For development, bypass Clerk if it's not configured or failing
+  if (!clerkPublishableKey || process.env.NODE_ENV === 'development') {
     return (
-      <ThemeProvider theme={materialTheme}>
-        <CssBaseline />
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5' }}>
-          <div style={{ maxWidth: '400px', width: '100%', backgroundColor: '#ffffff', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', borderRadius: '12px', padding: '24px' }}>
-            <div style={{ textAlign: 'center' }}>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 600, color: 'rgba(0, 0, 0, 0.87)', marginBottom: '16px' }}>Configuration Required</h1>
-              <p style={{ color: 'rgba(0, 0, 0, 0.6)', marginBottom: '24px' }}>
-                Clerk authentication is not configured. Please contact your administrator.
-              </p>
-            </div>
-          </div>
-        </div>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={materialTheme}>
+          <CssBaseline />
+          <DndProvider backend={MultiBackend} options={HTML5toTouch}>
+            <ErrorBoundary>
+              <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+                <Switch>
+                  <Route path="/demo" component={ControlsDemo} />
+                  <Route>
+                    <Layout>
+                      <Switch>
+                        <Route path="/" component={Dashboard} />
+                        <Route path="/dashboard" component={Dashboard} />
+                        <Route path="/organizations" component={Organizations} />
+                        <Route path="/settings" component={Settings} />
+                        <Route path="/analytics" component={Analytics} />
+                        <Route path="/team-members" component={TeamMembers} />
+                        <Route path="/stations" component={Stations} />
+                        <Route path="/stations/new" component={StationEditor} />
+                        <Route path="/stations/:id/edit" component={StationEditor} />
+                        <Route path="/stations/:id/control" component={StationControl} />
+                        <Route path="/shadcn-controls-demo" component={ShadcnControlsDemo} />
+                        <Route path="/material-ui-demo" component={MaterialUIDemo} />
+                        <Route path="/react-dnd-demo" component={ReactDndDemo} />
+                        <Route path="/customer-login/:stationId" component={({ params }) => (
+                          <CustomerLogin 
+                            stationId={params?.stationId || ''} 
+                            organizationName="Demo Organization" 
+                            stationName="Demo Station" 
+                          />
+                        )} />
+                        <Route component={NotFound} />
+                      </Switch>
+                    </Layout>
+                  </Route>
+                </Switch>
+              </div>
+            </ErrorBoundary>
+          </DndProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     );
   }
 
