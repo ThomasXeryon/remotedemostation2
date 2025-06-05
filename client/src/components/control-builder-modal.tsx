@@ -73,11 +73,17 @@ export function ControlBuilderModal({
         style: { ...defaultStyle }
       };
       console.log('Created new control:', newControl);
-      setLocalControls([...localControls, newControl]);
+      console.log('Current localControls:', localControls);
+      
+      const newControls = [...localControls, newControl];
+      console.log('New controls array:', newControls);
+      
+      setLocalControls(newControls);
       setSelectedControl(newControl.id);
       console.log('Control added successfully');
     } catch (error) {
       console.error('Error adding control:', error);
+      console.error('Error stack:', error.stack);
     }
   };
 
@@ -257,6 +263,8 @@ export function ControlBuilderModal({
         return null;
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
