@@ -6,11 +6,11 @@ import { Play, Square, ArrowLeft, Settings, Activity, Edit3, Save } from 'lucide
 import { getCurrentUser } from '@/lib/auth';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { 
-  ProfessionalJoystick, 
-  ProfessionalSlider, 
-  ProfessionalButton, 
-  ProfessionalToggle 
-} from '@/components/professional-controls';
+  ShadcnJoystick, 
+  ShadcnSlider, 
+  ShadcnButton, 
+  ShadcnToggle 
+} from '@/components/shadcn-controls';
 
 interface DemoStation {
   id: string;
@@ -373,7 +373,7 @@ export default function StationControl() {
                   switch (widget.type) {
                     case 'button':
                       return (
-                        <ProfessionalButton
+                        <ShadcnButton
                           key={widget.id}
                           widget={widget}
                           style={baseStyle}
@@ -385,7 +385,7 @@ export default function StationControl() {
                     
                     case 'slider':
                       return (
-                        <ProfessionalSlider
+                        <ShadcnSlider
                           key={widget.id}
                           widget={widget}
                           style={baseStyle}
@@ -397,7 +397,7 @@ export default function StationControl() {
                     
                     case 'joystick':
                       return (
-                        <ProfessionalJoystick
+                        <ShadcnJoystick
                           key={widget.id}
                           widget={widget}
                           style={baseStyle}
@@ -409,7 +409,7 @@ export default function StationControl() {
                     
                     case 'toggle':
                       return (
-                        <ProfessionalToggle
+                        <ShadcnToggle
                           key={widget.id}
                           widget={widget}
                           style={baseStyle}

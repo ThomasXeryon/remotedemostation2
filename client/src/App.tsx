@@ -16,6 +16,7 @@ import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
 import StationControl from "./pages/station-control";
 import { CustomerLogin } from "./pages/customer-login";
+import ControlsDemo from "./pages/controls-demo";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -150,24 +151,29 @@ function App() {
   }
 
   return (
-    <ClerkProvider 
-      publishableKey={clerkPublishableKey}
-      signInUrl="/sign-in"
-      signUpUrl="/sign-up"
-      afterSignInUrl="/"
-      afterSignUpUrl="/"
-    >
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <ErrorBoundary>
-            <div className="min-h-screen bg-background">
-              <AuthWrapper />
-              <Toaster />
-            </div>
-          </ErrorBoundary>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ClerkProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <ErrorBoundary>
+          <div className="min-h-screen bg-background">
+            <Switch>
+              <Route path="/demo" component={ControlsDemo} />
+              <Route>
+                <ClerkProvider 
+                  publishableKey={clerkPublishableKey}
+                  signInUrl="/sign-in"
+                  signUpUrl="/sign-up"
+                  afterSignInUrl="/"
+                  afterSignUpUrl="/"
+                >
+                  <AuthWrapper />
+                </ClerkProvider>
+              </Route>
+            </Switch>
+            <Toaster />
+          </div>
+        </ErrorBoundary>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
