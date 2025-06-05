@@ -536,6 +536,391 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.send(htmlContent);
   });
 
+  // Serve Material-UI controls demo as standalone HTML
+  app.get('/material-ui-demo', async (req, res) => {
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material-UI Professional Controls - RDS</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@mui/material@5.15.0/umd/material-ui.development.js"></script>
+    <script src="https://unpkg.com/@emotion/react@11.11.0/dist/emotion-react.umd.min.js"></script>
+    <script src="https://unpkg.com/@emotion/styled@11.11.0/dist/emotion-styled.umd.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <style>
+        body { margin: 0; font-family: 'Roboto', sans-serif; }
+        .joystick-container {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            position: relative;
+            cursor: pointer;
+            border: 4px solid rgba(25, 118, 210, 0.2);
+            box-shadow: 0 8px 32px rgba(25, 118, 210, 0.3);
+            transition: box-shadow 0.2s ease;
+        }
+        .joystick-container:hover {
+            box-shadow: 0 12px 40px rgba(25, 118, 210, 0.4);
+        }
+        .joystick-stick {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.05s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 3px solid #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { 
+            Box, Card, CardContent, CardHeader, Typography, Slider, Button, 
+            Chip, Grid, Paper, Divider, Stack, ThemeProvider, createTheme 
+        } = MaterialUI;
+
+        const theme = createTheme({
+            palette: {
+                primary: { main: '#1976d2' },
+                secondary: { main: '#dc004e' },
+            },
+        });
+
+        function MaterialUIDemo() {
+            const [commandHistory, setCommandHistory] = useState([]);
+            const [joystickPosition, setJoystickPosition] = useState({ x: 0, y: 0 });
+            const [sliderValue, setSliderValue] = useState(50);
+            const [combinedSlider, setCombinedSlider] = useState(25);
+            const [isDragging, setIsDragging] = useState(false);
+            
+            const joystickRef = useRef(null);
+
+            const logCommand = (device, action, data) => {
+                const command = {
+                    timestamp: new Date().toISOString(),
+                    device,
+                    action,
+                    data
+                };
+                
+                setCommandHistory(prev => [command, ...prev.slice(0, 49)]);
+            };
+
+            const clearCommandLog = () => {
+                setCommandHistory([]);
+            };
+
+            const handleJoystickMouseDown = (event) => {
+                event.preventDefault();
+                setIsDragging(true);
+                
+                const handleMouseMove = (e) => {
+                    if (!joystickRef.current) return;
+                    
+                    const rect = joystickRef.current.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    const deltaX = e.clientX - centerX;
+                    const deltaY = e.clientY - centerY;
+                    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                    const maxDistance = 50;
+                    
+                    let x = deltaX;
+                    let y = deltaY;
+                    
+                    if (distance > maxDistance) {
+                        x = (deltaX / distance) * maxDistance;
+                        y = (deltaY / distance) * maxDistance;
+                    }
+                    
+                    const normalizedX = parseFloat((x / maxDistance).toFixed(3));
+                    const normalizedY = parseFloat((-y / maxDistance).toFixed(3));
+                    
+                    setJoystickPosition({ x: normalizedX, y: normalizedY });
+                    logCommand('mui_joystick', 'move', { x: normalizedX, y: normalizedY });
+                };
+                
+                const handleMouseUp = () => {
+                    setIsDragging(false);
+                    setJoystickPosition({ x: 0, y: 0 });
+                    logCommand('mui_joystick', 'stop', { x: 0, y: 0 });
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                };
+                
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+            };
+
+            const handleSliderChange = (_, value) => {
+                setSliderValue(value);
+                logCommand('mui_slider', 'change', { value });
+            };
+
+            const handleCombinedSliderChange = (_, value) => {
+                setCombinedSlider(value);
+                logCommand('combined_mui_slider', 'intensity_update', { intensity: value });
+            };
+
+            useEffect(() => {
+                logCommand('mui_system', 'initialized', { 
+                    framework: 'Material-UI',
+                    components: ['Slider', 'Card', 'Button', 'Chip'],
+                    timestamp: new Date().toISOString()
+                });
+            }, []);
+
+            return React.createElement(ThemeProvider, { theme }, 
+                React.createElement(Box, { sx: { p: 3, backgroundColor: '#f5f5f5', minHeight: '100vh' } }, [
+                    
+                    // Header
+                    React.createElement(Card, { key: 'header', elevation: 3, sx: { mb: 3 } },
+                        React.createElement(CardContent, { sx: { p: 4 } }, [
+                            React.createElement(Stack, { key: 'title', direction: 'row', spacing: 2, alignItems: 'center', sx: { mb: 3 } }, [
+                                React.createElement(Box, {
+                                    key: 'icon',
+                                    sx: {
+                                        width: 64, height: 64,
+                                        background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                                        borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }
+                                }, React.createElement('span', { 
+                                    className: 'material-icons', 
+                                    style: { color: 'white', fontSize: 32 } 
+                                }, 'videogame_asset')),
+                                React.createElement(Box, { key: 'text' }, [
+                                    React.createElement(Typography, { 
+                                        key: 'h1',
+                                        variant: 'h3', component: 'h1', fontWeight: 'bold', color: 'primary'
+                                    }, 'Material-UI Professional Controls'),
+                                    React.createElement(Typography, { 
+                                        key: 'h6',
+                                        variant: 'h6', color: 'text.secondary'
+                                    }, 'Remote Demo Station hardware control interface')
+                                ])
+                            ]),
+                            React.createElement(Stack, { key: 'chips', direction: 'row', spacing: 2, flexWrap: 'wrap' }, [
+                                React.createElement(Chip, { 
+                                    key: 'chip1',
+                                    label: 'Material-UI Components', color: 'primary', size: 'small'
+                                }),
+                                React.createElement(Chip, { 
+                                    key: 'chip2',
+                                    label: 'Touch Responsive', color: 'success', size: 'small'
+                                }),
+                                React.createElement(Chip, { 
+                                    key: 'chip3',
+                                    label: 'Real-time Commands', color: 'secondary', size: 'small'
+                                })
+                            ])
+                        ])
+                    ),
+
+                    // Controls Grid
+                    React.createElement(Stack, { key: 'controls', direction: { xs: 'column', lg: 'row' }, spacing: 3, sx: { mb: 3 } }, [
+                        
+                        // Joystick Demo
+                        React.createElement(Card, { 
+                            key: 'joystick',
+                            elevation: 2, 
+                            sx: { border: '2px solid', borderColor: 'primary.200', flex: 1 }
+                        }, [
+                            React.createElement(CardHeader, {
+                                key: 'header',
+                                title: 'Material-UI Joystick',
+                                titleTypographyProps: { color: 'primary.main', fontWeight: 'bold' }
+                            }),
+                            React.createElement(CardContent, { key: 'content' },
+                                React.createElement(Stack, { spacing: 3, alignItems: 'center' }, [
+                                    React.createElement('div', {
+                                        key: 'joystick-elem',
+                                        ref: joystickRef,
+                                        className: 'joystick-container',
+                                        onMouseDown: handleJoystickMouseDown
+                                    }, React.createElement('div', {
+                                        className: 'joystick-stick',
+                                        style: {
+                                            transform: \`translate(calc(-50% + \${joystickPosition.x * 50}px), calc(-50% + \${-joystickPosition.y * 50}px))\`
+                                        }
+                                    })),
+                                    React.createElement(Paper, { 
+                                        key: 'values',
+                                        elevation: 1, 
+                                        sx: { p: 2, width: '100%', backgroundColor: 'grey.50' }
+                                    }, React.createElement(Typography, { 
+                                        variant: 'body2', 
+                                        component: 'div', 
+                                        fontFamily: 'monospace', 
+                                        textAlign: 'center'
+                                    }, [
+                                        React.createElement('div', { key: 'x' }, \`X: \${joystickPosition.x.toFixed(3)}\`),
+                                        React.createElement('div', { key: 'y' }, \`Y: \${joystickPosition.y.toFixed(3)}\`),
+                                        React.createElement('div', { key: 'mag' }, \`Magnitude: \${Math.sqrt(joystickPosition.x**2 + joystickPosition.y**2).toFixed(3)}\`)
+                                    ]))
+                                ])
+                            )
+                        ]),
+
+                        // Slider Demo
+                        React.createElement(Card, { 
+                            key: 'slider',
+                            elevation: 2, 
+                            sx: { border: '2px solid', borderColor: 'success.200', flex: 1 }
+                        }, [
+                            React.createElement(CardHeader, {
+                                key: 'header',
+                                title: 'Material-UI Slider',
+                                titleTypographyProps: { color: 'success.main', fontWeight: 'bold' }
+                            }),
+                            React.createElement(CardContent, { key: 'content' },
+                                React.createElement(Stack, { spacing: 4, alignItems: 'center' }, [
+                                    React.createElement(Typography, { 
+                                        key: 'display',
+                                        variant: 'h2', component: 'div', color: 'success.main', fontWeight: 'bold'
+                                    }, \`\${sliderValue}%\`),
+                                    React.createElement(Box, { key: 'slider-box', sx: { width: '100%', px: 2 } },
+                                        React.createElement(Slider, {
+                                            value: sliderValue,
+                                            onChange: handleSliderChange,
+                                            min: 0, max: 100, step: 1,
+                                            color: 'success'
+                                        })
+                                    ),
+                                    React.createElement(Paper, { 
+                                        key: 'values',
+                                        elevation: 1, 
+                                        sx: { p: 2, width: '100%', backgroundColor: 'grey.50' }
+                                    }, React.createElement(Typography, { 
+                                        variant: 'body2', component: 'div', fontFamily: 'monospace', textAlign: 'center'
+                                    }, [
+                                        React.createElement('div', { key: 'val' }, \`Value: \${sliderValue}%\`),
+                                        React.createElement('div', { key: 'norm' }, \`Normalized: \${(sliderValue / 100).toFixed(2)}\`)
+                                    ]))
+                                ])
+                            )
+                        ]),
+
+                        // Combined Controls
+                        React.createElement(Card, { 
+                            key: 'combined',
+                            elevation: 2, 
+                            sx: { border: '2px solid', borderColor: 'secondary.200', flex: 1 }
+                        }, [
+                            React.createElement(CardHeader, {
+                                key: 'header',
+                                title: 'Combined Controls',
+                                titleTypographyProps: { color: 'secondary.main', fontWeight: 'bold' }
+                            }),
+                            React.createElement(CardContent, { key: 'content' },
+                                React.createElement(Stack, { spacing: 3, alignItems: 'center' }, [
+                                    React.createElement(Box, {
+                                        key: 'mini-joystick',
+                                        sx: {
+                                            width: 100, height: 100, borderRadius: '50%',
+                                            background: 'linear-gradient(135deg, #dc004e 0%, #c2185b 100%)',
+                                            position: 'relative', cursor: 'pointer',
+                                            border: '3px solid', borderColor: 'secondary.200',
+                                            boxShadow: '0 4px 16px rgba(220, 0, 78, 0.3)',
+                                        }
+                                    }, React.createElement(Box, {
+                                        sx: {
+                                            width: 24, height: 24, borderRadius: '50%', backgroundColor: 'white',
+                                            position: 'absolute', top: '50%', left: '50%',
+                                            transform: 'translate(-50%, -50%)',
+                                            border: '2px solid', borderColor: 'secondary.dark',
+                                        }
+                                    })),
+                                    React.createElement(Box, { key: 'slider-box', sx: { width: '100%', px: 1 } },
+                                        React.createElement(Slider, {
+                                            value: combinedSlider,
+                                            onChange: handleCombinedSliderChange,
+                                            min: 0, max: 100, step: 5,
+                                            color: 'secondary', size: 'small'
+                                        })
+                                    ),
+                                    React.createElement(Paper, { 
+                                        key: 'values',
+                                        elevation: 1, 
+                                        sx: { p: 2, width: '100%', backgroundColor: 'grey.50' }
+                                    }, React.createElement(Typography, { 
+                                        variant: 'body2', component: 'div', fontFamily: 'monospace', textAlign: 'center'
+                                    }, \`Intensity: \${combinedSlider}%\`))
+                                ])
+                            )
+                        ])
+                    ]),
+
+                    // Command Log
+                    React.createElement(Card, { key: 'log', elevation: 3 }, [
+                        React.createElement(CardHeader, {
+                            key: 'header',
+                            title: React.createElement(Stack, { direction: 'row', spacing: 1, alignItems: 'center' }, [
+                                React.createElement(Box, {
+                                    key: 'dot',
+                                    sx: {
+                                        width: 8, height: 8, borderRadius: '50%', backgroundColor: 'success.main',
+                                        animation: 'pulse 2s infinite',
+                                        '@keyframes pulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.5 } },
+                                    }
+                                }),
+                                React.createElement(Typography, { key: 'title', variant: 'h6', fontWeight: 'bold' }, 
+                                    'Hardware Command Stream')
+                            ]),
+                            action: React.createElement(Button, {
+                                variant: 'contained', color: 'error', onClick: clearCommandLog, size: 'small'
+                            }, 'Clear Log')
+                        }),
+                        React.createElement(Divider, { key: 'divider' }),
+                        React.createElement(CardContent, { key: 'content' },
+                            React.createElement(Paper, { 
+                                elevation: 0,
+                                sx: { 
+                                    backgroundColor: '#1a1a1a', color: '#00ff41', p: 2, height: 300,
+                                    overflow: 'auto', fontFamily: 'monospace', fontSize: '0.875rem',
+                                    border: '1px solid #333'
+                                }
+                            }, commandHistory.length === 0 ? 
+                                React.createElement(Typography, { color: 'text.disabled', sx: { fontFamily: 'monospace' } }, 
+                                    '// Waiting for control interactions...') :
+                                commandHistory.map((cmd, index) =>
+                                    React.createElement(Box, { 
+                                        key: index,
+                                        sx: { mb: 0.5, color: index === 0 ? '#ffff00' : '#00ff41' }
+                                    }, \`[\${cmd.timestamp.split('T')[1].split('.')[0]}] \${cmd.device}.\${cmd.action}(\${JSON.stringify(cmd.data)})\`)
+                                )
+                            )
+                        )
+                    ])
+                ])
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(MaterialUIDemo));
+    </script>
+</body>
+</html>`;
+    
+    res.setHeader('Content-Type', 'text/html');
+    res.send(htmlContent);
+  });
+
   // Development login route for testing
   app.post('/api/auth/dev-login', async (req, res) => {
     if (process.env.NODE_ENV !== 'development') {
