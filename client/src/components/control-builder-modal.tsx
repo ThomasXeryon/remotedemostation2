@@ -86,13 +86,15 @@ export function ControlBuilderModal({
     }
   };
 
-  const getDefaultSize = (type: ControlWidget['type']) => {
+  const getDefaultSize = (type: ControlWidget['type'], size: 'small' | 'medium' | 'large' = 'medium') => {
+    const multiplier = size === 'small' ? 0.75 : size === 'large' ? 1.5 : 1;
+    
     switch (type) {
-      case 'button': return { width: 120, height: 40 };
-      case 'slider': return { width: 200, height: 30 };
-      case 'toggle': return { width: 60, height: 30 };
-      case 'joystick': return { width: 120, height: 120 };
-      default: return { width: 120, height: 40 };
+      case 'button': return { width: Math.round(100 * multiplier), height: Math.round(35 * multiplier) };
+      case 'slider': return { width: Math.round(150 * multiplier), height: Math.round(25 * multiplier) };
+      case 'toggle': return { width: Math.round(50 * multiplier), height: Math.round(25 * multiplier) };
+      case 'joystick': return { width: Math.round(80 * multiplier), height: Math.round(80 * multiplier) };
+      default: return { width: Math.round(100 * multiplier), height: Math.round(35 * multiplier) };
     }
   };
 
