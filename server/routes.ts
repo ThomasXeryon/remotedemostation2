@@ -96,14 +96,12 @@ function setupPassport() {
   // Use the correct absolute URL for the current environment
   let callbackURL;
   
-  // Check if we're in a deployment environment (no REPLIT_DEV_DOMAIN means deployment)
-  if (!process.env.REPLIT_DEV_DOMAIN && process.env.REPL_SLUG) {
-    // In deployment, check for custom domain first, then fall back to replit domain
-    if (process.env.CUSTOM_DOMAIN) {
-      callbackURL = `https://${process.env.CUSTOM_DOMAIN}/auth/google/callback`;
-    } else {
-      callbackURL = `https://${process.env.REPL_SLUG}.replit.app/auth/google/callback`;
-    }
+  // Check if we have a custom domain configured (highest priority)
+  if (process.env.CUSTOM_DOMAIN) {
+    callbackURL = `https://${process.env.CUSTOM_DOMAIN}/auth/google/callback`;
+  } else if (process.env.NODE_ENV === 'production' && process.env.REPL_SLUG) {
+    // In production deployment without custom domain, use replit.app domain
+    callbackURL = `https://${process.env.REPL_SLUG}.replit.app/auth/google/callback`;
   } else if (process.env.REPLIT_DEV_DOMAIN) {
     // In development, use the dev domain
     callbackURL = `https://${process.env.REPLIT_DEV_DOMAIN}/auth/google/callback`;
