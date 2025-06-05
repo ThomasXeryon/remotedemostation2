@@ -46,7 +46,7 @@ interface ControlWidget {
 }
 
 export default function StationControl() {
-  const { id } = useParams();
+  const { id } = useParams() as { id: string };
   const currentUser = getCurrentUser();
   
   const [isSessionActive, setIsSessionActive] = useState(false);
