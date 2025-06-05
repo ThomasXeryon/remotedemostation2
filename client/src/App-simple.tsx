@@ -1,125 +1,71 @@
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Layout } from "@/components/layout";
-import { Dashboard } from "@/pages/dashboard-new";
-import { LandingPage } from "@/pages/landing";
-import Organizations from "@/pages/organizations";
-import Settings from "@/pages/settings";
-import Analytics from "@/pages/analytics";
-import TeamMembers from "@/pages/team-members";
-import NotFound from "@/pages/not-found";
-import Stations from "./pages/stations";
+import { ThemeProvider } from "@mui/material/styles";
+import { CssBaseline } from "@mui/material";
+import { materialTheme } from "./theme/material-theme";
+import { DndProvider } from 'react-dnd';
+import { MultiBackend, HTML5toTouch } from './lib/dnd-backend';
+import { queryClient } from "./lib/queryClient";
 import StationEditor from "./pages/station-editor";
-import StationControl from "./pages/station-control-simple";
-import { CustomerLogin } from "./pages/customer-login";
-import { Component, ErrorInfo, ReactNode, useState } from "react";
+import ReactDndDemo from "./pages/react-dnd-demo";
+import { SimpleLogin } from "./pages/simple-login";
+import { useState } from "react";
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-}
+export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h2>
-            <p className="text-gray-600 mb-4">
-              {this.state.error?.message || 'An unexpected error occurred'}
-            </p>
-            <button
-              onClick={() => this.setState({ hasError: false, error: undefined })}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Try again
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-function SimpleAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  if (!isAuthenticated) {
+  if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-          <h1 className="text-3xl font-bold text-center mb-6">Remote Demo Station</h1>
-          <p className="text-gray-600 text-center mb-6">
-            Access your hardware control dashboard
-          </p>
-          <button
-            onClick={() => setIsAuthenticated(true)}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Continue to Dashboard
-          </button>
-        </div>
-      </div>
+      <ThemeProvider theme={materialTheme}>
+        <CssBaseline />
+        <SimpleLogin onLogin={() => setIsLoggedIn(true)} />
+      </ThemeProvider>
     );
   }
 
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/organizations" component={Organizations} />
-        <Route path="/settings" component={Settings} />
-        <Route path="/analytics" component={Analytics} />
-        <Route path="/team-members" component={TeamMembers} />
-        <Route path="/stations" component={Stations} />
-        <Route path="/stations/new" component={StationEditor} />
-        <Route path="/stations/:id/edit" component={StationEditor} />
-        <Route path="/stations/:id/control" component={StationControl} />
-        <Route path="/customer-login/:stationId" component={({ params }) => (
-          <CustomerLogin 
-            stationId={params?.stationId || ''} 
-            organizationName="Demo Organization" 
-            stationName="Demo Station" 
-          />
-        )} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
-  );
-}
-
-function App() {
-  return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ErrorBoundary>
-          <div className="min-h-screen bg-background">
-            <SimpleAuth />
-            <Toaster />
+      <DndProvider backend={MultiBackend} options={HTML5toTouch}>
+        <ThemeProvider theme={materialTheme}>
+          <CssBaseline />
+          <div style={{ minHeight: '100vh' }}>
+            <Switch>
+              <Route path="/" component={() => (
+                <div style={{ padding: '20px', textAlign: 'center' }}>
+                  <h1>Remote Demo Station</h1>
+                  <div style={{ marginTop: '20px' }}>
+                    <a href="/station-editor/demo-station-1" style={{ 
+                      display: 'inline-block', 
+                      padding: '10px 20px', 
+                      background: '#1976d2', 
+                      color: 'white', 
+                      textDecoration: 'none', 
+                      borderRadius: '4px',
+                      margin: '0 10px'
+                    }}>
+                      Station Editor (New Control Builder)
+                    </a>
+                    <a href="/react-dnd-demo" style={{ 
+                      display: 'inline-block', 
+                      padding: '10px 20px', 
+                      background: '#388e3c', 
+                      color: 'white', 
+                      textDecoration: 'none', 
+                      borderRadius: '4px',
+                      margin: '0 10px'
+                    }}>
+                      React DnD Demo
+                    </a>
+                  </div>
+                </div>
+              )} />
+              <Route path="/station-editor/:id" component={StationEditor} />
+              <Route path="/react-dnd-demo" component={ReactDndDemo} />
+              <Route component={() => <div>404 - Page not found</div>} />
+            </Switch>
           </div>
-        </ErrorBoundary>
-      </TooltipProvider>
+        </ThemeProvider>
+      </DndProvider>
     </QueryClientProvider>
   );
 }
-
-export default App;
