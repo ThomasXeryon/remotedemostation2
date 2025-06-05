@@ -154,12 +154,33 @@ function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const forceLogout = urlParams.get('force_logout');
+    const currentPath = window.location.pathname;
     
     console.log('App useEffect - Current URL:', window.location.href);
     console.log('App useEffect - Token from URL:', token);
     console.log('App useEffect - Force logout:', forceLogout);
     console.log('App useEffect - Current auth token:', authStorage.getToken());
     console.log('App useEffect - isAuthenticated:', isAuthenticated());
+    
+    // Check for expired token and force logout
+    const currentToken = authStorage.getToken();
+    if (currentToken && currentPath === '/dashboard') {
+      // Check if token is for old user ID 1 (force logout for token refresh)
+      try {
+        const payload = JSON.parse(atob(currentToken.split('.')[1]));
+        if (payload.id === 1) {
+          console.log('Detected old user token (ID 1), forcing logout for fresh authentication');
+          authStorage.clearAll();
+          window.location.href = '/login';
+          return;
+        }
+      } catch (e) {
+        console.log('Invalid token detected, clearing authentication');
+        authStorage.clearAll();
+        window.location.href = '/login';
+        return;
+      }
+    }
     
     // Handle forced logout to clear old tokens
     if (forceLogout === '1') {
