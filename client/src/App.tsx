@@ -8,8 +8,7 @@ import { materialTheme } from "./theme/material-theme";
 import { DndProvider } from 'react-dnd';
 import { MultiBackend, HTML5toTouch } from './lib/dnd-backend';
 import { Layout } from "@/components/layout";
-// import { ClerkProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@clerk/clerk-react";
-import { AuthProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@/components/standalone-auth";
+import { ClerkProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Dashboard } from "@/pages/dashboard-new";
 import Organizations from "@/pages/organizations";
 import Settings from "@/pages/settings";
@@ -163,13 +162,33 @@ function AuthWrapper() {
 }
 
 function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
+  const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+  if (!clerkPublishableKey) {
+    return (
       <ThemeProvider theme={materialTheme}>
         <CssBaseline />
-        <DndProvider backend={MultiBackend} options={HTML5toTouch}>
-          <ErrorBoundary>
-            <AuthProvider>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5' }}>
+          <div style={{ maxWidth: '400px', width: '100%', backgroundColor: '#ffffff', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', borderRadius: '12px', padding: '24px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 600, color: 'rgba(0, 0, 0, 0.87)', marginBottom: '16px' }}>Configuration Required</h1>
+              <p style={{ color: 'rgba(0, 0, 0, 0.6)', marginBottom: '24px' }}>
+                Clerk authentication is not configured. Please contact your administrator.
+              </p>
+            </div>
+          </div>
+        </div>
+      </ThemeProvider>
+    );
+  }
+
+  return (
+    <ClerkProvider publishableKey={clerkPublishableKey}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={materialTheme}>
+          <CssBaseline />
+          <DndProvider backend={MultiBackend} options={HTML5toTouch}>
+            <ErrorBoundary>
               <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
                 <Switch>
                   <Route path="/demo" component={ControlsDemo} />
@@ -178,11 +197,11 @@ function App() {
                   </Route>
                 </Switch>
               </div>
-            </AuthProvider>
-          </ErrorBoundary>
-        </DndProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+            </ErrorBoundary>
+          </DndProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
   );
 }
 

@@ -29,8 +29,8 @@ interface AuthenticatedRequest extends Request {
 // Middleware to verify Clerk session
 function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   // Development bypass for testing
-  if (process.env.NODE_ENV === 'development' && req.headers['x-debug-user']) {
-    console.log('Debug mode: bypassing authentication');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Development mode: bypassing authentication');
     req.user = {
       id: 1,
       organizationId: 1,
@@ -39,11 +39,13 @@ function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextF
     return next();
   }
 
-  // Extract Clerk session token from cookies
-  const sessionToken = req.cookies['__session'] || req.cookies['__session_HnP_O-TV'];
+  // Extract Clerk session token from cookies or Authorization header
+  const sessionToken = req.cookies['__session'] || 
+                      req.cookies['__session_HnP_O-TV'] ||
+                      req.headers.authorization?.replace('Bearer ', '');
   
   if (!sessionToken) {
-    console.log('No Clerk session token found in cookies');
+    console.log('No Clerk session token found in cookies or headers');
     return res.status(401).json({ message: 'Authentication required' });
   }
 
@@ -58,8 +60,8 @@ function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextF
 
     console.log('Clerk session verified for user:', payload.sub);
     req.user = {
-      id: 3, // Hardcoded for now, should map Clerk user ID to internal user ID
-      organizationId: 9, // Hardcoded for now, should get from user's organization
+      id: 1, // Map to first user for development
+      organizationId: 1, // Map to first organization for development
       role: 'admin'
     };
     next();
