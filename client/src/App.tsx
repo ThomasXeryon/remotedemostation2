@@ -162,7 +162,7 @@ function App() {
   const isLocalDevelopment = window.location.hostname.includes('replit.dev');
   const clerkPublishableKey = isLocalDevelopment
     ? "pk_test_cHJvdmVuLWh1bXBiYWNrLTE4LmNsZXJrLmFjY291bnRzLmRldiQ"
-    : import.meta.env.VITE_CLERK_PRODUCTION_PUBLIC;
+    : "pk_live_Y2xlcmsuYXBwLnJlbW90ZWRlbW9zdGF0aW9uLmNvbSQ";
 
   if (!clerkPublishableKey) {
     console.error('Missing Clerk key. Environment:', { 
