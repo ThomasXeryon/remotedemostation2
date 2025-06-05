@@ -1,0 +1,52 @@
+client:536 WebSocket connection to 'wss://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/?token=zoNyAee1TJtI' failed: 
+setupWebSocket @ client:536
+(anonymous) @ client:531
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=zoNyAee1TJtI' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+setupWebSocket @ client:536
+fallback @ client:509
+(anonymous) @ client:555
+chunk-WERSD76P.js?v=b17bf129:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+clerk.browser.js:16 Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+warnOnce @ clerk.browser.js:16
+load @ clerk.browser.js:5
+loadClerkJS @ @clerk_clerk-react.js?v=b17bf129:5542
+await in loadClerkJS
+_IsomorphicClerk2 @ @clerk_clerk-react.js?v=b17bf129:5415
+getOrCreateInstance @ @clerk_clerk-react.js?v=b17bf129:5441
+useLoadedIsomorphicClerk @ @clerk_clerk-react.js?v=b17bf129:5699
+ClerkContextProvider @ @clerk_clerk-react.js?v=b17bf129:5636
+renderWithHooks @ chunk-WERSD76P.js?v=b17bf129:11548
+mountIndeterminateComponent @ chunk-WERSD76P.js?v=b17bf129:14926
+beginWork @ chunk-WERSD76P.js?v=b17bf129:15914
+beginWork$1 @ chunk-WERSD76P.js?v=b17bf129:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=b17bf129:19198
+workLoopSync @ chunk-WERSD76P.js?v=b17bf129:19137
+renderRootSync @ chunk-WERSD76P.js?v=b17bf129:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=b17bf129:18678
+workLoop @ chunk-WERSD76P.js?v=b17bf129:197
+flushWork @ chunk-WERSD76P.js?v=b17bf129:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=b17bf129:384
+clerk.browser.js:16 Clerk: The prop "afterSignInUrl" is deprecated and should be replaced with the new "fallbackRedirectUrl" or "forceRedirectUrl" props instead. Learn more: https://clerk.com/docs/guides/custom-redirects#redirect-url-props
+warnOnce @ clerk.browser.js:16
+r @ clerk.browser.js:5
+load @ clerk.browser.js:5
+loadClerkJS @ @clerk_clerk-react.js?v=b17bf129:5542
+await in loadClerkJS
+_IsomorphicClerk2 @ @clerk_clerk-react.js?v=b17bf129:5415
+getOrCreateInstance @ @clerk_clerk-react.js?v=b17bf129:5441
+useLoadedIsomorphicClerk @ @clerk_clerk-react.js?v=b17bf129:5699
+ClerkContextProvider @ @clerk_clerk-react.js?v=b17bf129:5636
+renderWithHooks @ chunk-WERSD76P.js?v=b17bf129:11548
+mountIndeterminateComponent @ chunk-WERSD76P.js?v=b17bf129:14926
+beginWork @ chunk-WERSD76P.js?v=b17bf129:15914
+beginWork$1 @ chunk-WERSD76P.js?v=b17bf129:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=b17bf129:19198
+workLoopSync @ chunk-WERSD76P.js?v=b17bf129:19137
+renderRootSync @ chunk-WERSD76P.js?v=b17bf129:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=b17bf129:18678
+workLoop @ chunk-WERSD76P.js?v=b17bf129:197
+flushWork @ chunk-WERSD76P.js?v=b17bf129:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=b17bf129:384
