@@ -8,7 +8,8 @@ import { materialTheme } from "./theme/material-theme";
 import { DndProvider } from 'react-dnd';
 import { MultiBackend, HTML5toTouch } from './lib/dnd-backend';
 import { Layout } from "@/components/layout";
-import { ClerkProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@clerk/clerk-react";
+// import { ClerkProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@clerk/clerk-react";
+import { AuthProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@/components/standalone-auth";
 import { Dashboard } from "@/pages/dashboard-new";
 import Organizations from "@/pages/organizations";
 import Settings from "@/pages/settings";
@@ -103,7 +104,7 @@ function AutoLogin() {
           Redirecting to authentication...
         </p>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <SignInButton mode="modal">
+        <SignInButton>
           <button ref={buttonRef} style={{ display: 'none' }}>
             Sign In
           </button>
@@ -148,7 +149,7 @@ function AuthWrapper() {
             <Route path="/react-dnd-demo" component={ReactDndDemo} />
             <Route path="/customer-login/:stationId" component={({ params }) => (
               <CustomerLogin 
-                stationId={params!.stationId} 
+                stationId={params?.stationId || ''} 
                 organizationName="Demo Organization" 
                 stationName="Demo Station" 
               />
@@ -162,37 +163,22 @@ function AuthWrapper() {
 }
 
 function App() {
-  // Use development keys for local development, production keys for deployment
-  const clerkPublishableKey = window.location.hostname.includes('replit.dev') 
-    ? "pk_test_cHJvdmVuLWh1bXBiYWNrLTE4LmNsZXJrLmFjY291bnRzLmRldiQ"
-    : import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-  if (!clerkPublishableKey) {
-    throw new Error("Missing Clerk Publishable Key");
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={materialTheme}>
         <CssBaseline />
         <DndProvider backend={MultiBackend} options={HTML5toTouch}>
           <ErrorBoundary>
-            <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-              <Switch>
-                <Route path="/demo" component={ControlsDemo} />
-                <Route>
-                  <ClerkProvider 
-                    publishableKey={clerkPublishableKey}
-                    signInUrl="/sign-in"
-                    signUpUrl="/sign-up"
-                    afterSignInUrl="/"
-                    afterSignUpUrl="/"
-                  >
+            <AuthProvider>
+              <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+                <Switch>
+                  <Route path="/demo" component={ControlsDemo} />
+                  <Route>
                     <AuthWrapper />
-                  </ClerkProvider>
-                </Route>
-              </Switch>
-            </div>
+                  </Route>
+                </Switch>
+              </div>
+            </AuthProvider>
           </ErrorBoundary>
         </DndProvider>
       </ThemeProvider>
