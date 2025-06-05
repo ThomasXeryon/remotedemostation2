@@ -26,11 +26,12 @@ interface DemoStation {
 }
 
 export function Dashboard() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const { data: demoStations, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/demo-stations'],
-    retry: false,
+    retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: isLoaded && !!user, // Only run query when user is loaded
   });
 
   // Listen for organization changes and refetch data
@@ -46,10 +47,10 @@ export function Dashboard() {
     };
   }, [refetch]);
 
-  if (isLoading) {
+  if (!isLoaded || isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div>Loading demo stations...</div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }

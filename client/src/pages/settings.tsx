@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { getCurrentUser } from "@/lib/auth";
+import { useUser } from "@clerk/clerk-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,12 +12,12 @@ import { User, Settings as SettingsIcon, Key, Bell, Shield } from "lucide-react"
 import { Link } from "wouter";
 
 export default function Settings() {
-  const user = getCurrentUser();
+  const { user, isLoaded } = useUser();
   const { toast } = useToast();
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
-    email: user?.email || "",
+    email: user?.primaryEmailAddress?.emailAddress || "",
   });
 
   // Update profile mutation
@@ -48,8 +48,16 @@ export default function Settings() {
     updateProfileMutation.mutate(profileData);
   };
 
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   if (!user) {
-    return <div>Loading...</div>;
+    return <div>User not found</div>;
   }
 
   return (
