@@ -217,7 +217,7 @@ export default function StationControl() {
           </Link>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography 
-              variant={{ xs: 'h6', sm: 'h5' }} 
+              variant="h5"
               component="h1" 
               fontWeight="bold"
               sx={{ 
@@ -254,7 +254,7 @@ export default function StationControl() {
             onClick={() => isEditMode ? saveControls() : setIsEditMode(true)}
             variant={isEditMode ? "contained" : "outlined"}
             color={isEditMode ? "success" : "primary"}
-            size={{ xs: 'small', sm: 'medium' }}
+            size="small"
             startIcon={isEditMode ? <Save /> : <Edit />}
             sx={{ 
               fontSize: { xs: '0.75rem', sm: '0.875rem' },
@@ -273,7 +273,7 @@ export default function StationControl() {
               onClick={handleStartSession} 
               variant="contained"
               color="success"
-              size={{ xs: 'small', sm: 'medium' }}
+              size="small"
               startIcon={<PlayArrow />}
               sx={{ 
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
@@ -292,7 +292,7 @@ export default function StationControl() {
               onClick={handleStopSession} 
               variant="contained"
               color="error"
-              size={{ xs: 'small', sm: 'medium' }}
+              size="small"
               startIcon={<Stop />}
               sx={{ 
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
