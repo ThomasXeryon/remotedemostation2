@@ -1,16 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-// Use try-catch for authentication hooks in case they're not available
-function useAuthSafely() {
-  try {
-    const { useUser, useAuth } = require('@/components/standalone-auth');
-    return { user: { firstName: 'Demo', lastName: 'User' }, signOut: () => {} };
-  } catch {
-    // For development mode without auth provider
-    return { user: { firstName: 'Demo', lastName: 'User' }, signOut: () => {} };
-  }
-}
+import { useUser, useClerk } from '@clerk/clerk-react';
 import {
   AppBar,
   Toolbar,
@@ -51,7 +42,8 @@ interface LayoutProps {
 const drawerWidth = 280;
 
 export function Layout({ children }: LayoutProps) {
-  const { user, signOut } = useAuthSafely();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const [location, setLocation] = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -222,7 +214,8 @@ export function Layout({ children }: LayoutProps) {
             color="inherit"
           >
             <Avatar 
-              alt={`${user.firstName} ${user.lastName}` || user.email}
+              src={user.profileImageUrl} 
+              alt={user.fullName || user.emailAddresses[0]?.emailAddress}
               sx={{ width: 32, height: 32 }}
             >
               <AccountCircle />

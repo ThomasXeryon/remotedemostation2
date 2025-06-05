@@ -5,8 +5,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline, Alert, Snackbar } from "@mui/material";
 import { materialTheme } from "./theme/material-theme";
-import { DndProvider } from 'react-dnd';
-import { MultiBackend, HTML5toTouch } from './lib/dnd-backend';
 import { Layout } from "@/components/layout";
 import { ClerkProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Dashboard } from "@/pages/dashboard-new";
@@ -22,7 +20,6 @@ import { CustomerLogin } from "./pages/customer-login";
 import ControlsDemo from "./pages/controls-demo";
 import ShadcnControlsDemo from "./pages/shadcn-controls-demo";
 import MaterialUIDemo from "./pages/material-ui-demo";
-import ReactDndDemo from "./pages/react-dnd-demo";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -103,7 +100,7 @@ function AutoLogin() {
           Redirecting to authentication...
         </p>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <SignInButton>
+        <SignInButton mode="modal">
           <button ref={buttonRef} style={{ display: 'none' }}>
             Sign In
           </button>
@@ -145,10 +142,9 @@ function AuthWrapper() {
             <Route path="/stations/:id/control" component={StationControl} />
             <Route path="/shadcn-controls-demo" component={ShadcnControlsDemo} />
             <Route path="/material-ui-demo" component={MaterialUIDemo} />
-            <Route path="/react-dnd-demo" component={ReactDndDemo} />
             <Route path="/customer-login/:stationId" component={({ params }) => (
               <CustomerLogin 
-                stationId={params?.stationId || ''} 
+                stationId={params!.stationId} 
                 organizationName="Demo Organization" 
                 stationName="Demo Station" 
               />
@@ -162,75 +158,39 @@ function AuthWrapper() {
 }
 
 function App() {
-  const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  // Use development keys for local development, production keys for deployment
+  const clerkPublishableKey = window.location.hostname.includes('replit.dev') 
+    ? "pk_test_cHJvdmVuLWh1bXBiYWNrLTE4LmNsZXJrLmFjY291bnRzLmRldiQ"
+    : import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-  // For development, bypass Clerk if it's not configured or failing
-  if (!clerkPublishableKey || process.env.NODE_ENV === 'development') {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={materialTheme}>
-          <CssBaseline />
-          <DndProvider backend={MultiBackend} options={HTML5toTouch}>
-            <ErrorBoundary>
-              <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-                <Switch>
-                  <Route path="/demo" component={ControlsDemo} />
-                  <Route>
-                    <Layout>
-                      <Switch>
-                        <Route path="/" component={Dashboard} />
-                        <Route path="/dashboard" component={Dashboard} />
-                        <Route path="/organizations" component={Organizations} />
-                        <Route path="/settings" component={Settings} />
-                        <Route path="/analytics" component={Analytics} />
-                        <Route path="/team-members" component={TeamMembers} />
-                        <Route path="/stations" component={Stations} />
-                        <Route path="/stations/new" component={StationEditor} />
-                        <Route path="/stations/:id/edit" component={StationEditor} />
-                        <Route path="/stations/:id/control" component={StationControl} />
-                        <Route path="/shadcn-controls-demo" component={ShadcnControlsDemo} />
-                        <Route path="/material-ui-demo" component={MaterialUIDemo} />
-                        <Route path="/react-dnd-demo" component={ReactDndDemo} />
-                        <Route path="/customer-login/:stationId" component={({ params }) => (
-                          <CustomerLogin 
-                            stationId={params?.stationId || ''} 
-                            organizationName="Demo Organization" 
-                            stationName="Demo Station" 
-                          />
-                        )} />
-                        <Route component={NotFound} />
-                      </Switch>
-                    </Layout>
-                  </Route>
-                </Switch>
-              </div>
-            </ErrorBoundary>
-          </DndProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    );
+  if (!clerkPublishableKey) {
+    throw new Error("Missing Clerk Publishable Key");
   }
 
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={materialTheme}>
-          <CssBaseline />
-          <DndProvider backend={MultiBackend} options={HTML5toTouch}>
-            <ErrorBoundary>
-              <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-                <Switch>
-                  <Route path="/demo" component={ControlsDemo} />
-                  <Route>
-                    <AuthWrapper />
-                  </Route>
-                </Switch>
-              </div>
-            </ErrorBoundary>
-          </DndProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ClerkProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={materialTheme}>
+        <CssBaseline />
+        <ErrorBoundary>
+          <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+            <Switch>
+              <Route path="/demo" component={ControlsDemo} />
+              <Route>
+                <ClerkProvider 
+                  publishableKey={clerkPublishableKey}
+                  signInUrl="/sign-in"
+                  signUpUrl="/sign-up"
+                  afterSignInUrl="/"
+                  afterSignUpUrl="/"
+                >
+                  <AuthWrapper />
+                </ClerkProvider>
+              </Route>
+            </Switch>
+          </div>
+        </ErrorBoundary>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

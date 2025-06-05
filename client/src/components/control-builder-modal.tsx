@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { useDrag, useDrop } from 'react-dnd';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,6 +41,8 @@ export function ControlBuilderModal({
 }: ControlBuilderModalProps) {
   const [localControls, setLocalControls] = useState<ControlWidget[]>([]);
   const [selectedControl, setSelectedControl] = useState<string | null>(null);
+  const [draggedControl, setDraggedControl] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Sync controls prop with local state when modal opens or controls change
@@ -86,15 +87,13 @@ export function ControlBuilderModal({
     }
   };
 
-  const getDefaultSize = (type: ControlWidget['type'], size: 'small' | 'medium' | 'large' = 'medium') => {
-    const multiplier = size === 'small' ? 0.75 : size === 'large' ? 1.5 : 1;
-    
+  const getDefaultSize = (type: ControlWidget['type']) => {
     switch (type) {
-      case 'button': return { width: Math.round(100 * multiplier), height: Math.round(35 * multiplier) };
-      case 'slider': return { width: Math.round(150 * multiplier), height: Math.round(25 * multiplier) };
-      case 'toggle': return { width: Math.round(50 * multiplier), height: Math.round(25 * multiplier) };
-      case 'joystick': return { width: Math.round(80 * multiplier), height: Math.round(80 * multiplier) };
-      default: return { width: Math.round(100 * multiplier), height: Math.round(35 * multiplier) };
+      case 'button': return { width: 120, height: 40 };
+      case 'slider': return { width: 200, height: 30 };
+      case 'toggle': return { width: 60, height: 30 };
+      case 'joystick': return { width: 120, height: 120 };
+      default: return { width: 120, height: 40 };
     }
   };
 
@@ -112,31 +111,51 @@ export function ControlBuilderModal({
     }
   };
 
-  // React DnD drop target for the canvas
-  const [{ isOver }, drop] = useDrop({
-    accept: 'control',
-    drop: (item: { id: string }, monitor) => {
-      if (!canvasRef.current) return;
-      
-      const offset = monitor.getClientOffset();
-      const canvasRect = canvasRef.current.getBoundingClientRect();
-      
-      if (offset) {
-        const newX = offset.x - canvasRect.left;
-        const newY = offset.y - canvasRect.top;
-        
-        updateControl(item.id, {
-          position: {
-            x: Math.max(0, Math.min(newX, canvasRect.width - 120)),
-            y: Math.max(0, Math.min(newY, canvasRect.height - 40))
-          }
-        });
+  // Drag and drop handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent, controlId: string) => {
+    e.preventDefault();
+    const control = localControls.find(c => c.id === controlId);
+    if (!control) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+    setDraggedControl(controlId);
+    setSelectedControl(controlId);
+  }, [localControls]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!draggedControl || !canvasRef.current) return;
+
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const newX = e.clientX - canvasRect.left - dragOffset.x;
+    const newY = e.clientY - canvasRect.top - dragOffset.y;
+
+    updateControl(draggedControl, {
+      position: {
+        x: Math.max(0, Math.min(newX, canvasRect.width - 120)),
+        y: Math.max(0, Math.min(newY, canvasRect.height - 40))
       }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
-  });
+    });
+  }, [draggedControl, dragOffset]);
+
+  const handleMouseUp = useCallback(() => {
+    setDraggedControl(null);
+  }, []);
+
+  // Add event listeners for drag functionality
+  React.useEffect(() => {
+    if (draggedControl) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [draggedControl, handleMouseMove, handleMouseUp]);
 
   const selectedControlData = localControls.find(c => c.id === selectedControl);
 
@@ -154,16 +173,8 @@ export function ControlBuilderModal({
     }
   };
 
-  // React DnD draggable control component
-  const DraggableControl = ({ control }: { control: ControlWidget }) => {
-    const [{ isDragging }, drag] = useDrag({
-      type: 'control',
-      item: { id: control.id },
-      collect: (monitor) => ({
-        isDragging: monitor.isDragging(),
-      }),
-    });
-
+  // Render control based on type
+  const renderControl = (control: ControlWidget) => {
     const style = {
       position: 'absolute' as const,
       left: control.position.x,
@@ -175,7 +186,7 @@ export function ControlBuilderModal({
       border: `2px solid ${control.style.borderColor}`,
       borderRadius: control.style.borderRadius,
       fontSize: control.style.fontSize,
-      cursor: isDragging ? 'grabbing' : 'grab',
+      cursor: draggedControl === control.id ? 'grabbing' : 'grab',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -183,49 +194,67 @@ export function ControlBuilderModal({
       outline: selectedControl === control.id ? '2px solid #f59e0b' : 'none',
       outlineOffset: '2px',
       zIndex: selectedControl === control.id ? 10 : 1,
-      opacity: isDragging ? 0.5 : 1,
     };
 
-    return (
-      <div
-        ref={drag}
-        style={style}
-        onClick={() => setSelectedControl(control.id)}
-      >
-        {renderControlContent(control)}
-      </div>
-    );
-  };
-
-  // Render control content based on type
-  const renderControlContent = (control: ControlWidget) => {
     switch (control.type) {
       case 'button':
-        return control.name;
+        return (
+          <div
+            key={control.id}
+            style={style}
+            onMouseDown={(e) => handleMouseDown(e, control.id)}
+            className="font-medium shadow-sm hover:shadow-md transition-shadow"
+          >
+            {control.name}
+          </div>
+        );
 
       case 'slider':
         return (
-          <div className="w-full h-2 rounded-full" style={{ backgroundColor: control.style.borderColor }}>
-            <div className="w-1/3 h-full rounded-full" style={{ backgroundColor: control.style.textColor }} />
+          <div
+            key={control.id}
+            style={{...style, padding: '4px'}}
+            onMouseDown={(e) => handleMouseDown(e, control.id)}
+            className="shadow-sm"
+          >
+            <div 
+              className="w-full h-2 rounded-full"
+              style={{backgroundColor: control.style.borderColor}}
+            />
           </div>
         );
 
       case 'toggle':
         return (
-          <div className="w-8 h-4 rounded-full relative" style={{ backgroundColor: control.style.borderColor }}>
+          <div
+            key={control.id}
+            style={{...style, padding: '4px'}}
+            onMouseDown={(e) => handleMouseDown(e, control.id)}
+            className="shadow-sm"
+          >
             <div 
-              className="w-3 h-3 rounded-full absolute top-0.5 left-0.5 transition-transform"
-              style={{ backgroundColor: control.style.textColor }}
-            />
+              className="w-8 h-4 rounded-full relative"
+              style={{backgroundColor: control.style.borderColor}}
+            >
+              <div 
+                className="w-3 h-3 rounded-full absolute top-0.5 left-0.5 transition-transform"
+                style={{backgroundColor: control.style.textColor}}
+              />
+            </div>
           </div>
         );
 
       case 'joystick':
         return (
-          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: control.style.borderColor }}>
+          <div
+            key={control.id}
+            style={{...style, borderRadius: '50%'}}
+            onMouseDown={(e) => handleMouseDown(e, control.id)}
+            className="shadow-sm"
+          >
             <div 
-              className="w-4 h-4 rounded-full"
-              style={{ backgroundColor: control.style.textColor }}
+              className="w-12 h-12 rounded-full"
+              style={{backgroundColor: control.style.textColor}}
             />
           </div>
         );
@@ -451,13 +480,8 @@ export function ControlBuilderModal({
               </CardHeader>
               <CardContent className="p-0">
                 <div 
-                  ref={(node) => {
-                    canvasRef.current = node;
-                    drop(node);
-                  }}
-                  className={`relative w-full h-[400px] bg-gray-50 border-2 border-dashed border-gray-200 overflow-hidden ${
-                    isOver ? 'bg-blue-50 border-blue-300' : ''
-                  }`}
+                  ref={canvasRef}
+                  className="relative w-full h-[400px] bg-gray-50 border-2 border-dashed border-gray-200 overflow-hidden"
                   style={{ minHeight: '400px' }}
                 >
                   {localControls.length === 0 ? (
@@ -469,9 +493,7 @@ export function ControlBuilderModal({
                       </div>
                     </div>
                   ) : (
-                    localControls.map(control => (
-                      <DraggableControl key={control.id} control={control} />
-                    ))
+                    localControls.map(renderControl)
                   )}
                 </div>
               </CardContent>

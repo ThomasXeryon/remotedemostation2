@@ -25,6 +25,8 @@ import {
 } from "@mui/icons-material";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
+import { useUser } from "@clerk/clerk-react";
+
 interface DemoStation {
   id: string;
   name: string;
@@ -42,10 +44,12 @@ interface DemoStation {
 }
 
 export function Dashboard() {
+  const { user, isLoaded } = useUser();
   const { data: demoStations, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/demo-stations'],
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: isLoaded && !!user, // Only run query when user is loaded
   });
 
   // Listen for organization changes and refetch data
@@ -61,7 +65,7 @@ export function Dashboard() {
     };
   }, [refetch]);
 
-  if (isLoading) {
+  if (!isLoaded || isLoading) {
     return (
       <Box display="flex" alignItems="center" justifyContent="center" height="256px">
         <CircularProgress />

@@ -15,7 +15,8 @@ import { ArrowLeft, Save, Plus, Trash2, Settings, Gamepad2, Sliders, RotateCcw }
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useUser } from '@clerk/clerk-react';
-import { ControlBuilderModal, type ControlWidget, type LayoutConfig } from '@/components/control-builder-modal-new';
+import { ControlBuilderModal, type ControlWidget } from '@/components/control-builder-modal';
+import { LayoutEditorModal, type LayoutConfig } from '@/components/layout-editor-modal';
 import type { DemoStation } from '@shared/schema';
 
 interface StationConfig {
@@ -39,7 +40,7 @@ interface StationConfig {
 }
 
 export default function StationEditor() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -47,6 +48,7 @@ export default function StationEditor() {
   const [activeTab, setActiveTab] = useState('basic');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isControlBuilderOpen, setIsControlBuilderOpen] = useState(false);
+  const [isLayoutEditorOpen, setIsLayoutEditorOpen] = useState(false);
 
   // State for station configuration
   const [config, setConfig] = useState<StationConfig>({
@@ -180,7 +182,7 @@ export default function StationEditor() {
           controls: controls,
           layout: {},
           demoStationId: id,
-          createdBy: user?.id
+          createdBy: currentUser?.id
         }),
       });
     },
@@ -463,12 +465,18 @@ export default function StationEditor() {
         </Tabs>
       </div>
 
-      {/* Control Builder Modal with integrated Layout Editor */}
+      {/* Control Builder Modal */}
       <ControlBuilderModal
         isOpen={isControlBuilderOpen}
         onClose={() => setIsControlBuilderOpen(false)}
         controls={controls}
         onSaveControls={handleSaveControls}
+      />
+
+      {/* Layout Editor Modal */}
+      <LayoutEditorModal
+        isOpen={isLayoutEditorOpen}
+        onClose={() => setIsLayoutEditorOpen(false)}
         layout={layout}
         onSaveLayout={handleSaveLayout}
       />
