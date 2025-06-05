@@ -10,6 +10,7 @@ import { VideoFeed } from '@/components/video-feed';
 import { ControlPanel } from '@/components/control-panel';
 import { TelemetrySection } from '@/components/telemetry-section';
 import { CreateStationModal } from '@/components/create-station-modal';
+import { ControlBuilderModal } from '@/components/control-builder-modal';
 import { useWebSocket } from '@/hooks/use-websocket';
 import { useToast } from '@/hooks/use-toast';
 import { getCurrentUser, logout, refreshUserData } from '@/lib/auth';
@@ -456,6 +457,16 @@ export default function Dashboard() {
           isOpen={isCreateStationOpen}
           onClose={() => setIsCreateStationOpen(false)}
         />
+
+        {/* Control Builder Modal */}
+        {selectedStation && (
+          <ControlBuilderModal
+            isOpen={isControlBuilderOpen}
+            onClose={() => setIsControlBuilderOpen(false)}
+            controls={controlConfig?.controls || []}
+            onSaveControls={handleSaveControls}
+          />
+        )}
       </div>
   );
 }
