@@ -14,7 +14,7 @@ import TeamMembers from "@/pages/team-members";
 import NotFound from "@/pages/not-found";
 import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
-import StationControl from "./pages/station-control-simple";
+import StationControl from "./pages/station-control";
 import { CustomerLogin } from "./pages/customer-login";
 
 interface ErrorBoundaryState {
