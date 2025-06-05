@@ -259,9 +259,10 @@ export default function Dashboard() {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  if (!currentUser) {
-    setLocation('/login');
-    return null;
+  if (!currentUser && !userData) {
+    return <div className="flex items-center justify-center h-64">
+      <div>Loading user data...</div>
+    </div>;
   }
 
   return (

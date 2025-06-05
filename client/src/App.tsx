@@ -72,12 +72,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const authenticated = isAuthenticated();
   console.log('ProtectedRoute - isAuthenticated:', authenticated);
   console.log('ProtectedRoute - token:', authStorage.getToken());
-  
+
   if (!authenticated) {
     console.log('ProtectedRoute - Redirecting to login');
     return <Redirect to="/login" />;
   }
-  
+
   console.log('ProtectedRoute - Rendering protected content');
   return <Layout>{children}</Layout>;
 }
@@ -148,20 +148,20 @@ function Router() {
 
 function App() {
   const [, setLocation] = useLocation();
-  
+
   // Handle OAuth token from URL parameter and force logout if needed
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const forceLogout = urlParams.get('force_logout');
     const currentPath = window.location.pathname;
-    
+
     console.log('App useEffect - Current URL:', window.location.href);
     console.log('App useEffect - Token from URL:', token);
     console.log('App useEffect - Force logout:', forceLogout);
     console.log('App useEffect - Current auth token:', authStorage.getToken());
     console.log('App useEffect - isAuthenticated:', isAuthenticated());
-    
+
     // Check for invalid token format only  
     const currentToken = authStorage.getToken();
     if (currentToken) {
@@ -185,7 +185,7 @@ function App() {
         }
       }
     }
-    
+
     // Handle forced logout to clear old tokens
     if (forceLogout === '1') {
       console.log('Force logout detected - clearing all authentication data');
@@ -194,16 +194,16 @@ function App() {
       window.location.href = '/login';
       return;
     }
-    
+
     // Process any token from URL
     if (token) {
       console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
-      
+
       // Store the new token
       authStorage.setToken(token);
-      
+
       console.log('New OAuth token stored successfully');
-      
+
       // Clear the URL parameters and redirect to dashboard
       window.history.replaceState({}, document.title, '/dashboard');
       setLocation('/dashboard');
