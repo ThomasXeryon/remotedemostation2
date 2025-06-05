@@ -140,7 +140,10 @@ function AuthWrapper() {
 }
 
 function App() {
-  const clerkPublishableKey = import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_live_Y2xlcmsuYXBwLnJlbW90ZWRlbW9zdGF0aW9uLmNvbSQ";
+  // Use development keys for local development, production keys for deployment
+  const clerkPublishableKey = window.location.hostname.includes('replit.dev') 
+    ? "pk_test_cHJvdmVuLWh1bXBiYWNrLTE4LmNsZXJrLmFjY291bnRzLmRldiQ"
+    : import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   if (!clerkPublishableKey) {
     throw new Error("Missing Clerk Publishable Key");

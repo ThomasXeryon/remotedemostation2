@@ -7,6 +7,12 @@ import { Play, Edit2, Save, X, Monitor, Move, Grid3X3, Trash2 } from 'lucide-rea
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  ProfessionalJoystick, 
+  ProfessionalSlider, 
+  ProfessionalButton, 
+  ProfessionalToggle 
+} from '@/components/professional-controls';
 
 interface DemoStation {
   id: string;
@@ -314,7 +320,13 @@ export default function StationControlSimple() {
     setSelectedControl(null);
   };
 
-  // Render individual control
+  // Handle control commands
+  const handleCommand = (command: string, params: any) => {
+    console.log(`Command: ${command}`, params);
+    // Send command to hardware station via WebSocket or API
+  };
+
+  // Render individual control with professional components
   const renderControl = (control: any) => {
     // Safety checks for control properties
     if (!control || !control.position || !control.size || !control.style) {
@@ -327,28 +339,14 @@ export default function StationControlSimple() {
       top: control.position.y || 0,
       width: control.size.width || 100,
       height: control.size.height || 40,
-      backgroundColor: control.style.backgroundColor || '#3b82f6',
-      color: control.style.textColor || '#ffffff',
-      borderRadius: control.style.borderRadius || 8,
-      fontSize: control.style.fontSize || 14,
-      border: `2px solid ${control.style.borderColor || '#1e40af'}`,
-      cursor: isEditMode ? 'move' : 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontWeight: 'bold',
-      userSelect: 'none' as const,
       zIndex: selectedControl?.id === control.id ? 20 : 10,
-      boxShadow: selectedControl?.id === control.id ? '0 0 0 3px rgba(59, 130, 246, 0.5)' : undefined
+      outline: selectedControl?.id === control.id ? '3px solid rgba(59, 130, 246, 0.5)' : 'none'
     };
 
     const handleControlClick = (e: React.MouseEvent) => {
       e.stopPropagation();
       if (isEditMode) {
         setSelectedControl(selectedControl?.id === control.id ? null : control);
-      } else {
-        // Handle control interaction in non-edit mode
-        console.log(`Control ${control.name} activated`);
       }
     };
 
@@ -360,39 +358,61 @@ export default function StationControlSimple() {
       }
     };
 
+    // Wrapper div for edit mode interactions
+    const ControlWrapper = ({ children }: { children: React.ReactNode }) => (
+      <div 
+        style={commonStyle}
+        onMouseDown={isEditMode ? handleControlMouseDownEvent : undefined}
+        onClick={isEditMode ? handleControlClick : undefined}
+      >
+        {children}
+      </div>
+    );
+
     switch (control.type) {
       case 'button':
         return (
-          <div key={control.id} style={commonStyle} onMouseDown={handleControlMouseDownEvent}>
-            {control.name}
-          </div>
+          <ControlWrapper key={control.id}>
+            <ProfessionalButton
+              widget={control}
+              style={{ width: '100%', height: '100%' }}
+              isSessionActive={!isEditMode}
+              handleCommand={handleCommand}
+            />
+          </ControlWrapper>
         );
       case 'slider':
         return (
-          <div key={control.id} style={commonStyle} onMouseDown={handleControlMouseDownEvent}>
-            <div className="w-full h-2 bg-gray-300 rounded-full relative">
-              <div className="h-full bg-blue-500 rounded-full" style={{ width: '50%' }}></div>
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs">50%</div>
-            </div>
-          </div>
+          <ControlWrapper key={control.id}>
+            <ProfessionalSlider
+              widget={control}
+              style={{ width: '100%', height: '100%' }}
+              isSessionActive={!isEditMode}
+              handleCommand={handleCommand}
+            />
+          </ControlWrapper>
         );
       case 'toggle':
         return (
-          <div key={control.id} style={commonStyle} onMouseDown={handleControlMouseDownEvent}>
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-green-500 rounded border-2 border-white"></div>
-              <span>{control.name}</span>
-            </div>
-          </div>
+          <ControlWrapper key={control.id}>
+            <ProfessionalToggle
+              widget={control}
+              style={{ width: '100%', height: '100%' }}
+              isSessionActive={!isEditMode}
+              handleCommand={handleCommand}
+            />
+          </ControlWrapper>
         );
       case 'joystick':
         return (
-          <div key={control.id} style={{...commonStyle, borderRadius: '50%'}} onMouseDown={handleControlMouseDownEvent}>
-            <div 
-              className="w-8 h-8 bg-white rounded-full shadow-lg"
-              style={{ transform: 'translate(0px, 0px)' }}
-            ></div>
-          </div>
+          <ControlWrapper key={control.id}>
+            <ProfessionalJoystick
+              widget={control}
+              style={{ width: '100%', height: '100%' }}
+              isSessionActive={!isEditMode}
+              handleCommand={handleCommand}
+            />
+          </ControlWrapper>
         );
       default:
         return null;
