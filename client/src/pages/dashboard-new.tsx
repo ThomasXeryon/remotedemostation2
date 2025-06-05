@@ -138,7 +138,7 @@ export function Dashboard() {
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {station.description || "No description available"}
                 </p>
-                
+
                 {/* Station Stats */}
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center space-x-2">

@@ -162,23 +162,27 @@ function App() {
     console.log('App useEffect - Current auth token:', authStorage.getToken());
     console.log('App useEffect - isAuthenticated:', isAuthenticated());
     
-    // Check for expired token and force logout
+    // Check for invalid token format only
     const currentToken = authStorage.getToken();
-    if (currentToken && currentPath === '/dashboard') {
-      // Check if token is for old user ID 1 (force logout for token refresh)
+    if (currentToken) {
       try {
         const payload = JSON.parse(atob(currentToken.split('.')[1]));
-        if (payload.id === 1) {
-          console.log('Detected old user token (ID 1), forcing logout for fresh authentication');
+        // Only clear if token is malformed or expired
+        if (!payload.id || !payload.organizationId || (payload.exp && payload.exp * 1000 < Date.now())) {
+          console.log('Invalid or expired token detected, clearing authentication');
           authStorage.clearAll();
+          if (currentPath === '/dashboard') {
+            window.location.href = '/login';
+            return;
+          }
+        }
+      } catch (e) {
+        console.log('Malformed token detected, clearing authentication');
+        authStorage.clearAll();
+        if (currentPath === '/dashboard') {
           window.location.href = '/login';
           return;
         }
-      } catch (e) {
-        console.log('Invalid token detected, clearing authentication');
-        authStorage.clearAll();
-        window.location.href = '/login';
-        return;
       }
     }
     
@@ -195,23 +199,14 @@ function App() {
     if (token) {
       console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
       
-      // Always replace token to ensure fresh authentication
-      console.log('Replacing authentication token');
-      
-      // Completely clear existing auth data first
-      authStorage.clearAll();
-      
-      // Store the new token directly
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('token', token);
+      // Store the new token
+      authStorage.setToken(token);
       
       console.log('New OAuth token stored successfully');
-      console.log('Verification - stored token:', localStorage.getItem('auth_token')?.substring(0, 20) + '...');
       
-      // Clear the URL parameters and force reload
+      // Clear the URL parameters and redirect to dashboard
       window.history.replaceState({}, document.title, '/dashboard');
-      console.log('OAuth authentication completed - forcing page reload');
-      window.location.reload();
+      setLocation('/dashboard');
       return;
     }
   }, [setLocation]);

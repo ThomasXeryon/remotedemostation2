@@ -106,6 +106,10 @@ export default function Signup() {
   };
 
   const handleGoogleSignup = () => {
+    // Clear any existing auth data before OAuth
+    localStorage.clear();
+    sessionStorage.clear();
+    console.log('Cleared auth cache, initiating Google OAuth for signup');
     window.location.href = '/auth/google';
   };
 

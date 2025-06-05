@@ -365,18 +365,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { expiresIn: '24h' }
         );
 
-        const redirectUrl = `/dashboard?new_auth=1&token=${token}`;
+        const redirectUrl = `/dashboard?token=${token}`;
         console.log('Generated JWT token, redirecting to:', redirectUrl);
         
-        // Set token as HTTP-only cookie
-        res.cookie('auth_token', token, {
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
-          maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        });
-        
-        // Also redirect with token in URL for immediate frontend processing
+        // Redirect with token in URL for frontend processing
         res.redirect(redirectUrl);
       } catch (error) {
         console.error('Google auth callback error:', error);
@@ -471,69 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Authentication routes
-  app.post('/api/auth/login', async (req, res) => {
-    try {
-      const { username, password } = req.body;
-
-      const user = await storage.getUserByUsername(username);
-      if (!user || !await bcrypt.compare(password, user.password)) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      // Get user's organization from the user_organizations table
-      const userOrg = await db
-        .select({
-          organizationId: userOrganizations.organizationId,
-          role: userOrganizations.role,
-          orgName: organizations.name,
-          orgSlug: organizations.slug,
-          orgPrimaryColor: organizations.primaryColor,
-          orgSecondaryColor: organizations.secondaryColor,
-        })
-        .from(userOrganizations)
-        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
-        .where(eq(userOrganizations.userId, user.id))
-        .limit(1);
-
-      if (!userOrg.length) {
-        return res.status(401).json({ message: 'No organization access' });
-      }
-
-      const organization = {
-        id: userOrg[0].organizationId,
-        name: userOrg[0].orgName,
-        slug: userOrg[0].orgSlug,
-        primaryColor: userOrg[0].orgPrimaryColor,
-        secondaryColor: userOrg[0].orgSecondaryColor,
-      };
-
-      const token = jwt.sign(
-        { 
-          id: user.id, 
-          organizationId: userOrg[0].organizationId,
-          role: userOrg[0].role 
-        },
-        JWT_SECRET,
-        { expiresIn: '24h' }
-      );
-
-      res.json({
-        token,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: userOrg[0].role,
-          organization
-        }
-      });
-    } catch (error) {
-      res.status(500).json({ message: 'Login failed' });
-    }
-  });
+  
 
   app.post('/api/auth/register', async (req, res) => {
     try {
