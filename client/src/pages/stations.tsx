@@ -42,7 +42,7 @@ export default function StationsPage() {
 
 
   // Fetch demo stations
-  const { data: demoStations = [], isLoading, refetch } = useQuery({
+  const { data: demoStations = [], isLoading, refetch } = useQuery<DemoStation[]>({
     queryKey: ['/api/demo-stations'],
     enabled: isLoaded && !!user,
   });
@@ -167,9 +167,7 @@ export default function StationsPage() {
     });
   };
 
-  if (!currentUser) {
-    return null;
-  }
+  // Already handled above with proper authentication checks
 
   return (
     <div className="flex-1 space-y-6 p-6">
@@ -287,7 +285,7 @@ export default function StationsPage() {
             </Card>
           ))}
         </div>
-      ) : demoStations.length === 0 ? (
+      ) : (demoStations as DemoStation[]).length === 0 ? (
         <div className="text-center py-12">
           <Cpu className="w-16 h-16 text-slate-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-slate-900 mb-2">No Demo Stations</h3>
@@ -297,7 +295,7 @@ export default function StationsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {demoStations.map((station: DemoStation) => (
+          {(demoStations as DemoStation[]).map((station: DemoStation) => (
             <Card key={station.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -317,7 +315,7 @@ export default function StationsPage() {
                     </div>
                   </div>
 
-                  {(currentUser.role === 'admin' || currentUser.role === 'operator') && (
+                  {(user && (user.publicMetadata?.role === 'admin' || user.publicMetadata?.role === 'operator')) && (
                     <div className="flex space-x-1">
                       <Button
                         size="sm"
