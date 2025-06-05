@@ -67,7 +67,34 @@ export async function logout(): Promise<void> {
 }
 
 export function isAuthenticated(): boolean {
-  return !!authStorage.getToken();
+  const token = authStorage.getToken();
+  if (!token) return false;
+  
+  try {
+    // Basic token format validation only
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.log('Invalid token format, removing');
+      authStorage.removeToken();
+      return false;
+    }
+    
+    // Check if token is expired
+    const payload = JSON.parse(atob(parts[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    
+    if (payload.exp && payload.exp < currentTime) {
+      console.log('Token expired, removing');
+      authStorage.removeToken();
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.log('Token validation error, removing:', error);
+    authStorage.removeToken();
+    return false;
+  }
 }
 
 export function getCurrentUser() {
