@@ -93,24 +93,10 @@ function setupSession(app: Express) {
 
 // Passport configuration
 function setupPassport() {
-  // Use the correct absolute URL for the current environment
-  let callbackURL;
-  
-  // Check if we have a custom domain configured (highest priority)
-  if (process.env.CUSTOM_DOMAIN) {
-    callbackURL = `https://${process.env.CUSTOM_DOMAIN}/auth/google/callback`;
-  } else if (process.env.NODE_ENV === 'production' && process.env.REPL_SLUG) {
-    // In production deployment without custom domain, use replit.app domain
-    callbackURL = `https://${process.env.REPL_SLUG}.replit.app/auth/google/callback`;
-  } else if (process.env.REPLIT_DEV_DOMAIN) {
-    // In development, use the dev domain
-    callbackURL = `https://${process.env.REPLIT_DEV_DOMAIN}/auth/google/callback`;
-  } else {
-    // Fallback for local development
-    callbackURL = 'https://localhost:5000/auth/google/callback';
-  }
+  // Hardcode callback URL to custom domain
+  const callbackURL = 'https://app.remotedemostation.com/auth/google/callback';
   console.log('OAuth callback URL configured as:', callbackURL);
-  
+
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -118,11 +104,11 @@ function setupPassport() {
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       console.log('Google OAuth profile:', JSON.stringify(profile, null, 2));
-      
+
       // Check if user exists
       let user = await storage.getUserByEmail(profile.emails?.[0]?.value || '');
       console.log('Existing user found:', user);
-      
+
       if (!user) {
         console.log('Creating new user for Google OAuth');
         // Create new user
@@ -192,7 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Use existing admin user or create one
       let user = await storage.getUserByEmail('admin@acmerobotics.com');
-      
+
       if (!user) {
         // Create admin user if not exists
         user = await storage.createUser({
@@ -250,7 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/register', async (req, res) => {
     try {
       const { username, email, password, firstName, lastName } = req.body;
-      
+
       // Check if user already exists by email
       const existingUserByEmail = await storage.getUserByEmail(email);
       if (existingUserByEmail) {
@@ -361,7 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const user = req.user as any;
         console.log('Google OAuth callback - User:', user);
-        
+
         // Get user's organization
         const userOrgs = await storage.getUserOrganizations(user.id);
         console.log('User organizations:', userOrgs);
@@ -381,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const redirectUrl = `/dashboard?token=${token}`;
         console.log('Generated JWT token, redirecting to:', redirectUrl);
-        
+
         // Redirect with token in URL for frontend processing
         res.redirect(redirectUrl);
       } catch (error) {
@@ -477,7 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  
+
 
   app.post('/api/auth/register', async (req, res) => {
     try {
@@ -838,9 +824,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Extract interfaceLayout and merge with existing configuration
       const { interfaceLayout, ...otherUpdates } = req.body;
-      
+
       let updates = { ...otherUpdates };
-      
+
       if (interfaceLayout) {
         // Merge the interfaceLayout into the configuration field
         const currentConfig = station.configuration || {};
@@ -941,7 +927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stationId = req.params.id;
       console.log('Creating session for station:', stationId);
       console.log('User:', req.user);
-      
+
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
@@ -966,7 +952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const session = await storage.createSession(sessionData);
       console.log('Session created successfully:', session);
-      
+
       res.status(201).json(session);
     } catch (error) {
       console.error('Session creation error:', error);
@@ -996,12 +982,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const orgId = parseInt(req.params.id);
       const users = await storage.getUsersByOrganization(orgId);
-      
+
       // Transform to include activity data
       const usersWithActivity = await Promise.all(users.map(async (user) => {
         const userOrg = await storage.getUserOrganizations(user.id);
         const orgData = userOrg.find(uo => uo.organizationId === orgId);
-        
+
         return {
           id: user.id,
           firstName: user.firstName,
@@ -1014,7 +1000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           commandCount: 0, // Will be populated from actual command data
         };
       }));
-      
+
       res.json(usersWithActivity);
     } catch (error) {
       console.error('Get organization users error:', error);
@@ -1027,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orgId = parseInt(req.params.orgId);
       const userId = parseInt(req.params.userId);
       const { role } = req.body;
-      
+
       // Update user role in the organization
       // This would typically update the userOrganizations table
       res.json({ success: true, message: 'User role updated successfully' });
@@ -1040,10 +1026,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/organizations/:orgId/users/:userId/ban', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      
+
       // Ban user (set isActive to false)
       await storage.updateUser(userId, { isActive: false });
-      
+
       res.json({ success: true, message: 'User banned successfully' });
     } catch (error) {
       console.error('Ban user error:', error);
@@ -1055,7 +1041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const orgId = parseInt(req.params.orgId);
       const userId = parseInt(req.params.userId);
-      
+
       // Remove user from organization (would typically delete from userOrganizations table)
       res.json({ success: true, message: 'User removed from organization' });
     } catch (error) {
@@ -1068,7 +1054,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const orgId = parseInt(req.params.orgId);
       const { email, role } = req.body;
-      
+
       // Send invitation (in a real app, this would send an email invitation)
       res.json({ success: true, message: 'Invitation sent successfully' });
     } catch (error) {
