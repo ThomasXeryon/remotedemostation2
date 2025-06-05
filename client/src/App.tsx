@@ -161,7 +161,7 @@ function App() {
   // Use development keys for local development, production keys for deployment
   const clerkPublishableKey = window.location.hostname.includes('replit.dev') 
     ? "pk_test_cHJvdmVuLWh1bXBiYWNrLTE4LmNsZXJrLmFjY291bnRzLmRldiQ"
-    : import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    : import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || import.meta.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   if (!clerkPublishableKey) {
     throw new Error("Missing Clerk Publishable Key");
