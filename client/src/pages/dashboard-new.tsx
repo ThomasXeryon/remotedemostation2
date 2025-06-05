@@ -84,6 +84,16 @@ export function Dashboard() {
   const allStations = (demoStations as DemoStation[]) || [];
   // For now, show all stations since we're using Clerk authentication
   const stations = allStations;
+  
+  // Debug logging
+  console.log('Dashboard debug:', {
+    demoStations,
+    allStations,
+    stations,
+    stationsLength: stations.length,
+    isLoading,
+    error
+  });
 
   return (
     <div className="flex-1 space-y-6 p-6">
