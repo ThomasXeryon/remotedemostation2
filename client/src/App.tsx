@@ -17,6 +17,7 @@ import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
 import StationControl from "./pages/station-control-simple";
 import { CustomerLogin } from "./pages/customer-login";
+import ForceLogout from "./pages/force-logout";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { refreshUserData } from "@/lib/auth";
@@ -148,44 +149,49 @@ function Router() {
 function App() {
   const [, setLocation] = useLocation();
   
-  // Handle OAuth token from URL parameter
+  // Handle OAuth token from URL parameter and force logout if needed
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
+    const forceLogout = urlParams.get('force_logout');
     
     console.log('App useEffect - Current URL:', window.location.href);
     console.log('App useEffect - Token from URL:', token);
+    console.log('App useEffect - Force logout:', forceLogout);
     console.log('App useEffect - Current auth token:', authStorage.getToken());
     console.log('App useEffect - isAuthenticated:', isAuthenticated());
     
-    // Process any token from URL (new or legacy format)
+    // Handle forced logout to clear old tokens
+    if (forceLogout === '1') {
+      console.log('Force logout detected - clearing all authentication data');
+      authStorage.clearAll();
+      window.history.replaceState({}, document.title, '/login');
+      window.location.href = '/login';
+      return;
+    }
+    
+    // Process any token from URL
     if (token) {
       console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
       
-      // Check if this is a different token than what we have
-      const currentToken = authStorage.getToken();
-      if (currentToken !== token) {
-        console.log('New token detected, updating authentication');
-        
-        // Completely clear existing auth data first
-        authStorage.clearAll();
-        
-        // Store the new token directly
-        localStorage.setItem('auth_token', token);
-        localStorage.setItem('token', token);
-        
-        console.log('New OAuth token stored successfully');
-        console.log('Verification - stored token:', localStorage.getItem('auth_token')?.substring(0, 20) + '...');
-        
-        // Clear the URL parameters and force reload
-        window.history.replaceState({}, document.title, '/dashboard');
-        console.log('OAuth authentication completed - forcing page reload');
-        window.location.reload();
-        return;
-      } else {
-        console.log('Same token detected, clearing URL parameters only');
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
+      // Always replace token to ensure fresh authentication
+      console.log('Replacing authentication token');
+      
+      // Completely clear existing auth data first
+      authStorage.clearAll();
+      
+      // Store the new token directly
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('token', token);
+      
+      console.log('New OAuth token stored successfully');
+      console.log('Verification - stored token:', localStorage.getItem('auth_token')?.substring(0, 20) + '...');
+      
+      // Clear the URL parameters and force reload
+      window.history.replaceState({}, document.title, '/dashboard');
+      console.log('OAuth authentication completed - forcing page reload');
+      window.location.reload();
+      return;
     }
   }, [setLocation]);
 
