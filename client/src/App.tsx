@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
-import { ClerkProvider, useAuth, SignIn, SignUp, useUser } from "@clerk/clerk-react";
+import { ClerkProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Dashboard } from "@/pages/dashboard-new";
 import Organizations from "@/pages/organizations";
 import Settings from "@/pages/settings";
@@ -73,44 +73,55 @@ function AuthWrapper() {
     );
   }
 
-  if (!isSignedIn) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-          <h1 className="text-3xl font-bold text-center mb-6">Remote Demo Station</h1>
-          <p className="text-gray-600 text-center mb-6">
-            Sign in to access your hardware control dashboard
-          </p>
-          <div className="space-y-4">
-            <SignIn routing="hash" />
+  return (
+    <>
+      <SignedOut>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+            <h1 className="text-3xl font-bold text-center mb-6">Remote Demo Station</h1>
+            <p className="text-gray-600 text-center mb-6">
+              Sign in to access your hardware control dashboard
+            </p>
+            <div className="space-y-4">
+              <SignInButton mode="modal">
+                <button className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition-colors">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/organizations" component={Organizations} />
-        <Route path="/settings" component={Settings} />
-        <Route path="/analytics" component={Analytics} />
-        <Route path="/team-members" component={TeamMembers} />
-        <Route path="/stations" component={Stations} />
-        <Route path="/stations/new" component={StationEditor} />
-        <Route path="/stations/:id/edit" component={StationEditor} />
-        <Route path="/stations/:id/control" component={StationControl} />
-        <Route path="/customer-login/:stationId" component={({ params }) => (
-          <CustomerLogin 
-            stationId={params?.stationId || ''} 
-            organizationName="Demo Organization" 
-            stationName="Demo Station" 
-          />
-        )} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+      </SignedOut>
+      
+      <SignedIn>
+        <Layout>
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/organizations" component={Organizations} />
+            <Route path="/settings" component={Settings} />
+            <Route path="/analytics" component={Analytics} />
+            <Route path="/team-members" component={TeamMembers} />
+            <Route path="/stations" component={Stations} />
+            <Route path="/stations/new" component={StationEditor} />
+            <Route path="/stations/:id/edit" component={StationEditor} />
+            <Route path="/stations/:id/control" component={StationControl} />
+            <Route path="/customer-login/:stationId" component={({ params }) => (
+              <CustomerLogin 
+                stationId={params?.stationId || ''} 
+                organizationName="Demo Organization" 
+                stationName="Demo Station" 
+              />
+            )} />
+            <Route component={NotFound} />
+          </Switch>
+        </Layout>
+      </SignedIn>
+    </>
   );
 }
 
