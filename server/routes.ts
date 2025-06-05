@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage, generateStationId } from "./storage";
@@ -14,16 +14,20 @@ import { eq, and, sql } from "drizzle-orm";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-interface AuthenticatedRequest extends Express.Request {
+interface AuthenticatedRequest extends Request {
   user?: {
     id: number;
     organizationId: number;
     role: string;
   };
+  headers: any;
+  body: any;
+  params: any;
+  query: any;
 }
 
 // Middleware to verify JWT token
-function authenticateToken(req: AuthenticatedRequest, res: Express.Response, next: Express.NextFunction) {
+function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
