@@ -174,239 +174,410 @@ export default function StationControl() {
   };
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Control Bar */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+    <Box sx={{ 
+      height: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column',
+      overflow: 'hidden',
+      minHeight: '500px' // Ensure minimum usable height
+    }}>
+      {/* Top Control Bar - Responsive */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        p: { xs: 1, sm: 2 }, 
+        borderBottom: 1, 
+        borderColor: 'divider',
+        flexWrap: { xs: 'wrap', md: 'nowrap' },
+        gap: 1
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: { xs: 1, sm: 2 },
+          flex: 1,
+          minWidth: 0 // Allow text truncation
+        }}>
           <Link href="/dashboard">
-            <Button variant="outlined" size="small" startIcon={<ArrowBack />}>
+            <Button 
+              variant="outlined" 
+              size="small" 
+              startIcon={<ArrowBack />}
+              sx={{ display: { xs: 'none', sm: 'flex' } }}
+            >
               Exit Control
             </Button>
+            <IconButton 
+              size="small" 
+              sx={{ display: { xs: 'flex', sm: 'none' } }}
+            >
+              <ArrowBack />
+            </IconButton>
           </Link>
-          <Box>
-            <Typography variant="h5" component="h1" fontWeight="bold">
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography 
+              variant={{ xs: 'h6', sm: 'h5' }} 
+              component="h1" 
+              fontWeight="bold"
+              sx={{ 
+                fontSize: { xs: '1.1rem', sm: '1.5rem' },
+                lineHeight: 1.2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
               {stationData.name}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ 
+                display: { xs: 'none', sm: 'block' },
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
               {stationData.description}
             </Typography>
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 1,
+          flexShrink: 0
+        }}>
           <Button 
             onClick={() => isEditMode ? saveControls() : setIsEditMode(true)}
             variant={isEditMode ? "contained" : "outlined"}
             color={isEditMode ? "success" : "primary"}
+            size={{ xs: 'small', sm: 'medium' }}
             startIcon={isEditMode ? <Save /> : <Edit />}
+            sx={{ 
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              px: { xs: 1, sm: 2 }
+            }}
           >
-            {isEditMode ? "Save Layout" : "Edit Layout"}
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+              {isEditMode ? "Save Layout" : "Edit Layout"}
+            </Box>
+            <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+              {isEditMode ? "Save" : "Edit"}
+            </Box>
           </Button>
           {!isSessionActive ? (
             <Button 
               onClick={handleStartSession} 
               variant="contained"
               color="success"
+              size={{ xs: 'small', sm: 'medium' }}
               startIcon={<PlayArrow />}
+              sx={{ 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                px: { xs: 1, sm: 2 }
+              }}
             >
-              Start Session
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                Start Session
+              </Box>
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                Start
+              </Box>
             </Button>
           ) : (
             <Button 
               onClick={handleStopSession} 
               variant="contained"
               color="error"
+              size={{ xs: 'small', sm: 'medium' }}
               startIcon={<Stop />}
+              sx={{ 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                px: { xs: 1, sm: 2 }
+              }}
             >
-              End Session
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                End Session
+              </Box>
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                End
+              </Box>
             </Button>
           )}
         </Box>
       </Box>
 
-      {/* Main Interface */}
-      <Box sx={{ flex: 1, display: 'flex', position: 'relative' }}>
-        {/* Camera Feed */}
+      {/* Main Interface - Responsive Layout */}
+      <Box sx={{ 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: { xs: 'column', md: 'row' },
+        overflow: 'hidden',
+        gap: { xs: 1, sm: 2 },
+        p: { xs: 1, sm: 2 }
+      }}>
+        {/* Camera Feed - Responsive */}
         <Box 
           sx={{
             bgcolor: 'grey.900',
             borderRadius: 2,
-            m: 1,
-            position: 'absolute',
             overflow: 'hidden',
-            width: `${layout.camera.width}%`,
-            height: `${layout.camera.height}%`,
-            left: `${layout.camera.position.x}%`,
-            top: `${layout.camera.position.y}%`,
+            flex: { xs: '0 0 40vh', sm: '0 0 50vh', md: '1' },
+            minHeight: { xs: '200px', sm: '300px' },
+            order: { xs: 1, md: 1 }
           }}
         >
           <Box sx={{ 
-            position: 'absolute', 
-            inset: 0, 
+            height: '100%',
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
-            color: 'white'
+            color: 'white',
+            p: 2
           }}>
             <Box sx={{ textAlign: 'center' }}>
-              <Videocam sx={{ fontSize: 64, mb: 2, opacity: 0.5 }} />
-              <Typography variant="h6" component="p">Live Camera Feed</Typography>
-              <Typography variant="body2" sx={{ opacity: 0.75 }}>
-                Hardware: {stationData.hardwareType}
+              <Videocam sx={{ 
+                fontSize: { xs: 40, sm: 48, md: 64 }, 
+                mb: { xs: 1, sm: 2 }, 
+                opacity: 0.5 
+              }} />
+              <Typography 
+                variant={{ xs: 'body1', sm: 'h6' }} 
+                component="p"
+                sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+              >
+                Live Camera Feed
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  opacity: 0.75,
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                }}
+              >
+                Hardware: {stationData?.hardwareType}
               </Typography>
             </Box>
           </Box>
         </Box>
 
-        {/* Control Panel */}
+        {/* Control Panel - Responsive */}
         <Box 
           sx={{
             bgcolor: 'background.paper',
             border: 1,
             borderColor: 'divider',
             borderRadius: 2,
-            m: 1,
-            position: 'absolute',
-            width: `${layout.controlPanel.width}%`,
-            height: `${layout.controlPanel.height}%`,
-            left: `${layout.controlPanel.position.x}%`,
-            top: `${layout.controlPanel.position.y}%`,
+            flex: { xs: '1', md: '0 0 50%' },
+            minHeight: { xs: '300px', sm: '400px' },
+            maxHeight: { xs: 'none', md: '100%' },
+            order: { xs: 2, md: 2 },
+            display: 'flex',
+            flexDirection: 'column'
           }}
         >
-          <Box sx={{ p: 2, height: '100%' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="h6" component="h3" fontWeight="bold">
+          <Box sx={{ p: { xs: 1, sm: 2 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {/* Control Panel Header - Responsive */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between', 
+              mb: { xs: 1, sm: 2 },
+              flexWrap: 'wrap',
+              gap: 1
+            }}>
+              <Typography 
+                variant={{ xs: 'h6', sm: 'h5' }} 
+                component="h3" 
+                fontWeight="bold"
+                sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}
+              >
                 Control Panel
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box sx={{ 
+                display: { xs: 'none', sm: 'flex' }, 
+                gap: 0.5 
+              }}>
                 <Button variant="outlined" size="small">Settings</Button>
                 <Button variant="outlined" size="small">Presets</Button>
                 <Button variant="outlined" size="small">Logs</Button>
                 <Button variant="outlined" size="small">Help</Button>
               </Box>
+              <IconButton 
+                size="small" 
+                sx={{ display: { xs: 'flex', sm: 'none' } }}
+              >
+                <Settings />
+              </IconButton>
             </Box>
 
-            {/* Dynamic Controls */}
-            <Grid container spacing={2} sx={{ height: 'calc(100% - 80px)', overflow: 'auto' }}>
-              {localControls.map((widget: ControlWidget) => {
-                const isSelected = selectedWidget?.id === widget.id;
-                return (
-                  <Grid item xs={6} key={widget.id}>
-                    <Card
-                      sx={{
-                        p: 2,
-                        cursor: isEditMode ? 'pointer' : 'default',
-                        border: isSelected ? 2 : 1,
-                        borderColor: isSelected ? 'primary.main' : 'divider',
-                        bgcolor: isSelected && isEditMode ? 'primary.50' : 'background.paper',
-                        '&:hover': isEditMode ? { boxShadow: 2 } : {},
-                        minHeight: 120,
-                      }}
-                      onClick={() => isEditMode && setSelectedWidget(widget)}
+            {/* Dynamic Controls - Responsive Grid */}
+            <Box sx={{ 
+              flex: 1, 
+              overflow: 'auto',
+              minHeight: 0 // Important for flex child with overflow
+            }}>
+              <Grid container spacing={{ xs: 1, sm: 2 }}>
+                {localControls.map((widget: ControlWidget) => {
+                  const isSelected = selectedWidget?.id === widget.id;
+                  return (
+                    <Grid 
+                      item 
+                      xs={12} 
+                      sm={6} 
+                      md={6}
+                      lg={4}
+                      key={widget.id}
                     >
-                      <Typography variant="subtitle2" gutterBottom fontWeight="medium">
-                        {widget.name}
-                      </Typography>
-                      
-                      {widget.type === 'button' && (
-                        <MaterialButton
-                          onClick={() => executeCommand(widget.command, widget.parameters)}
-                          fullWidth
-                          disabled={!isSessionActive}
-                          size="small"
+                      <Card
+                        sx={{
+                          p: { xs: 1, sm: 2 },
+                          cursor: isEditMode ? 'pointer' : 'default',
+                          border: isSelected ? 2 : 1,
+                          borderColor: isSelected ? 'primary.main' : 'divider',
+                          bgcolor: isSelected && isEditMode ? 'primary.50' : 'background.paper',
+                          '&:hover': isEditMode ? { boxShadow: 2 } : {},
+                          minHeight: { xs: 80, sm: 120 },
+                          height: 'auto'
+                        }}
+                        onClick={() => isEditMode && setSelectedWidget(widget)}
+                      >
+                        <Typography 
+                          variant="subtitle2" 
+                          gutterBottom 
+                          fontWeight="medium"
+                          sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                         >
                           {widget.name}
-                        </MaterialButton>
-                      )}
-                      
-                      {widget.type === 'slider' && (
-                        <MaterialSlider
-                          value={controlValues[widget.id] || 0}
-                          onChange={(value) => {
-                            setControlValues(prev => ({ ...prev, [widget.id]: value }));
-                            executeCommand(widget.command, { ...widget.parameters, value });
-                          }}
-                          disabled={!isSessionActive}
-                          min={0}
-                          max={100}
-                        />
-                      )}
-                      
-                      {widget.type === 'joystick' && (
-                        <MaterialJoystick
-                          onMove={(position) => executeCommand(widget.command, { ...widget.parameters, ...position })}
-                          onStop={() => executeCommand(`${widget.command}_stop`, widget.parameters)}
-                          disabled={!isSessionActive}
-                          size={80}
-                        />
-                      )}
-                      
-                      {widget.type === 'toggle' && (
-                        <MaterialToggle
-                          checked={controlValues[widget.id] || false}
-                          onChange={(checked) => {
-                            setControlValues(prev => ({ ...prev, [widget.id]: checked }));
-                            executeCommand(widget.command, { ...widget.parameters, enabled: checked });
-                          }}
-                          disabled={!isSessionActive}
-                          label={widget.name}
-                        />
-                      )}
-                      
-                      {isEditMode && isSelected && (
-                        <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: 'primary.200' }}>
-                          <Typography variant="caption" color="primary.main">
-                            Click to edit this control
-                          </Typography>
-                        </Box>
-                      )}
+                        </Typography>
+                        
+                        {widget.type === 'button' && (
+                          <MaterialButton
+                            onClick={() => executeCommand(widget.command, widget.parameters)}
+                            fullWidth
+                            disabled={!isSessionActive}
+                            size="small"
+                          >
+                            {widget.name}
+                          </MaterialButton>
+                        )}
+                        
+                        {widget.type === 'slider' && (
+                          <MaterialSlider
+                            value={controlValues[widget.id] || 0}
+                            onChange={(value) => {
+                              setControlValues(prev => ({ ...prev, [widget.id]: value }));
+                              executeCommand(widget.command, { ...widget.parameters, value });
+                            }}
+                            disabled={!isSessionActive}
+                            min={0}
+                            max={100}
+                          />
+                        )}
+                        
+                        {widget.type === 'joystick' && (
+                          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <MaterialJoystick
+                              onMove={(position) => executeCommand(widget.command, { ...widget.parameters, ...position })}
+                              onStop={() => executeCommand(`${widget.command}_stop`, widget.parameters)}
+                              disabled={!isSessionActive}
+                              size={{ xs: 60, sm: 80 }}
+                            />
+                          </Box>
+                        )}
+                        
+                        {widget.type === 'toggle' && (
+                          <MaterialToggle
+                            checked={controlValues[widget.id] || false}
+                            onChange={(checked) => {
+                              setControlValues(prev => ({ ...prev, [widget.id]: checked }));
+                              executeCommand(widget.command, { ...widget.parameters, enabled: checked });
+                            }}
+                            disabled={!isSessionActive}
+                            label={widget.name}
+                          />
+                        )}
+                        
+                        {isEditMode && isSelected && (
+                          <Box sx={{ mt: 1, pt: 1, borderTop: 1, borderColor: 'primary.200' }}>
+                            <Typography 
+                              variant="caption" 
+                              color="primary.main"
+                              sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
+                            >
+                              Click to edit this control
+                            </Typography>
+                          </Box>
+                        )}
+                      </Card>
+                    </Grid>
+                  );
+                })}
+                
+                {isEditMode && (
+                  <Grid 
+                    item 
+                    xs={12} 
+                    sm={6} 
+                    md={6}
+                    lg={4}
+                  >
+                    <Card
+                      sx={{
+                        p: { xs: 1, sm: 2 },
+                        border: 2,
+                        borderStyle: 'dashed',
+                        borderColor: 'grey.300',
+                        cursor: 'pointer',
+                        minHeight: { xs: 80, sm: 120 },
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        '&:hover': { borderColor: 'grey.400' }
+                      }}
+                      onClick={() => {
+                        const newControl: ControlWidget = {
+                          id: Date.now().toString(),
+                          type: 'button',
+                          name: 'New Control',
+                          command: 'new_command',
+                          parameters: {},
+                          position: { x: 0, y: 0 },
+                          size: { width: 100, height: 50 },
+                          style: {
+                            backgroundColor: '#f3f4f6',
+                            textColor: '#374151',
+                            borderColor: '#d1d5db',
+                            borderRadius: 8,
+                            fontSize: 14
+                          }
+                        };
+                        setLocalControls([...localControls, newControl]);
+                      }}
+                    >
+                      <Box sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                        <Typography 
+                          variant={{ xs: 'h5', sm: 'h4' }} 
+                          component="div" 
+                          sx={{ mb: 1 }}
+                        >
+                          +
+                        </Typography>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                        >
+                          Add Control
+                        </Typography>
+                      </Box>
                     </Card>
                   </Grid>
-                );
-              })}
-              
-              {isEditMode && (
-                <Grid item xs={6}>
-                  <Card
-                    sx={{
-                      p: 2,
-                      border: 2,
-                      borderStyle: 'dashed',
-                      borderColor: 'grey.300',
-                      cursor: 'pointer',
-                      minHeight: 120,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      '&:hover': { borderColor: 'grey.400' }
-                    }}
-                    onClick={() => {
-                      const newControl: ControlWidget = {
-                        id: Date.now().toString(),
-                        type: 'button',
-                        name: 'New Control',
-                        command: 'new_command',
-                        parameters: {},
-                        position: { x: 0, y: 0 },
-                        size: { width: 100, height: 50 },
-                        style: {
-                          backgroundColor: '#f3f4f6',
-                          textColor: '#374151',
-                          borderColor: '#d1d5db',
-                          borderRadius: 8,
-                          fontSize: 14
-                        }
-                      };
-                      setLocalControls([...localControls, newControl]);
-                    }}
-                  >
-                    <Box sx={{ textAlign: 'center', color: 'text.secondary' }}>
-                      <Typography variant="h4" component="div" sx={{ mb: 1 }}>+</Typography>
-                      <Typography variant="body2">Add Control</Typography>
-                    </Box>
-                  </Card>
-                </Grid>
-              )}
-            </Grid>
+                )}
+              </Grid>
+            </Box>
           </Box>
         </Box>
       </Box>

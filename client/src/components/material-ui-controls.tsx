@@ -18,7 +18,7 @@ interface JoystickPosition {
 interface MaterialJoystickProps {
   onMove: (position: JoystickPosition) => void;
   onStop: (position: JoystickPosition) => void;
-  size?: number;
+  size?: number | { xs: number; sm: number };
   disabled?: boolean;
 }
 
@@ -26,6 +26,11 @@ export function MaterialJoystick({ onMove, onStop, size = 120, disabled = false 
   const [position, setPosition] = useState<JoystickPosition>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const joystickRef = useRef<HTMLDivElement>(null);
+  
+  // Calculate responsive size
+  const joystickSize = typeof size === 'object' 
+    ? (window.innerWidth < 600 ? size.xs : size.sm)
+    : typeof size === 'number' ? size : 120;
 
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     if (disabled) return;
@@ -42,7 +47,7 @@ export function MaterialJoystick({ onMove, onStop, size = 120, disabled = false 
       const deltaX = e.clientX - centerX;
       const deltaY = e.clientY - centerY;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const maxDistance = size / 2 - 20;
+      const maxDistance = joystickSize / 2 - 20;
 
       let x = deltaX;
       let y = deltaY;
@@ -112,7 +117,7 @@ export function MaterialJoystick({ onMove, onStop, size = 120, disabled = false 
             position: 'absolute',
             top: '50%',
             left: '50%',
-            transform: `translate(calc(-50% + ${position.x * (size / 2 - 20)}px), calc(-50% + ${-position.y * (size / 2 - 20)}px))`,
+            transform: `translate(calc(-50% + ${position.x * (joystickSize / 2 - 20)}px), calc(-50% + ${-position.y * (joystickSize / 2 - 20)}px))`,
             transition: isDragging ? 'none' : 'transform 0.2s ease',
             boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
             border: '2px solid',
