@@ -102,6 +102,7 @@ function AuthWrapper() {
         <Layout>
           <Switch>
             <Route path="/" component={Dashboard} />
+            <Route path="/dashboard" component={Dashboard} />
             <Route path="/organizations" component={Organizations} />
             <Route path="/settings" component={Settings} />
             <Route path="/analytics" component={Analytics} />
