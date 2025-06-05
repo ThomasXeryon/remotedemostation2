@@ -1,0 +1,127 @@
+client:536 WebSocket connection to 'wss://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/?token=j065psD12V7q' failed: 
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=j065psD12V7q' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+chunk-WERSD76P.js?v=bfc21803:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+clerk.browser.js:16 Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+warnOnce @ clerk.browser.js:16
+dashboard-new.tsx:90 Dashboard debug: Object
+station-control-simple.tsx:68 Station data loaded: undefined
+station-control-simple.tsx:68 Station data loaded: Array(1)
+station-control-simple.tsx:72 Layout found in station config: Object
+station-control-simple.tsx:75 Setting camera panel: Object
+station-control-simple.tsx:84 Setting control panel: Object
+station-control-simple.tsx:105 Loading saved controls: Array(0)
+station-control-simple.tsx:796 Uncaught TypeError: Cannot read properties of undefined (reading 'x')
+    at StationControlSimple (station-control-simple.tsx:796:98)
+    at renderWithHooks (chunk-WERSD76P.js?v=bfc21803:11548:26)
+    at updateFunctionComponent (chunk-WERSD76P.js?v=bfc21803:14582:28)
+    at beginWork (chunk-WERSD76P.js?v=bfc21803:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=bfc21803:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=bfc21803:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=bfc21803:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=bfc21803:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=bfc21803:19198:20)
+    at workLoopSync (chunk-WERSD76P.js?v=bfc21803:19137:13)
+StationControlSimple @ station-control-simple.tsx:796
+renderWithHooks @ chunk-WERSD76P.js?v=bfc21803:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=bfc21803:14582
+beginWork @ chunk-WERSD76P.js?v=bfc21803:15924
+callCallback2 @ chunk-WERSD76P.js?v=bfc21803:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=bfc21803:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=bfc21803:3733
+beginWork$1 @ chunk-WERSD76P.js?v=bfc21803:19765
+performUnitOfWork @ chunk-WERSD76P.js?v=bfc21803:19198
+workLoopSync @ chunk-WERSD76P.js?v=bfc21803:19137
+renderRootSync @ chunk-WERSD76P.js?v=bfc21803:19116
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=bfc21803:18874
+flushSyncCallbacks @ chunk-WERSD76P.js?v=bfc21803:9119
+(anonymous) @ chunk-WERSD76P.js?v=bfc21803:18627
+station-control-simple.tsx:796 Uncaught TypeError: Cannot read properties of undefined (reading 'x')
+    at StationControlSimple (station-control-simple.tsx:796:98)
+    at renderWithHooks (chunk-WERSD76P.js?v=bfc21803:11548:26)
+    at updateFunctionComponent (chunk-WERSD76P.js?v=bfc21803:14582:28)
+    at beginWork (chunk-WERSD76P.js?v=bfc21803:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=bfc21803:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=bfc21803:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=bfc21803:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=bfc21803:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=bfc21803:19198:20)
+    at workLoopSync (chunk-WERSD76P.js?v=bfc21803:19137:13)
+StationControlSimple @ station-control-simple.tsx:796
+renderWithHooks @ chunk-WERSD76P.js?v=bfc21803:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=bfc21803:14582
+beginWork @ chunk-WERSD76P.js?v=bfc21803:15924
+callCallback2 @ chunk-WERSD76P.js?v=bfc21803:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=bfc21803:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=bfc21803:3733
+beginWork$1 @ chunk-WERSD76P.js?v=bfc21803:19765
+performUnitOfWork @ chunk-WERSD76P.js?v=bfc21803:19198
+workLoopSync @ chunk-WERSD76P.js?v=bfc21803:19137
+renderRootSync @ chunk-WERSD76P.js?v=bfc21803:19116
+recoverFromConcurrentError @ chunk-WERSD76P.js?v=bfc21803:18736
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=bfc21803:18879
+flushSyncCallbacks @ chunk-WERSD76P.js?v=bfc21803:9119
+(anonymous) @ chunk-WERSD76P.js?v=bfc21803:18627
+chunk-WERSD76P.js?v=bfc21803:14032 The above error occurred in the <StationControlSimple> component:
+
+    at StationControlSimple (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/src/pages/station-control-simple.tsx:29:18)
+    at Route (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=bfc21803:191:16)
+    at Switch (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=bfc21803:247:17)
+    at main
+    at div
+    at Layout (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/src/components/layout.tsx:22:26)
+    at SignedIn (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@clerk_clerk-react.js?v=bfc21803:2968:19)
+    at AuthWrapper (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/src/App.tsx?v=8RbwGTSNYI2ROALwUCH4m:97:36)
+    at div
+    at ErrorBoundary (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/src/App.tsx?v=8RbwGTSNYI2ROALwUCH4m:38:5)
+    at Provider (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-JCDXHMNF.js?v=bfc21803:38:15)
+    at TooltipProvider (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=bfc21803:61:5)
+    at QueryClientProvider (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=bfc21803:2805:3)
+    at SWRConfig (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@clerk_clerk-react.js?v=bfc21803:1129:11)
+    at OrganizationProvider (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@clerk_clerk-react.js?v=bfc21803:2107:3)
+    at ClerkContextProvider (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@clerk_clerk-react.js?v=bfc21803:5635:11)
+    at ClerkProviderBase (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@clerk_clerk-react.js?v=bfc21803:5719:11)
+    at Hoc (https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@clerk_clerk-react.js?v=bfc21803:3587:5)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+logCapturedError @ chunk-WERSD76P.js?v=bfc21803:14032
+callback @ chunk-WERSD76P.js?v=bfc21803:14078
+callCallback @ chunk-WERSD76P.js?v=bfc21803:11248
+commitUpdateQueue @ chunk-WERSD76P.js?v=bfc21803:11265
+commitLayoutEffectOnFiber @ chunk-WERSD76P.js?v=bfc21803:17075
+commitLayoutMountEffects_complete @ chunk-WERSD76P.js?v=bfc21803:17980
+commitLayoutEffects_begin @ chunk-WERSD76P.js?v=bfc21803:17969
+commitLayoutEffects @ chunk-WERSD76P.js?v=bfc21803:17920
+commitRootImpl @ chunk-WERSD76P.js?v=bfc21803:19353
+commitRoot @ chunk-WERSD76P.js?v=bfc21803:19277
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=bfc21803:18895
+flushSyncCallbacks @ chunk-WERSD76P.js?v=bfc21803:9119
+(anonymous) @ chunk-WERSD76P.js?v=bfc21803:18627
+App.tsx:36 Error Boundary caught an error: TypeError: Cannot read properties of undefined (reading 'x')
+    at StationControlSimple (station-control-simple.tsx:796:98)
+    at renderWithHooks (chunk-WERSD76P.js?v=bfc21803:11548:26)
+    at updateFunctionComponent (chunk-WERSD76P.js?v=bfc21803:14582:28)
+    at beginWork (chunk-WERSD76P.js?v=bfc21803:15924:22)
+    at beginWork$1 (chunk-WERSD76P.js?v=bfc21803:19753:22)
+    at performUnitOfWork (chunk-WERSD76P.js?v=bfc21803:19198:20)
+    at workLoopSync (chunk-WERSD76P.js?v=bfc21803:19137:13)
+    at renderRootSync (chunk-WERSD76P.js?v=bfc21803:19116:15)
+    at recoverFromConcurrentError (chunk-WERSD76P.js?v=bfc21803:18736:28)
+    at performSyncWorkOnRoot (chunk-WERSD76P.js?v=bfc21803:18879:28) {componentStack: '\n    at StationControlSimple (https://c075f664-03a…lerk_clerk-react.js?v=bfc21803:3587:5)\n    at App'}
+componentDidCatch @ App.tsx:36
+callback @ chunk-WERSD76P.js?v=bfc21803:14084
+callCallback @ chunk-WERSD76P.js?v=bfc21803:11248
+commitUpdateQueue @ chunk-WERSD76P.js?v=bfc21803:11265
+commitLayoutEffectOnFiber @ chunk-WERSD76P.js?v=bfc21803:17075
+commitLayoutMountEffects_complete @ chunk-WERSD76P.js?v=bfc21803:17980
+commitLayoutEffects_begin @ chunk-WERSD76P.js?v=bfc21803:17969
+commitLayoutEffects @ chunk-WERSD76P.js?v=bfc21803:17920
+commitRootImpl @ chunk-WERSD76P.js?v=bfc21803:19353
+commitRoot @ chunk-WERSD76P.js?v=bfc21803:19277
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=bfc21803:18895
+flushSyncCallbacks @ chunk-WERSD76P.js?v=bfc21803:9119
+(anonymous) @ chunk-WERSD76P.js?v=bfc21803:18627

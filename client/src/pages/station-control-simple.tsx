@@ -793,7 +793,7 @@ export default function StationControlSimple() {
                     <p className="text-sm"><strong>Name:</strong> {selectedControl.name}</p>
                     <p className="text-sm"><strong>Type:</strong> {selectedControl.type}</p>
                     <p className="text-sm"><strong>Command:</strong> {selectedControl.command}</p>
-                    <p className="text-sm"><strong>Position:</strong> ({selectedControl.position.x}, {selectedControl.position.y})</p>
+                    <p className="text-sm"><strong>Position:</strong> ({selectedControl.position?.x || 0}, {selectedControl.position?.y || 0})</p>
                     <Button 
                       variant="destructive" 
                       size="sm" 
