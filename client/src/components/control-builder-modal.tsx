@@ -54,17 +54,24 @@ export function ControlBuilderModal({
   };
 
   const addControl = (type: ControlWidget['type']) => {
-    const newControl: ControlWidget = {
-      id: `control-${Date.now()}`,
-      name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      type,
-      command: '',
-      position: { x: 50, y: 50 },
-      size: getDefaultSize(type),
-      style: { ...defaultStyle }
-    };
-    setLocalControls([...localControls, newControl]);
-    setSelectedControl(newControl.id);
+    console.log('Adding control of type:', type);
+    try {
+      const newControl: ControlWidget = {
+        id: `control-${Date.now()}`,
+        name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+        type,
+        command: '',
+        position: { x: 50, y: 50 },
+        size: getDefaultSize(type),
+        style: { ...defaultStyle }
+      };
+      console.log('Created new control:', newControl);
+      setLocalControls([...localControls, newControl]);
+      setSelectedControl(newControl.id);
+      console.log('Control added successfully');
+    } catch (error) {
+      console.error('Error adding control:', error);
+    }
   };
 
   const getDefaultSize = (type: ControlWidget['type']) => {
@@ -144,8 +151,13 @@ export function ControlBuilderModal({
   };
 
   const handleSave = () => {
-    onSaveControls(localControls);
-    onClose();
+    console.log('Control Builder - Saving controls:', localControls);
+    try {
+      onSaveControls(localControls);
+      onClose();
+    } catch (error) {
+      console.error('Control Builder - Error saving controls:', error);
+    }
   };
 
   // Render control based on type
