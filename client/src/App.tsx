@@ -159,11 +159,18 @@ function AuthWrapper() {
 
 function App() {
   // Use development keys for local development, production keys for deployment
-  const clerkPublishableKey = window.location.hostname.includes('replit.dev') 
+  const isLocalDevelopment = window.location.hostname.includes('replit.dev');
+  const clerkPublishableKey = isLocalDevelopment
     ? "pk_test_cHJvdmVuLWh1bXBiYWNrLTE4LmNsZXJrLmFjY291bnRzLmRldiQ"
-    : import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || import.meta.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    : import.meta.env.VITE_CLERK_PRODUCTION_PUBLIC;
 
   if (!clerkPublishableKey) {
+    console.error('Missing Clerk key. Environment:', { 
+      hostname: window.location.hostname, 
+      isLocal: isLocalDevelopment,
+      hasProductionKey: !!import.meta.env.VITE_CLERK_PRODUCTION_PUBLIC,
+      envKeys: Object.keys(import.meta.env).filter(k => k.includes('CLERK'))
+    });
     throw new Error("Missing Clerk Publishable Key");
   }
 
