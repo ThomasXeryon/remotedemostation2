@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,11 +39,18 @@ export function ControlBuilderModal({
   controls,
   onSaveControls
 }: ControlBuilderModalProps) {
-  const [localControls, setLocalControls] = useState<ControlWidget[]>(controls);
+  const [localControls, setLocalControls] = useState<ControlWidget[]>([]);
   const [selectedControl, setSelectedControl] = useState<string | null>(null);
   const [draggedControl, setDraggedControl] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Sync controls prop with local state when modal opens or controls change
+  useEffect(() => {
+    if (controls && Array.isArray(controls)) {
+      setLocalControls(controls);
+    }
+  }, [controls, isOpen]);
 
   const defaultStyle = {
     backgroundColor: '#3b82f6',

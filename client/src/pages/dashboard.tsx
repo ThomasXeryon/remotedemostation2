@@ -156,11 +156,18 @@ export default function Dashboard() {
   // Control configuration query
   useEffect(() => {
     if (selectedStation) {
+      console.log('Loading controls for station:', selectedStation.id);
       apiRequest(`/api/demo-stations/${selectedStation.id}/controls`, {
         method: 'GET',
       })
-        .then((config) => setControlConfig(config))
-        .catch(() => setControlConfig(null));
+        .then((config) => {
+          console.log('Loaded control config:', config);
+          setControlConfig(config);
+        })
+        .catch((error) => {
+          console.error('Failed to load controls:', error);
+          setControlConfig(null);
+        });
     }
   }, [selectedStation]);
 
@@ -463,7 +470,7 @@ export default function Dashboard() {
           <ControlBuilderModal
             isOpen={isControlBuilderOpen}
             onClose={() => setIsControlBuilderOpen(false)}
-            controls={controlConfig?.controls || []}
+            controls={Array.isArray(controlConfig?.controls) ? controlConfig.controls : []}
             onSaveControls={handleSaveControls}
           />
         )}
