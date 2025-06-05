@@ -220,19 +220,34 @@ export default function Dashboard() {
 
   // Save controls function
   const handleSaveControls = async (controls: any[]) => {
-    if (!selectedStation) return;
+    if (!selectedStation) {
+      console.error('No station selected for saving controls');
+      return;
+    }
+
+    console.log('Saving controls for station:', selectedStation.id);
+    console.log('Controls to save:', controls);
 
     try {
-      await apiRequest(`/api/demo-stations/${selectedStation.id}/controls`, {
+      const response = await apiRequest(`/api/demo-stations/${selectedStation.id}/controls`, {
         method: 'POST',
-        body: JSON.stringify({ controls }),
+        body: JSON.stringify({ 
+          controls,
+          layout: {} // Add required layout field
+        }),
       });
 
+      console.log('Controls saved successfully:', response);
       setControlConfig({ controls } as any);
       setIsControlBuilderOpen(false);
       toast({ title: 'Controls saved successfully' });
     } catch (error) {
-      toast({ title: 'Failed to save controls', variant: 'destructive' });
+      console.error('Failed to save controls:', error);
+      toast({ 
+        title: 'Failed to save controls', 
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive' 
+      });
     }
   };
 

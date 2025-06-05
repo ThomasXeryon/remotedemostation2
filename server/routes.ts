@@ -898,6 +898,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/demo-stations/:id/controls', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const stationId = req.params.id;
+      console.log('Saving controls for station:', stationId);
+      console.log('Request body:', req.body);
+      console.log('User:', req.user);
+
       const station = await storage.getDemoStation(stationId);
 
       if (!station || station.organizationId !== req.user!.organizationId) {
@@ -908,16 +912,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Insufficient permissions' });
       }
 
-      const configData = insertControlConfigurationSchema.parse({
-        ...req.body,
+      const configData = {
+        controls: req.body.controls || [],
+        layout: req.body.layout || {},
         demoStationId: stationId,
         createdBy: req.user!.id
-      });
+      };
+
+      console.log('Parsed config data:', configData);
 
       const config = await storage.createControlConfiguration(configData);
+      console.log('Configuration saved:', config);
       res.status(201).json(config);
     } catch (error) {
-      res.status(400).json({ message: 'Failed to save control configuration' });
+      console.error('Error saving control configuration:', error);
+      res.status(400).json({ 
+        message: 'Failed to save control configuration',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
