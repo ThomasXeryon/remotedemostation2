@@ -95,12 +95,21 @@ function setupSession(app: Express) {
 function setupPassport() {
   // Use the correct absolute URL for the current environment
   let callbackURL;
-  if (process.env.NODE_ENV === 'production') {
-    // In production, use the deployment domain
-    callbackURL = `https://${process.env.REPLIT_DEPLOYMENT_DOMAIN || process.env.REPL_SLUG}.replit.app/auth/google/callback`;
-  } else {
+  
+  // Check if we're in a deployment environment (no REPLIT_DEV_DOMAIN means deployment)
+  if (!process.env.REPLIT_DEV_DOMAIN && process.env.REPL_SLUG) {
+    // In deployment, check for custom domain first, then fall back to replit domain
+    if (process.env.CUSTOM_DOMAIN) {
+      callbackURL = `https://${process.env.CUSTOM_DOMAIN}/auth/google/callback`;
+    } else {
+      callbackURL = `https://${process.env.REPL_SLUG}.replit.app/auth/google/callback`;
+    }
+  } else if (process.env.REPLIT_DEV_DOMAIN) {
     // In development, use the dev domain
-    callbackURL = `https://${process.env.REPLIT_DEV_DOMAIN || 'localhost:5000'}/auth/google/callback`;
+    callbackURL = `https://${process.env.REPLIT_DEV_DOMAIN}/auth/google/callback`;
+  } else {
+    // Fallback for local development
+    callbackURL = 'https://localhost:5000/auth/google/callback';
   }
   console.log('OAuth callback URL configured as:', callbackURL);
   
