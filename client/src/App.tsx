@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Layout } from "@/components/layout";
 import {
   ClerkProvider,
   SignInButton,
@@ -72,19 +73,20 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
 
 function AuthenticatedRoutes() {
   return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/organizations" component={Organizations} />
-      <Route path="/settings" component={Settings} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/team-members" component={TeamMembers} />
-      <Route path="/stations" component={Stations} />
-      <Route path="/stations/new" component={StationEditor} />
-      <Route path="/stations/:id/edit" component={StationEditor} />
-      <Route path="/stations/:id/control" component={StationControl} />
-      <Route path="/customer-login/:stationId" component={CustomerLogin} />
-      <Route component={NotFound} />
-    </Switch>
+    <Layout>
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/organizations" component={Organizations} />
+        <Route path="/settings" component={Settings} />
+        <Route path="/analytics" component={Analytics} />
+        <Route path="/team-members" component={TeamMembers} />
+        <Route path="/stations" component={Stations} />
+        <Route path="/stations/new" component={StationEditor} />
+        <Route path="/stations/:id/edit" component={StationEditor} />
+        <Route path="/stations/:id/control" component={StationControl} />
+        <Route component={NotFound} />
+      </Switch>
+    </Layout>
   );
 }
 
@@ -99,16 +101,21 @@ function Router() {
     );
   }
 
+  if (isSignedIn) {
+    return <AuthenticatedRoutes />;
+  }
+
   return (
     <Switch>
-      <SignedOut>
-        <Route path="/" component={LandingPage} />
-        <Route path="/customer-login/:stationId" component={CustomerLogin} />
-        <Route component={LandingPage} />
-      </SignedOut>
-      <SignedIn>
-        <AuthenticatedRoutes />
-      </SignedIn>
+      <Route path="/" component={LandingPage} />
+      <Route path="/customer-login/:stationId" component={({ params }) => (
+        <CustomerLogin 
+          stationId={params?.stationId || ''} 
+          organizationName="Demo Organization" 
+          stationName="Demo Station" 
+        />
+      )} />
+      <Route component={LandingPage} />
     </Switch>
   );
 }
