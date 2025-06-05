@@ -551,10 +551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     <script src="https://unpkg.com/@mui/material@5.15.0/umd/material-ui.development.js"></script>
     <script src="https://unpkg.com/@emotion/react@11.11.0/dist/emotion-react.umd.min.js"></script>
     <script src="https://unpkg.com/@emotion/styled@11.11.0/dist/emotion-styled.umd.min.js"></script>
-    <script src="https://unpkg.com/react-dnd@16.0.1/dist/umd/ReactDnD.min.js"></script>
-    <script src="https://unpkg.com/react-dnd-html5-backend@16.0.1/dist/umd/ReactDnDHTML5Backend.min.js"></script>
-    <script src="https://unpkg.com/react-dnd-touch-backend@16.0.1/dist/umd/ReactDnDTouchBackend.min.js"></script>
-    <script src="https://unpkg.com/react-dnd-multi-backend@8.0.3/dist/umd/ReactDnDMultiBackend.min.js"></script>
+
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <style>
@@ -629,8 +626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             Box, Card, CardContent, CardHeader, Typography, Chip, Button, 
             Paper, Divider, Stack, Grid, ThemeProvider, createTheme 
         } = MaterialUI;
-        const { DndProvider, useDrag } = ReactDnD;
-        const { HTML5Backend } = ReactDnDHTML5Backend;
+        // Native drag implementation without external libraries
 
         const theme = createTheme({
             palette: {
@@ -640,25 +636,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             },
         });
 
-        function ReactDndJoystick({ onPositionChange }) {
+        function NativeJoystick({ onPositionChange }) {
             const [position, setPosition] = useState({ x: 0, y: 0 });
+            const [isDragging, setIsDragging] = useState(false);
             const containerRef = useRef(null);
+            const stickRef = useRef(null);
 
-            const [{ isDragging }, drag] = useDrag({
-                type: 'joystick-stick',
-                item: { type: 'joystick-stick' },
-                collect: (monitor) => ({
-                    isDragging: monitor.isDragging(),
-                }),
-                end: () => {
-                    const centerPosition = { x: 0, y: 0 };
-                    setPosition(centerPosition);
-                    onPositionChange(centerPosition);
-                },
-            });
+            const handleMouseDown = useCallback((event) => {
+                event.preventDefault();
+                setIsDragging(true);
+            }, []);
 
             const handleMouseMove = useCallback((event) => {
-                if (!containerRef.current || !isDragging) return;
+                if (!isDragging || !containerRef.current) return;
 
                 const rect = containerRef.current.getBoundingClientRect();
                 const centerX = rect.left + rect.width / 2;
@@ -685,12 +675,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 onPositionChange(newPosition);
             }, [isDragging, onPositionChange]);
 
+            const handleMouseUp = useCallback(() => {
+                if (isDragging) {
+                    setIsDragging(false);
+                    const centerPosition = { x: 0, y: 0 };
+                    setPosition(centerPosition);
+                    onPositionChange(centerPosition);
+                }
+            }, [isDragging, onPositionChange]);
+
             useEffect(() => {
                 if (isDragging) {
                     document.addEventListener('mousemove', handleMouseMove);
-                    return () => document.removeEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                    return () => {
+                        document.removeEventListener('mousemove', handleMouseMove);
+                        document.removeEventListener('mouseup', handleMouseUp);
+                    };
                 }
-            }, [isDragging, handleMouseMove]);
+            }, [isDragging, handleMouseMove, handleMouseUp]);
 
             const stickTransform = \`translate(calc(-50% + \${position.x * 50}px), calc(-50% + \${-position.y * 50}px))\`;
 
@@ -698,9 +701,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 ref: containerRef,
                 className: 'joystick-container'
             }, React.createElement('div', {
-                ref: drag,
+                ref: stickRef,
                 className: 'joystick-stick',
-                style: { transform: stickTransform }
+                style: { 
+                    transform: stickTransform,
+                    cursor: isDragging ? 'grabbing' : 'grab'
+                },
+                onMouseDown: handleMouseDown
             }));
         }
 
