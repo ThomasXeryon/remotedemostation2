@@ -554,24 +554,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <style>
-        body { margin: 0; font-family: 'Roboto', sans-serif; }
+        body { 
+            margin: 0; 
+            font-family: 'Roboto', sans-serif; 
+            overflow-x: hidden;
+        }
         .joystick-container {
-            width: 140px;
-            height: 140px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
             position: relative;
             cursor: pointer;
-            border: 4px solid rgba(25, 118, 210, 0.2);
-            box-shadow: 0 8px 32px rgba(25, 118, 210, 0.3);
+            border: 3px solid rgba(25, 118, 210, 0.2);
+            box-shadow: 0 4px 16px rgba(25, 118, 210, 0.3);
             transition: box-shadow 0.2s ease;
         }
         .joystick-container:hover {
-            box-shadow: 0 12px 40px rgba(25, 118, 210, 0.4);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
         }
         .joystick-stick {
-            width: 40px;
-            height: 40px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: white;
             position: absolute;
@@ -579,8 +583,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             left: 50%;
             transform: translate(-50%, -50%);
             transition: transform 0.05s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            border: 3px solid #1565c0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: 2px solid #1565c0;
+        }
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        .controls-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .control-card {
+            flex: 1;
+            min-width: 280px;
+            max-width: 400px;
         }
     </style>
 </head>

@@ -1,16 +1,42 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Play, Square, ArrowLeft, Settings, Activity, Edit3, Save } from 'lucide-react';
+import {
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Stack,
+  Alert,
+  Chip,
+  Slider,
+  Switch,
+  FormControlLabel,
+  Divider,
+  Grid,
+} from '@mui/material';
+import {
+  PlayArrow,
+  Stop,
+  ArrowBack,
+  Settings,
+  Edit,
+  Save,
+  Videocam,
+  Computer,
+  Timeline,
+} from '@mui/icons-material';
 import { getCurrentUser } from '@/lib/auth';
 import { useWebSocket } from '@/hooks/use-websocket';
-import { 
-  ShadcnJoystick, 
-  ShadcnSlider, 
-  ShadcnButton, 
-  ShadcnToggle 
-} from '@/components/shadcn-controls';
+import {
+  MaterialJoystick,
+  MaterialSlider,
+  MaterialButton,
+  MaterialToggle,
+} from '@/components/material-ui-controls';
 
 interface DemoStation {
   id: string;
@@ -257,68 +283,88 @@ export default function StationControl() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Top Control Bar */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center space-x-4">
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Link href="/dashboard">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <Button variant="outlined" size="small" startIcon={<ArrowBack />}>
               Exit Control
             </Button>
           </Link>
-          <div>
-            <h1 className="text-xl font-bold">{stationData.name}</h1>
-            <p className="text-sm text-gray-600">{stationData.description}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4">
+          <Box>
+            <Typography variant="h5" component="h1" fontWeight="bold">
+              {stationData.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {stationData.description}
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Button 
             onClick={() => isEditMode ? saveControls() : setIsEditMode(true)}
-            variant={isEditMode ? "default" : "outline"}
-            className={isEditMode ? "bg-green-600 hover:bg-green-700" : ""}
+            variant={isEditMode ? "contained" : "outlined"}
+            color={isEditMode ? "success" : "primary"}
+            startIcon={isEditMode ? <Save /> : <Edit />}
           >
-            {isEditMode ? <Save className="w-4 h-4 mr-2" /> : <Edit3 className="w-4 h-4 mr-2" />}
             {isEditMode ? "Save Layout" : "Edit Layout"}
           </Button>
           {!isSessionActive ? (
             <Button 
               onClick={handleStartSession} 
-              className="bg-green-600 hover:bg-green-700"
+              variant="contained"
+              color="success"
+              startIcon={<PlayArrow />}
             >
-              <Play className="w-4 h-4 mr-2" />
               Start Session
             </Button>
           ) : (
-            <Button onClick={handleStopSession} variant="destructive">
-              <Square className="w-4 h-4 mr-2" />
+            <Button 
+              onClick={handleStopSession} 
+              variant="contained"
+              color="error"
+              startIcon={<Stop />}
+            >
               End Session
             </Button>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {/* Main Interface */}
-      <div className="flex-1 flex relative">
+      <Box sx={{ flex: 1, display: 'flex', position: 'relative' }}>
         {/* Camera Feed */}
-        <div 
-          className="bg-gray-900 rounded-lg m-2 relative overflow-hidden"
-          style={{
+        <Box 
+          sx={{
+            bgcolor: 'grey.900',
+            borderRadius: 2,
+            m: 1,
+            position: 'absolute',
+            overflow: 'hidden',
             width: `${layout.camera.width}%`,
             height: `${layout.camera.height}%`,
             left: `${layout.camera.position.x}%`,
             top: `${layout.camera.position.y}%`,
-            position: 'absolute'
           }}
         >
-          <div className="absolute inset-0 flex items-center justify-center text-white">
-            <div className="text-center">
-              <Activity className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">Live Camera Feed</p>
-              <p className="text-sm opacity-75">Hardware: {stationData.hardwareType}</p>
-            </div>
-          </div>
-        </div>
+          <Box sx={{ 
+            position: 'absolute', 
+            inset: 0, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            color: 'white'
+          }}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Videocam sx={{ fontSize: 64, mb: 2, opacity: 0.5 }} />
+              <Typography variant="h6" component="p">Live Camera Feed</Typography>
+              <Typography variant="body2" sx={{ opacity: 0.75 }}>
+                Hardware: {stationData.hardwareType}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
 
         {/* Control Panel */}
         <div 
