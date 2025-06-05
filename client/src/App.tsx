@@ -162,7 +162,7 @@ function App() {
     console.log('App useEffect - Current auth token:', authStorage.getToken());
     console.log('App useEffect - isAuthenticated:', isAuthenticated());
     
-    // Check for invalid token format only
+    // Check for invalid token format only  
     const currentToken = authStorage.getToken();
     if (currentToken) {
       try {

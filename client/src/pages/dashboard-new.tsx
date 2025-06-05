@@ -64,7 +64,7 @@ export function Dashboard() {
       window.location.href = '/login';
       return null;
     }
-    
+
     return (
       <div className="flex-1 space-y-6 p-6">
         <div className="flex justify-between items-start">
