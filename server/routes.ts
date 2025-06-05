@@ -184,6 +184,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.session());
   setupPassport();
 
+  // Serve controls demo
+  app.get('/test-controls', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+    const filePath = path.join(process.cwd(), 'test-controls.html');
+    
+    fs.readFile(filePath, 'utf8', (err: any, data: string) => {
+      if (err) {
+        res.status(404).send('Controls demo not found');
+        return;
+      }
+      res.setHeader('Content-Type', 'text/html');
+      res.send(data);
+    });
+  });
+
   // Development login route for testing
   app.post('/api/auth/dev-login', async (req, res) => {
     if (process.env.NODE_ENV !== 'development') {
