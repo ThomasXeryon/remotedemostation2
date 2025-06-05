@@ -15,7 +15,7 @@ import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
 import StationControl from "./pages/station-control-simple";
 import { CustomerLogin } from "./pages/customer-login";
-import { Component, ErrorInfo, ReactNode, useState } from "react";
+import { Component, ErrorInfo, ReactNode, useState, useEffect, useRef } from "react";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -62,6 +62,38 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
   }
 }
 
+function AutoLogin() {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    // Automatically trigger the sign-in modal when component mounts
+    const timer = setTimeout(() => {
+      if (buttonRef.current) {
+        buttonRef.current.click();
+      }
+    }, 500); // Small delay to ensure Clerk is loaded
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+        <h1 className="text-3xl font-bold mb-6">Remote Demo Station</h1>
+        <p className="text-gray-600 mb-6">
+          Redirecting to authentication...
+        </p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <SignInButton mode="modal">
+          <button ref={buttonRef} style={{ display: 'none' }}>
+            Sign In
+          </button>
+        </SignInButton>
+      </div>
+    </div>
+  );
+}
+
 function AuthWrapper() {
   const { isLoaded, isSignedIn } = useAuth();
 
@@ -76,26 +108,7 @@ function AuthWrapper() {
   return (
     <>
       <SignedOut>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-            <h1 className="text-3xl font-bold text-center mb-6">Remote Demo Station</h1>
-            <p className="text-gray-600 text-center mb-6">
-              Sign in to access your hardware control dashboard
-            </p>
-            <div className="space-y-4">
-              <SignInButton mode="modal">
-                <button className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                  Sign In
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition-colors">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </div>
-          </div>
-        </div>
+        <AutoLogin />
       </SignedOut>
       
       <SignedIn>
