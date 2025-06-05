@@ -67,6 +67,33 @@ export default function Login() {
     }
   }, [setLocation, toast]);
 
+  // Check if user has a valid token and redirect to dashboard
+  useEffect(() => {
+    const token = authStorage.getToken();
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceLogout = urlParams.get('force_logout');
+
+    if (token && !forceLogout) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        // If token is valid and not expired, redirect to dashboard
+        if (payload.exp && payload.exp * 1000 > Date.now()) {
+          setLocation('/dashboard');
+          return;
+        }
+      } catch (e) {
+        // Invalid token, clear it
+        authStorage.clearAll();
+      }
+    }
+
+    // Clear any force_logout parameter from URL
+    if (forceLogout) {
+      window.history.replaceState({}, document.title, '/login');
+    }
+  }, [setLocation]);
+
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormData) => {
       return await apiRequest('/api/auth/login', {
@@ -131,7 +158,7 @@ export default function Login() {
             <FcGoogle className="w-4 h-4 mr-2" />
             Continue with Google
           </Button>
-          
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />

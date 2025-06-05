@@ -162,14 +162,13 @@ function App() {
     console.log('App useEffect - Current auth token:', authStorage.getToken());
     console.log('App useEffect - isAuthenticated:', isAuthenticated());
 
-    // Check for invalid token format only  
+    // Basic token validation - only remove if completely malformed
     const currentToken = authStorage.getToken();
     if (currentToken) {
       try {
-        const payload = JSON.parse(atob(currentToken.split('.')[1]));
-        // Only clear if token is malformed or expired
-        if (!payload.id || !payload.organizationId || (payload.exp && payload.exp * 1000 < Date.now())) {
-          console.log('Invalid or expired token detected, clearing authentication');
+        const parts = currentToken.split('.');
+        if (parts.length !== 3) {
+          console.log('Malformed token detected, clearing authentication');
           authStorage.clearAll();
           if (currentPath === '/dashboard') {
             window.location.href = '/login';
@@ -177,7 +176,7 @@ function App() {
           }
         }
       } catch (e) {
-        console.log('Malformed token detected, clearing authentication');
+        console.log('Token parsing error, clearing authentication');
         authStorage.clearAll();
         if (currentPath === '/dashboard') {
           window.location.href = '/login';
