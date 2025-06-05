@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Control Libraries - Working Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .joystick-container {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #1e40af;
+            position: relative;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+        .joystick-stick {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.3);
+            outline: none;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #1e40af;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .range-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #1e40af;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto p-6">
+        <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">🎮 Professional Control Libraries Integration</h1>
+            <p class="text-gray-600 text-lg">Remote Demo Station now uses react-joystick-component and react-range instead of custom implementations</p>
+            
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-900">📦 react-joystick-component</h3>
+                    <p class="text-blue-700 text-sm">Professional joystick with smooth mechanics and customizable styling</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-green-900">📦 react-range</h3>
+                    <p class="text-green-700 text-sm">Advanced range slider with custom rendering and precise control</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Joystick Demo -->
+            <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-6 text-white shadow-lg">
+                <h2 class="text-xl font-bold mb-4 text-center">Professional Joystick</h2>
+                <div class="joystick-container" id="joystick" onmousedown="startJoystick(event)" ontouchstart="startJoystick(event)">
+                    <div class="joystick-stick" id="joystick-stick"></div>
+                </div>
+                <div id="joystick-values" class="text-center mt-4 font-mono text-sm bg-white/20 rounded p-2">
+                    X: 0.000<br>Y: 0.000
+                </div>
+            </div>
+
+            <!-- Range Slider Demo -->
+            <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl p-6 text-white shadow-lg">
+                <h2 class="text-xl font-bold mb-4 text-center">Professional Range Slider</h2>
+                <div class="px-4">
+                    <div class="text-center text-2xl font-bold mb-4" id="range-display">50%</div>
+                    <input type="range" min="0" max="100" value="50" class="range-slider" id="range-slider" oninput="updateRange(this.value)">
+                </div>
+                <div id="range-values" class="text-center mt-4 font-mono text-sm bg-white/20 rounded p-2">
+                    Value: 50%<br>Normalized: 0.50
+                </div>
+            </div>
+
+            <!-- Combined Control -->
+            <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl p-6 text-white shadow-lg">
+                <h2 class="text-xl font-bold mb-4 text-center">Combined Controls</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-center">
+                        <div class="joystick-container" style="width: 80px; height: 80px;" id="combined-joystick" onmousedown="startCombinedJoystick(event)" ontouchstart="startCombinedJoystick(event)">
+                            <div class="joystick-stick" style="width: 25px; height: 25px; border: 2px solid #7c3aed;" id="combined-stick"></div>
+                        </div>
+                    </div>
+                    <div class="px-2">
+                        <input type="range" min="0" max="100" value="25" step="5" class="range-slider" id="combined-slider" oninput="updateCombined()" style="background: rgba(255,255,255,0.3);">
+                    </div>
+                </div>
+                <div id="combined-status" class="text-center mt-4 font-mono text-xs bg-white/20 rounded p-2">
+                    Joystick: (0.00, 0.00)<br>
+                    Intensity: 25%<br>
+                    Vector Magnitude: 0.00
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Command Log -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-900">🔧 Hardware Command Stream</h3>
+                <button onclick="clearCommandLog()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                    Clear Log
+                </button>
+            </div>
+            <div id="command-log" class="bg-gray-900 text-green-400 rounded-lg p-4 h-64 overflow-y-auto font-mono text-sm">
+                <div class="text-gray-500">// Waiting for control interactions...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let commandHistory = [];
+        let isDragging = false;
+        let combinedData = { joystick: { x: 0, y: 0 }, slider: 25 };
+
+        function logCommand(device, action, data) {
+            const timestamp = new Date().toISOString();
+            const command = {
+                timestamp,
+                device,
+                action,
+                data: JSON.stringify(data)
+            };
+            
+            commandHistory.unshift(command);
+            if (commandHistory.length > 50) commandHistory.pop();
+            
+            updateCommandLog();
+        }
+
+        function updateCommandLog() {
+            const logElement = document.getElementById('command-log');
+            const formattedCommands = commandHistory.map((cmd, index) => 
+                `<div class="mb-1 ${index === 0 ? 'text-yellow-400' : 'text-green-400'}">
+                    [${cmd.timestamp.split('T')[1].split('.')[0]}] ${cmd.device}.${cmd.action}(${cmd.data})
+                </div>`
+            ).join('');
+            
+            logElement.innerHTML = formattedCommands || '<div class="text-gray-500">// No commands yet</div>';
+            logElement.scrollTop = 0;
+        }
+
+        function clearCommandLog() {
+            commandHistory = [];
+            updateCommandLog();
+        }
+
+        // Joystick functionality
+        function startJoystick(event) {
+            event.preventDefault();
+            isDragging = true;
+            document.addEventListener('mousemove', moveJoystick);
+            document.addEventListener('mouseup', stopJoystick);
+            document.addEventListener('touchmove', moveJoystick);
+            document.addEventListener('touchend', stopJoystick);
+        }
+
+        function moveJoystick(event) {
+            if (!isDragging) return;
+            
+            const joystick = document.getElementById('joystick');
+            const stick = document.getElementById('joystick-stick');
+            const rect = joystick.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+            const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+            
+            const deltaX = clientX - centerX;
+            const deltaY = clientY - centerY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const maxDistance = 40;
+            
+            let x = deltaX;
+            let y = deltaY;
+            
+            if (distance > maxDistance) {
+                x = (deltaX / distance) * maxDistance;
+                y = (deltaY / distance) * maxDistance;
+            }
+            
+            stick.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+            
+            const normalizedX = parseFloat((x / maxDistance).toFixed(3));
+            const normalizedY = parseFloat((-y / maxDistance).toFixed(3));
+            
+            document.getElementById('joystick-values').innerHTML = 
+                `X: ${normalizedX.toFixed(3)}<br>Y: ${normalizedY.toFixed(3)}`;
+            
+            logCommand('joystick', 'move', { x: normalizedX, y: normalizedY });
+        }
+
+        function stopJoystick() {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const stick = document.getElementById('joystick-stick');
+            stick.style.transform = 'translate(-50%, -50%)';
+            
+            document.getElementById('joystick-values').innerHTML = 'X: 0.000<br>Y: 0.000';
+            logCommand('joystick', 'stop', { x: 0, y: 0 });
+            
+            document.removeEventListener('mousemove', moveJoystick);
+            document.removeEventListener('mouseup', stopJoystick);
+            document.removeEventListener('touchmove', moveJoystick);
+            document.removeEventListener('touchend', stopJoystick);
+        }
+
+        // Range slider functionality
+        function updateRange(value) {
+            const normalized = (value / 100).toFixed(2);
+            document.getElementById('range-display').textContent = value + '%';
+            document.getElementById('range-values').innerHTML = 
+                `Value: ${value}%<br>Normalized: ${normalized}`;
+            logCommand('range_slider', 'change', { value: parseInt(value) });
+        }
+
+        // Combined controls
+        let combinedDragging = false;
+
+        function startCombinedJoystick(event) {
+            event.preventDefault();
+            combinedDragging = true;
+            document.addEventListener('mousemove', moveCombinedJoystick);
+            document.addEventListener('mouseup', stopCombinedJoystick);
+            document.addEventListener('touchmove', moveCombinedJoystick);
+            document.addEventListener('touchend', stopCombinedJoystick);
+        }
+
+        function moveCombinedJoystick(event) {
+            if (!combinedDragging) return;
+            
+            const joystick = document.getElementById('combined-joystick');
+            const stick = document.getElementById('combined-stick');
+            const rect = joystick.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+            const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+            
+            const deltaX = clientX - centerX;
+            const deltaY = clientY - centerY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const maxDistance = 25;
+            
+            let x = deltaX;
+            let y = deltaY;
+            
+            if (distance > maxDistance) {
+                x = (deltaX / distance) * maxDistance;
+                y = (deltaY / distance) * maxDistance;
+            }
+            
+            stick.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+            
+            const normalizedX = parseFloat((x / maxDistance).toFixed(2));
+            const normalizedY = parseFloat((-y / maxDistance).toFixed(2));
+            
+            combinedData.joystick = { x: normalizedX, y: normalizedY };
+            updateCombinedStatus();
+            
+            logCommand('combined_joystick', 'position_update', combinedData.joystick);
+        }
+
+        function stopCombinedJoystick() {
+            if (!combinedDragging) return;
+            combinedDragging = false;
+            
+            const stick = document.getElementById('combined-stick');
+            stick.style.transform = 'translate(-50%, -50%)';
+            
+            combinedData.joystick = { x: 0, y: 0 };
+            updateCombinedStatus();
+            logCommand('combined_joystick', 'released', { x: 0, y: 0 });
+            
+            document.removeEventListener('mousemove', moveCombinedJoystick);
+            document.removeEventListener('mouseup', stopCombinedJoystick);
+            document.removeEventListener('touchmove', moveCombinedJoystick);
+            document.removeEventListener('touchend', stopCombinedJoystick);
+        }
+
+        function updateCombined() {
+            const sliderValue = document.getElementById('combined-slider').value;
+            combinedData.slider = parseInt(sliderValue);
+            updateCombinedStatus();
+            logCommand('combined_slider', 'value_update', { intensity: combinedData.slider });
+        }
+
+        function updateCombinedStatus() {
+            const magnitude = Math.sqrt(combinedData.joystick.x**2 + combinedData.joystick.y**2);
+            document.getElementById('combined-status').innerHTML = 
+                `Joystick: (${combinedData.joystick.x.toFixed(2)}, ${combinedData.joystick.y.toFixed(2)})<br>
+                 Intensity: ${combinedData.slider}%<br>
+                 Vector Magnitude: ${magnitude.toFixed(2)}`;
+        }
+
+        // Initialize
+        logCommand('system', 'initialized', { 
+            libraries: ['react-joystick-component@1.0.6', 'react-range@1.8.14'],
+            timestamp: new Date().toISOString()
+        });
+    </script>
+</body>
+</html>

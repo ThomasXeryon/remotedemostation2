@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const fs = await import('fs');
       const path = await import('path');
-      const filePath = path.join(process.cwd(), 'test-controls.html');
+      const filePath = path.join(process.cwd(), 'test-controls-simple.html');
       
       const data = await fs.promises.readFile(filePath, 'utf8');
       res.setHeader('Content-Type', 'text/html');
