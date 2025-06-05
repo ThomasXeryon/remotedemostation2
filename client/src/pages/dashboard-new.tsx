@@ -25,7 +25,7 @@ import {
 } from "@mui/icons-material";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
-import { useUser } from "@/components/standalone-auth";
+import { useUser } from "@clerk/clerk-react";
 
 interface DemoStation {
   id: string;
