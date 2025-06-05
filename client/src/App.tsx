@@ -2,8 +2,9 @@ import { Switch, Route } from "wouter";
 import { useRef, useEffect, Component, type ReactNode, type ErrorInfo } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@mui/material/styles";
+import { CssBaseline, Alert, Snackbar } from "@mui/material";
+import { materialTheme } from "./theme/material-theme";
 import { Layout } from "@/components/layout";
 import { ClerkProvider, useAuth, SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Dashboard } from "@/pages/dashboard-new";
@@ -42,22 +43,34 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
-              <p className="text-gray-600 mb-6">
-                We encountered an unexpected error. Please refresh the page to try again.
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-              >
-                Refresh Page
-              </button>
+        <ThemeProvider theme={materialTheme}>
+          <CssBaseline />
+          <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5' }}>
+            <div style={{ maxWidth: '400px', width: '100%', backgroundColor: '#ffffff', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', borderRadius: '12px', padding: '24px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 600, color: 'rgba(0, 0, 0, 0.87)', marginBottom: '16px' }}>Something went wrong</h1>
+                <p style={{ color: 'rgba(0, 0, 0, 0.6)', marginBottom: '24px' }}>
+                  We encountered an unexpected error. Please refresh the page to try again.
+                </p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  style={{ 
+                    backgroundColor: '#1976d2', 
+                    color: '#ffffff', 
+                    fontWeight: 500, 
+                    padding: '8px 16px', 
+                    borderRadius: '8px', 
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  Refresh Page
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ThemeProvider>
       );
     }
 
@@ -156,9 +169,10 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+      <ThemeProvider theme={materialTheme}>
+        <CssBaseline />
         <ErrorBoundary>
-          <div className="min-h-screen bg-background">
+          <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
             <Switch>
               <Route path="/demo" component={ControlsDemo} />
               <Route>
@@ -173,10 +187,9 @@ function App() {
                 </ClerkProvider>
               </Route>
             </Switch>
-            <Toaster />
           </div>
         </ErrorBoundary>
-      </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
