@@ -140,17 +140,19 @@ function AuthWrapper() {
 }
 
 function App() {
-  const clerkPublishableKey = "pk_test_cHJvdmVuLWh1bXBiYWNrLTE4LmNsZXJrLmFjY291bnRzLmRldiQ";
+  const clerkPublishableKey = import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_live_Y2xlcmsuYXBwLnJlbW90ZWRlbW9zdGF0aW9uLmNvbSQ";
+
+  if (!clerkPublishableKey) {
+    throw new Error("Missing Clerk Publishable Key");
+  }
 
   return (
     <ClerkProvider 
       publishableKey={clerkPublishableKey}
-      options={{
-        allowedRedirectOrigins: [
-          'https://c075f664-03aa-4ecd-9607-fdde8813a49d-00-b16uo3ou0fs7.spock.replit.dev',
-          'https://app.remotedemostation.com'
-        ]
-      }}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
     >
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
