@@ -180,7 +180,7 @@ export default function StationEditor() {
           controls: controls,
           layout: {},
           demoStationId: id,
-          createdBy: currentUser?.id
+          createdBy: user?.id
         }),
       });
     },
