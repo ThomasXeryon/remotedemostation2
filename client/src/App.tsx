@@ -17,6 +17,7 @@ import StationEditor from "./pages/station-editor";
 import StationControl from "./pages/station-control";
 import { CustomerLogin } from "./pages/customer-login";
 import ControlsDemo from "./pages/controls-demo";
+import ShadcnControlsDemo from "./pages/shadcn-controls-demo";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -125,6 +126,7 @@ function AuthWrapper() {
             <Route path="/stations/new" component={StationEditor} />
             <Route path="/stations/:id/edit" component={StationEditor} />
             <Route path="/stations/:id/control" component={StationControl} />
+            <Route path="/shadcn-controls-demo" component={ShadcnControlsDemo} />
             <Route path="/customer-login/:stationId" component={({ params }) => (
               <CustomerLogin 
                 stationId={params!.stationId} 

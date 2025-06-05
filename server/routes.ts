@@ -199,6 +199,343 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve shadcn controls demo as standalone HTML
+  app.get('/shadcn-demo', async (req, res) => {
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>shadcn/ui Professional Controls - RDS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .joystick-container {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            position: relative;
+            margin: 0 auto;
+            cursor: pointer;
+            border: 4px solid #bfdbfe;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+        }
+        .joystick-stick {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.05s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 2px solid #1d4ed8;
+        }
+        .shadcn-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            outline: none;
+            position: relative;
+        }
+        .shadcn-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: 2px solid white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .animate-pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto p-6 space-y-8">
+        <!-- Header -->
+        <div class="card p-8">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 gradient-bg rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-4xl font-bold text-gray-900">shadcn/ui Professional Controls</h1>
+                    <p class="text-gray-600 text-lg">Remote Demo Station hardware control interface</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div class="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded mb-2">shadcn/ui Styled</div>
+                    <p class="text-sm text-blue-700">Professional control components with consistent design system</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <div class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded mb-2">Touch Responsive</div>
+                    <p class="text-sm text-green-700">Mobile-friendly drag and touch interactions</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <div class="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded mb-2">Real-time Commands</div>
+                    <p class="text-sm text-purple-700">Live hardware command streaming and logging</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Demonstrations -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Joystick Demo -->
+            <div class="card border-blue-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-blue-700">shadcn/ui Joystick</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex justify-center">
+                        <div id="joystick" class="joystick-container" onmousedown="startJoystick(event)" ontouchstart="startJoystick(event)">
+                            <div class="joystick-stick" id="joystick-stick"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3 border">
+                        <div id="joystick-values" class="text-center font-mono text-sm text-gray-700">
+                            <div>X: 0.000</div>
+                            <div>Y: 0.000</div>
+                            <div class="text-xs text-gray-500 mt-1">Magnitude: 0.000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slider Demo -->
+            <div class="card border-green-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-green-700">shadcn/ui Slider</h2>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div class="text-center">
+                        <div id="slider-display" class="text-3xl font-bold text-green-600 mb-4">50%</div>
+                        
+                        <div class="px-4">
+                            <input type="range" min="0" max="100" value="50" class="shadcn-slider" id="main-slider" oninput="updateSlider(this.value)">
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3 border">
+                        <div id="slider-values" class="text-center font-mono text-sm text-gray-700">
+                            <div>Value: 50%</div>
+                            <div>Normalized: 0.50</div>
+                            <div class="text-xs text-gray-500 mt-1">Range: 0-100</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Combined Controls -->
+            <div class="card border-purple-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-purple-700">Combined Controls</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex justify-center">
+                        <div id="combined-joystick" class="relative w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full border-2 border-purple-300 cursor-pointer" style="box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);" onmousedown="startCombinedJoystick(event)">
+                            <div class="absolute w-5 h-5 bg-white rounded-full border border-purple-600 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2" id="combined-stick"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="px-2">
+                        <input type="range" min="0" max="100" value="25" step="5" class="shadcn-slider" id="combined-slider" oninput="updateCombined()" style="background: #e2e8f0;">
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3 border">
+                        <div id="combined-values" class="text-center font-mono text-xs text-gray-700">
+                            <div>Intensity: 25%</div>
+                            <div>Status: Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Command Log -->
+        <div class="card">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse-dot"></div>
+                        <h3 class="text-xl font-semibold text-gray-900">Hardware Command Stream</h3>
+                    </div>
+                    <button onclick="clearCommandLog()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium">
+                        Clear Log
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div id="command-log" class="bg-gray-900 text-green-400 rounded-lg p-4 h-64 overflow-y-auto font-mono text-sm">
+                    <div class="text-gray-500">// Waiting for control interactions...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let commandHistory = [];
+        let isDragging = false;
+        let combinedData = { joystick: { x: 0, y: 0 }, slider: 25 };
+
+        function logCommand(device, action, data) {
+            const timestamp = new Date().toISOString();
+            const command = {
+                timestamp,
+                device,
+                action,
+                data: JSON.stringify(data)
+            };
+            
+            commandHistory.unshift(command);
+            if (commandHistory.length > 50) commandHistory.pop();
+            
+            updateCommandLog();
+        }
+
+        function updateCommandLog() {
+            const logElement = document.getElementById('command-log');
+            const formattedCommands = commandHistory.map((cmd, index) => 
+                \`<div class="mb-1 \${index === 0 ? 'text-yellow-400' : 'text-green-400'}">
+                    [\${cmd.timestamp.split('T')[1].split('.')[0]}] \${cmd.device}.\${cmd.action}(\${cmd.data})
+                </div>\`
+            ).join('');
+            
+            logElement.innerHTML = formattedCommands || '<div class="text-gray-500">// No commands yet</div>';
+            logElement.scrollTop = 0;
+        }
+
+        function clearCommandLog() {
+            commandHistory = [];
+            updateCommandLog();
+        }
+
+        // Joystick functionality
+        function startJoystick(event) {
+            event.preventDefault();
+            isDragging = true;
+            document.addEventListener('mousemove', moveJoystick);
+            document.addEventListener('mouseup', stopJoystick);
+            document.addEventListener('touchmove', moveJoystick);
+            document.addEventListener('touchend', stopJoystick);
+        }
+
+        function moveJoystick(event) {
+            if (!isDragging) return;
+            
+            const joystick = document.getElementById('joystick');
+            const stick = document.getElementById('joystick-stick');
+            const rect = joystick.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+            const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+            
+            const deltaX = clientX - centerX;
+            const deltaY = clientY - centerY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const maxDistance = 44;
+            
+            let x = deltaX;
+            let y = deltaY;
+            
+            if (distance > maxDistance) {
+                x = (deltaX / distance) * maxDistance;
+                y = (deltaY / distance) * maxDistance;
+            }
+            
+            stick.style.transform = \`translate(calc(-50% + \${x}px), calc(-50% + \${y}px))\`;
+            
+            const normalizedX = parseFloat((x / maxDistance).toFixed(3));
+            const normalizedY = parseFloat((-y / maxDistance).toFixed(3));
+            const magnitude = Math.sqrt(normalizedX**2 + normalizedY**2);
+            
+            document.getElementById('joystick-values').innerHTML = 
+                \`<div>X: \${normalizedX.toFixed(3)}</div>
+                 <div>Y: \${normalizedY.toFixed(3)}</div>
+                 <div class="text-xs text-gray-500 mt-1">Magnitude: \${magnitude.toFixed(3)}</div>\`;
+            
+            logCommand('shadcn_joystick', 'move', { x: normalizedX, y: normalizedY });
+        }
+
+        function stopJoystick() {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const stick = document.getElementById('joystick-stick');
+            stick.style.transform = 'translate(-50%, -50%)';
+            
+            document.getElementById('joystick-values').innerHTML = 
+                \`<div>X: 0.000</div>
+                 <div>Y: 0.000</div>
+                 <div class="text-xs text-gray-500 mt-1">Magnitude: 0.000</div>\`;
+            logCommand('shadcn_joystick', 'stop', { x: 0, y: 0 });
+            
+            document.removeEventListener('mousemove', moveJoystick);
+            document.removeEventListener('mouseup', stopJoystick);
+            document.removeEventListener('touchmove', moveJoystick);
+            document.removeEventListener('touchend', stopJoystick);
+        }
+
+        // Slider functionality
+        function updateSlider(value) {
+            const normalized = (value / 100).toFixed(2);
+            document.getElementById('slider-display').textContent = value + '%';
+            document.getElementById('slider-values').innerHTML = 
+                \`<div>Value: \${value}%</div>
+                 <div>Normalized: \${normalized}</div>
+                 <div class="text-xs text-gray-500 mt-1">Range: 0-100</div>\`;
+            logCommand('shadcn_slider', 'change', { value: parseInt(value) });
+        }
+
+        // Combined controls
+        function updateCombined() {
+            const sliderValue = document.getElementById('combined-slider').value;
+            combinedData.slider = parseInt(sliderValue);
+            document.getElementById('combined-values').innerHTML = 
+                \`<div>Intensity: \${combinedData.slider}%</div>
+                 <div>Status: Active</div>\`;
+            logCommand('shadcn_combined_slider', 'intensity_update', { intensity: combinedData.slider });
+        }
+
+        // Initialize
+        logCommand('shadcn_system', 'initialized', { 
+            framework: 'shadcn/ui-styled',
+            components: ['Joystick', 'Slider', 'Card', 'Badge'],
+            timestamp: new Date().toISOString()
+        });
+    </script>
+</body>
+</html>`;
+    
+    res.setHeader('Content-Type', 'text/html');
+    res.send(htmlContent);
+  });
+
   // Development login route for testing
   app.post('/api/auth/dev-login', async (req, res) => {
     if (process.env.NODE_ENV !== 'development') {
