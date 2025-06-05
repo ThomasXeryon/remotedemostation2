@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Monitor, Settings, Play, Clock, Users, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
-import { getCurrentUser, authStorage } from "@/lib/auth";
+import { useUser } from "@clerk/clerk-react";
 
 interface DemoStation {
   id: string;
@@ -26,13 +26,12 @@ interface DemoStation {
 }
 
 export function Dashboard() {
+  const { user } = useUser();
   const { data: demoStations, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/demo-stations'],
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
-
-  const currentUser = getCurrentUser();
 
   // Listen for organization changes and refetch data
   useEffect(() => {
@@ -57,13 +56,6 @@ export function Dashboard() {
 
   if (error) {
     console.error('Dashboard error:', error);
-    // Check if this is an auth error
-    if (error.message?.includes('401') || error.message?.includes('403')) {
-      // Clear auth and redirect to login
-      authStorage.clearAll();
-      window.location.href = '/login';
-      return null;
-    }
 
     return (
       <div className="flex-1 space-y-6 p-6">
@@ -90,10 +82,8 @@ export function Dashboard() {
   }
 
   const allStations = (demoStations as DemoStation[]) || [];
-  // Filter stations: regular users only see enabled stations, admins see all
-  const stations = currentUser?.role === 'admin' 
-    ? allStations 
-    : allStations.filter(station => station.isOnline);
+  // For now, show all stations since we're using Clerk authentication
+  const stations = allStations;
 
   return (
     <div className="flex-1 space-y-6 p-6">
@@ -137,11 +127,11 @@ export function Dashboard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {!station.isOnline && currentUser?.role === 'admin' && (
+                {!station.isOnline && (
                   <Alert className="border-orange-200 bg-orange-50">
                     <AlertTriangle className="h-4 w-4 text-orange-600" />
                     <AlertDescription className="text-orange-800 text-sm">
-                      Not visible to users
+                      Station offline
                     </AlertDescription>
                   </Alert>
                 )}

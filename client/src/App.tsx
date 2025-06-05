@@ -126,7 +126,7 @@ function AuthWrapper() {
 }
 
 function App() {
-  const clerkPublishableKey = "pk_live_Y2xlcmsuYXBwLnJlbW90ZWRlbW9zdGF0aW9uLmNvbSQ";
+  const clerkPublishableKey = "pk_test_cHJvdmVuLWh1bXBiYWNrLTE4LmNsZXJrLmFjY291bnRzLmRldiQ";
 
   return (
     <ClerkProvider 
