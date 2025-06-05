@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Monitor, Settings, Play, Clock, Users, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, authStorage } from "@/lib/auth";
 
 interface DemoStation {
   id: string;
@@ -57,6 +57,14 @@ export function Dashboard() {
 
   if (error) {
     console.error('Dashboard error:', error);
+    // Check if this is an auth error
+    if (error.message?.includes('401') || error.message?.includes('403')) {
+      // Clear auth and redirect to login
+      authStorage.clearAll();
+      window.location.href = '/login';
+      return null;
+    }
+    
     return (
       <div className="flex-1 space-y-6 p-6">
         <div className="flex justify-between items-start">
@@ -70,7 +78,9 @@ export function Dashboard() {
             <div className="text-center">
               <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
               <h3 className="text-lg font-medium mb-2">Unable to Load Dashboard</h3>
-              <p className="text-muted-foreground mb-4">There was an error loading the demo stations.</p>
+              <p className="text-muted-foreground mb-4">
+                Error: {error.message || 'There was an error loading the demo stations.'}
+              </p>
               <Button onClick={() => refetch()}>Try Again</Button>
             </div>
           </CardContent>

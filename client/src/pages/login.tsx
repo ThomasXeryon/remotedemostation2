@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { authStorage } from "@/lib/auth";
 import { FcGoogle } from "react-icons/fc";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -40,12 +41,16 @@ export default function Login() {
     const error = urlParams.get('error');
 
     if (token) {
-      localStorage.setItem('token', token);
+      console.log('Setting token from URL:', token.substring(0, 20) + '...');
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('token', token); // Keep both for compatibility
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-      setLocation('/');
+      // Clear URL and redirect to dashboard
+      window.history.replaceState({}, document.title, '/dashboard');
+      setLocation('/dashboard');
     } else if (error) {
       let errorMessage = "Authentication failed";
       if (error === 'no-organization') {
@@ -58,6 +63,8 @@ export default function Login() {
         description: errorMessage,
         variant: "destructive",
       });
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, '/login');
     }
   }, [setLocation, toast]);
 
@@ -72,12 +79,16 @@ export default function Login() {
       });
     },
     onSuccess: (data) => {
-      localStorage.setItem('token', data.token);
+      console.log('Manual login successful, storing token');
+      authStorage.setToken(data.token);
+      if (data.user) {
+        authStorage.setUser(data.user);
+      }
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-      setLocation('/');
+      setLocation('/dashboard');
     },
     onError: (error: any) => {
       toast({
