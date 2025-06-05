@@ -42,8 +42,7 @@ export default function Login() {
 
     if (token) {
       console.log('Setting token from URL:', token.substring(0, 20) + '...');
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('token', token); // Keep both for compatibility
+      authStorage.setToken(token);
       toast({
         title: "Login successful",
         description: "Welcome back!",
