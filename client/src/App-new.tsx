@@ -113,7 +113,7 @@ function Router() {
 
 function App() {
   return (
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ErrorBoundary>

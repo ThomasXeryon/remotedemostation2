@@ -1,13 +1,19 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Layout } from "@/components/layout";
-import { isAuthenticated, authStorage } from "@/lib/auth";
-import Login from "@/pages/login";
-import Signup from "@/pages/signup";
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useAuth
+} from "@clerk/clerk-react";
 import { Dashboard } from "@/pages/dashboard-new";
+import { LandingPage } from "@/pages/landing";
 import Organizations from "@/pages/organizations";
 import Settings from "@/pages/settings";
 import Analytics from "@/pages/analytics";
@@ -17,10 +23,6 @@ import Stations from "./pages/stations";
 import StationEditor from "./pages/station-editor";
 import StationControl from "./pages/station-control-simple";
 import { CustomerLogin } from "./pages/customer-login";
-import ForceLogout from "./pages/force-logout";
-import { useEffect } from "react";
-import { useLocation } from "wouter";
-import { refreshUserData } from "@/lib/auth";
 import { Component, ErrorInfo, ReactNode } from "react";
 
 interface ErrorBoundaryState {
@@ -68,149 +70,63 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
   }
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const authenticated = isAuthenticated();
-  console.log('ProtectedRoute - isAuthenticated:', authenticated);
-  console.log('ProtectedRoute - token:', authStorage.getToken());
-
-  if (!authenticated) {
-    console.log('ProtectedRoute - Redirecting to login');
-    return <Redirect to="/login" />;
-  }
-
-  console.log('ProtectedRoute - Rendering protected content');
-  return <Layout>{children}</Layout>;
-}
-
-function Router() {
+function AuthenticatedRoutes() {
   return (
     <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/signup" component={Signup} />
-      <Route path="/organizations">
-        <ProtectedRoute>
-          <Organizations />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/dashboard">
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/stations">
-        <ProtectedRoute>
-          <Stations />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/stations/:id/edit">
-        <ProtectedRoute>
-          <StationEditor />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/stations/:id/control">
-        <ProtectedRoute>
-          <StationControl />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/stations/:id/customer-login" component={({ params }) => (
-        <CustomerLogin 
-          stationId={params.id} 
-          organizationName="Demo Organization" 
-          stationName="Demo Station" 
-        />
-      )} />
-      <Route path="/settings">
-        <ProtectedRoute>
-          <Settings />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/analytics">
-        <ProtectedRoute>
-          <Analytics />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/team-members">
-        <ProtectedRoute>
-          <TeamMembers />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/">
-        {(() => {
-          const authenticated = isAuthenticated();
-          console.log('Root route - isAuthenticated:', authenticated);
-          return authenticated ? <Redirect to="/dashboard" /> : <Redirect to="/login" />;
-        })()}
-      </Route>
+      <Route path="/" component={Dashboard} />
+      <Route path="/organizations" component={Organizations} />
+      <Route path="/settings" component={Settings} />
+      <Route path="/analytics" component={Analytics} />
+      <Route path="/team-members" component={TeamMembers} />
+      <Route path="/stations" component={Stations} />
+      <Route path="/stations/new" component={StationEditor} />
+      <Route path="/stations/:id/edit" component={StationEditor} />
+      <Route path="/stations/:id/control" component={StationControl} />
+      <Route path="/customer-login/:stationId" component={CustomerLogin} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-function App() {
-  const [, setLocation] = useLocation();
+function Router() {
+  const { isLoaded, isSignedIn } = useAuth();
 
-  // Handle OAuth token from URL parameter and force logout if needed
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const forceLogout = urlParams.get('force_logout');
-    const currentPath = window.location.pathname;
-
-    console.log('App useEffect - Current URL:', window.location.href);
-    console.log('App useEffect - Token from URL:', token);
-    console.log('App useEffect - Force logout:', forceLogout);
-    console.log('App useEffect - Current auth token:', authStorage.getToken());
-    console.log('App useEffect - isAuthenticated:', isAuthenticated());
-
-    // Only clear completely malformed tokens
-    const currentToken = authStorage.getToken();
-    if (currentToken) {
-      try {
-        const parts = currentToken.split('.');
-        if (parts.length !== 3) {
-          console.log('Malformed token detected, clearing authentication');
-          authStorage.clearAll();
-        }
-      } catch (e) {
-        console.log('Token parsing error, clearing authentication');
-        authStorage.clearAll();
-      }
-    }
-
-    // Handle forced logout to clear old tokens
-    if (forceLogout === '1') {
-      console.log('Force logout detected - clearing all authentication data');
-      authStorage.clearAll();
-      window.history.replaceState({}, document.title, '/login');
-      window.location.href = '/login';
-      return;
-    }
-
-    // Process any token from URL
-    if (token) {
-      console.log('Processing OAuth token from URL:', token.substring(0, 20) + '...');
-
-      // Store the new token
-      authStorage.setToken(token);
-
-      console.log('New OAuth token stored successfully');
-
-      // Clear the URL parameters and redirect to dashboard
-      window.history.replaceState({}, document.title, '/dashboard');
-      setLocation('/dashboard');
-      return;
-    }
-  }, [setLocation]);
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
-    <ErrorBoundary>
+    <Switch>
+      <SignedOut>
+        <Route path="/" component={LandingPage} />
+        <Route path="/customer-login/:stationId" component={CustomerLogin} />
+        <Route component={LandingPage} />
+      </SignedOut>
+      <SignedIn>
+        <AuthenticatedRoutes />
+      </SignedIn>
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <ClerkProvider publishableKey={import.meta.env.VITE_NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <ErrorBoundary>
+            <div className="min-h-screen bg-background">
+              <Router />
+              <Toaster />
+            </div>
+          </ErrorBoundary>
         </TooltipProvider>
       </QueryClientProvider>
-    </ErrorBoundary>
+    </ClerkProvider>
   );
 }
 
