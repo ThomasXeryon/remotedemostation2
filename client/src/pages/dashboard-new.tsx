@@ -1,10 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Monitor, Settings, Play, Clock, Users, AlertTriangle } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  Chip,
+  Button,
+  Alert,
+  Grid,
+  Box,
+  CircularProgress,
+  Stack,
+  IconButton,
+} from "@mui/material";
+import {
+  Monitor,
+  Settings,
+  PlayArrow,
+  Schedule,
+  People,
+  Warning,
+  Add,
+} from "@mui/icons-material";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { useUser } from "@clerk/clerk-react";
@@ -49,9 +67,9 @@ export function Dashboard() {
 
   if (!isLoaded || isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Box display="flex" alignItems="center" justifyContent="center" height="256px">
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -59,26 +77,32 @@ export function Dashboard() {
     console.error('Dashboard error:', error);
 
     return (
-      <div className="flex-1 space-y-6 p-6">
-        <div className="flex justify-between items-start">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Demo Station Dashboard</h1>
-            <p className="text-muted-foreground">Overview of available demo stations</p>
-          </div>
-        </div>
+      <Box sx={{ p: 3, space: 3 }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h3" component="h1" fontWeight="bold" gutterBottom>
+            Demo Station Dashboard
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Overview of available demo stations
+          </Typography>
+        </Box>
         <Card>
-          <CardContent className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
-              <h3 className="text-lg font-medium mb-2">Unable to Load Dashboard</h3>
-              <p className="text-muted-foreground mb-4">
+          <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '256px' }}>
+            <Box textAlign="center">
+              <Warning sx={{ fontSize: 48, color: 'error.main', mb: 2 }} />
+              <Typography variant="h6" component="h3" fontWeight="medium" gutterBottom>
+                Unable to Load Dashboard
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Error: {error.message || 'There was an error loading the demo stations.'}
-              </p>
-              <Button onClick={() => refetch()}>Try Again</Button>
-            </div>
+              </Typography>
+              <Button variant="contained" onClick={() => refetch()}>
+                Try Again
+              </Button>
+            </Box>
           </CardContent>
         </Card>
-      </div>
+      </Box>
     );
   }
 
@@ -97,99 +121,144 @@ export function Dashboard() {
   });
 
   return (
-    <div className="flex-1 space-y-6 p-6">
+    <Box sx={{ p: 3 }}>
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Demo Station Dashboard</h1>
-          <p className="text-muted-foreground">Overview of available demo stations</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline">
-            {stations.length} Station{stations.length !== 1 ? 's' : ''}
-          </Badge>
-        </div>
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
+        <Box>
+          <Typography variant="h3" component="h1" fontWeight="bold" gutterBottom>
+            Demo Station Dashboard
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Overview of available demo stations
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip 
+            label={`${stations.length} Station${stations.length !== 1 ? 's' : ''}`}
+            variant="outlined"
+            color="primary"
+          />
+        </Box>
+      </Box>
 
       {/* Station Cards */}
       {stations.length === 0 ? (
         <Card>
-          <CardContent className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <Monitor className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-medium mb-2">No Demo Stations Available</h3>
-              <p className="text-muted-foreground">Contact your administrator to create demo stations.</p>
-            </div>
+          <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '256px' }}>
+            <Box textAlign="center">
+              <Monitor sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" component="h3" fontWeight="medium" gutterBottom>
+                No Demo Stations Available
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Contact your administrator to create demo stations.
+              </Typography>
+            </Box>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Grid container spacing={3}>
           {stations.map((station) => (
-            <Card key={station.id} className={`hover:shadow-lg transition-shadow ${!station.isOnline ? 'opacity-75' : ''}`}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center space-x-2">
-                    <Monitor className="w-5 h-5" />
-                    <span>{station.name}</span>
-                  </CardTitle>
-                  <Badge variant={station.isOnline ? "default" : "destructive"}>
-                    {station.isOnline ? "Enabled" : "Disabled"}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!station.isOnline && (
-                  <Alert className="border-orange-200 bg-orange-50">
-                    <AlertTriangle className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-orange-800 text-sm">
-                      Station offline
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {station.description || "No description available"}
-                </p>
+            <Grid item xs={12} md={6} lg={4} key={station.id}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  opacity: station.isOnline ? 1 : 0.75,
+                  '&:hover': { 
+                    boxShadow: 4,
+                    transform: 'translateY(-2px)',
+                    transition: 'all 0.2s ease-in-out'
+                  }
+                }}
+              >
+                <CardHeader 
+                  title={
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Monitor />
+                      <Typography variant="h6" component="span">
+                        {station.name}
+                      </Typography>
+                    </Stack>
+                  }
+                  action={
+                    <Chip
+                      label={station.isOnline ? "Online" : "Offline"}
+                      color={station.isOnline ? "success" : "error"}
+                      size="small"
+                    />
+                  }
+                />
+                <CardContent sx={{ pt: 0 }}>
+                  <Stack spacing={2}>
+                    {!station.isOnline && (
+                      <Alert severity="warning" size="small">
+                        Station offline
+                      </Alert>
+                    )}
+                    
+                    <Typography variant="body2" color="text.secondary">
+                      {station.description || "No description available"}
+                    </Typography>
 
-                {/* Station Stats */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Monitor className="w-4 h-4 text-muted-foreground" />
-                    <span>{station.cameraCount} Camera{station.cameraCount !== 1 ? 's' : ''}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span>{station.sessionTimeLimit}min Sessions</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                    <span>{station.requiresLogin ? "Login Required" : "Open Access"}</span>
-                  </div>
-                </div>
+                    {/* Station Stats */}
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Monitor fontSize="small" color="action" />
+                          <Typography variant="body2">
+                            {station.cameraCount} Camera{station.cameraCount !== 1 ? 's' : ''}
+                          </Typography>
+                        </Stack>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Schedule fontSize="small" color="action" />
+                          <Typography variant="body2">
+                            {station.sessionTimeLimit}min Sessions
+                          </Typography>
+                        </Stack>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <People fontSize="small" color="action" />
+                          <Typography variant="body2">
+                            {station.requiresLogin ? "Login Required" : "Open Access"}
+                          </Typography>
+                        </Stack>
+                      </Grid>
+                    </Grid>
 
-                {/* Action Buttons */}
-                <div className="flex space-x-2 pt-2">
-                  <Link href={`/stations/${station.id}/control`}>
-                    <Button 
-                      size="sm" 
-                      className="flex-1"
-                      disabled={!station.isOnline}
-                    >
-                      <Play className="w-4 h-4 mr-1" />
-                      Control
-                    </Button>
-                  </Link>
-                  <Link href={`/stations/${station.id}/edit`}>
-                    <Button size="sm" variant="outline">
-                      <Settings className="w-4 h-4 mr-1" />
-                      Edit
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                    {/* Action Buttons */}
+                    <Stack direction="row" spacing={1} sx={{ pt: 1 }}>
+                      <Link href={`/stations/${station.id}/control`}>
+                        <Button 
+                          size="small" 
+                          variant="contained"
+                          fullWidth
+                          disabled={!station.isOnline}
+                          startIcon={<PlayArrow />}
+                        >
+                          Control
+                        </Button>
+                      </Link>
+                      <Link href={`/stations/${station.id}/edit`}>
+                        <Button 
+                          size="small" 
+                          variant="outlined"
+                          fullWidth
+                          startIcon={<Settings />}
+                        >
+                          Edit
+                        </Button>
+                      </Link>
+                    </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
+        </Grid>
       )}
-    </div>
+    </Box>
   );
 }
